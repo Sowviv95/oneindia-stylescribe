@@ -84,3 +84,21 @@ CREATE TABLE IF NOT EXISTS grounded_briefs (
     warnings_json TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS article_drafts (
+    draft_id TEXT PRIMARY KEY,
+    author_id TEXT NOT NULL,
+    profile_id TEXT NOT NULL,
+    brief_id TEXT NOT NULL,
+    target_language TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    author_instruction TEXT,
+    draft_json TEXT NOT NULL,
+    warnings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(author_id) REFERENCES authors(author_id),
+    FOREIGN KEY(profile_id) REFERENCES author_style_profiles(profile_id),
+    FOREIGN KEY(brief_id) REFERENCES grounded_briefs(brief_id)
+);

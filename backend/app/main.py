@@ -5,6 +5,10 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 
 from backend.app.db.repository import StyleScribeRepository
+from backend.app.models.article_draft_models import (
+    ArticleDraftRequest,
+    ArticleDraftResponse,
+)
 from backend.app.models.grounded_brief_models import (
     GroundedBriefRequest,
     GroundedBriefResponse,
@@ -21,6 +25,11 @@ from backend.app.models.response_models import (
 )
 from backend.app.models.style_models import AuthorStyleSnapshotResponse
 from backend.app.models.style_profile_models import AuthorStyleProfileResponse
+from backend.app.services.article_generation_service import (
+    ArticleGenerationError,
+    generate_article_draft,
+    get_article_draft,
+)
 from backend.app.services.author_ingestion_service import ingest_author_samples
 from backend.app.services.author_style_profile_service import (
     AuthorStyleProfileError,
@@ -176,4 +185,31 @@ def read_grounded_brief(brief_id: str) -> GroundedBriefResponse:
     try:
         return get_grounded_brief(brief_id)
     except GroundedBriefError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/drafts/article", response_model=ArticleDraftResponse)
+def create_article_draft(request: ArticleDraftRequest) -> ArticleDraftResponse:
+    """Generate and save a controlled Tamil article draft."""
+
+    try:
+        return generate_article_draft(
+            author_id=request.author_id,
+            brief_id=request.brief_id,
+            author_instruction=request.author_instruction,
+            target_language=request.target_language,
+        )
+    except ArticleGenerationError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OpenAIClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.get("/drafts/{draft_id}", response_model=ArticleDraftResponse)
+def read_article_draft(draft_id: str) -> ArticleDraftResponse:
+    """Return a saved article draft."""
+
+    try:
+        return get_article_draft(draft_id)
+    except ArticleGenerationError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -163,6 +163,30 @@ python -m backend.app.scripts.review_grounded_brief --brief-id <brief_id>
 
 See [docs/grounded_briefs.md](docs/grounded_briefs.md).
 
+## Article Drafts
+
+Sprint 6 generates the first controlled Tamil article draft using OpenAI, the
+latest author style profile, and a saved grounded brief.
+
+```powershell
+curl -X POST http://127.0.0.1:8000/drafts/article `
+  -H "Content-Type: application/json" `
+  -d '{
+    "author_id": "v_vasanthi",
+    "brief_id": "<saved_brief_id>",
+    "author_instruction": "Write this as a 500-word Tamil news article in the author's style.",
+    "target_language": "ta"
+  }'
+```
+
+Review a saved draft:
+
+```powershell
+python -m backend.app.scripts.review_article_draft --draft-id <draft_id>
+```
+
+See [docs/article_drafts.md](docs/article_drafts.md).
+
 ## Sample Data
 
 Sample author articles may exist locally under `sample_data`. The

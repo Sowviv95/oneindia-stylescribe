@@ -130,6 +130,22 @@ class GroundedBriefRecord:
     created_at: str
 
 
+@dataclass(frozen=True)
+class ArticleDraftRecord:
+    draft_id: str
+    author_id: str
+    profile_id: str
+    brief_id: str
+    target_language: str
+    model_provider: str
+    model_name: str
+    status: str
+    author_instruction: str | None
+    draft_json: str
+    warnings_json: str
+    created_at: str
+
+
 class StyleScribeRepository:
     """SQLite repository for authors, articles, and ingestion runs."""
 
@@ -437,6 +453,70 @@ class StyleScribeRepository:
 
         return self._map_grounded_brief(row) if row else None
 
+    def save_article_draft(self, draft: ArticleDraftRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO article_drafts (
+                    draft_id, author_id, profile_id, brief_id, target_language,
+                    model_provider, model_name, status, author_instruction,
+                    draft_json, warnings_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    draft.draft_id,
+                    draft.author_id,
+                    draft.profile_id,
+                    draft.brief_id,
+                    draft.target_language,
+                    draft.model_provider,
+                    draft.model_name,
+                    draft.status,
+                    draft.author_instruction,
+                    draft.draft_json,
+                    draft.warnings_json,
+                    draft.created_at,
+                ),
+            )
+
+    def fetch_article_draft(self, draft_id: str) -> ArticleDraftRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    draft_id, author_id, profile_id, brief_id, target_language,
+                    model_provider, model_name, status, author_instruction,
+                    draft_json, warnings_json, created_at
+                FROM article_drafts
+                WHERE draft_id = ?
+                """,
+                (draft_id,),
+            ).fetchone()
+
+        return self._map_article_draft(row) if row else None
+
+    def fetch_latest_article_draft_for_author(
+        self,
+        author_id: str,
+    ) -> ArticleDraftRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    draft_id, author_id, profile_id, brief_id, target_language,
+                    model_provider, model_name, status, author_instruction,
+                    draft_json, warnings_json, created_at
+                FROM article_drafts
+                WHERE author_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (author_id,),
+            ).fetchone()
+
+        return self._map_article_draft(row) if row else None
+
     @staticmethod
     def encode_warnings(warnings: list[str]) -> str:
         return json.dumps(warnings, ensure_ascii=False)
@@ -532,6 +612,23 @@ class StyleScribeRepository:
             model_name=str(row["model_name"]),
             status=str(row["status"]),
             brief_json=str(row["brief_json"]),
+            warnings_json=str(row["warnings_json"]),
+            created_at=str(row["created_at"]),
+        )
+
+    @staticmethod
+    def _map_article_draft(row: sqlite3.Row) -> ArticleDraftRecord:
+        return ArticleDraftRecord(
+            draft_id=str(row["draft_id"]),
+            author_id=str(row["author_id"]),
+            profile_id=str(row["profile_id"]),
+            brief_id=str(row["brief_id"]),
+            target_language=str(row["target_language"]),
+            model_provider=str(row["model_provider"]),
+            model_name=str(row["model_name"]),
+            status=str(row["status"]),
+            author_instruction=row["author_instruction"],
+            draft_json=str(row["draft_json"]),
             warnings_json=str(row["warnings_json"]),
             created_at=str(row["created_at"]),
         )
