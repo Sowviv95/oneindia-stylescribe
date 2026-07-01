@@ -39,3 +39,16 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
     started_at TEXT NOT NULL,
     completed_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS author_style_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    author_id TEXT NOT NULL,
+    article_count INTEGER NOT NULL,
+    language TEXT NOT NULL,
+    status TEXT NOT NULL,
+    stats_json TEXT NOT NULL,
+    excerpt_pack_json TEXT NOT NULL,
+    warnings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(author_id) REFERENCES authors(author_id)
+);

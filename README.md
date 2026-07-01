@@ -93,6 +93,25 @@ curl http://127.0.0.1:8000/authors/v_vasanthi/articles
 See [docs/ingestion.md](docs/ingestion.md) for details and metadata matching
 limitations.
 
+## Deterministic Style Snapshots
+
+After an author's articles are ingested, build an LLM-ready deterministic style
+snapshot:
+
+```powershell
+curl -X POST http://127.0.0.1:8000/authors/v_vasanthi/style-snapshot
+```
+
+Fetch the latest stored snapshot:
+
+```powershell
+curl http://127.0.0.1:8000/authors/v_vasanthi/style-snapshot/latest
+```
+
+The snapshot contains measurable style statistics and bounded excerpts only. It
+does not call any LLM or generate a final author style profile. See
+[docs/style_snapshots.md](docs/style_snapshots.md).
+
 ## Sample Data
 
 Sample author articles may exist locally under `sample_data`. The

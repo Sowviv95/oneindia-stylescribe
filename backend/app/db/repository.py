@@ -67,6 +67,37 @@ class ArticleListItem:
     url: str | None
 
 
+@dataclass(frozen=True)
+class ArticleForAnalysis:
+    article_id: str
+    author_id: str
+    filename: str
+    title: str | None
+    heading: str | None
+    url: str | None
+    category: str | None
+    tags: str | None
+    keywords: str | None
+    meta_description: str | None
+    added_date: str | None
+    content_from_metadata: str | None
+    extracted_text: str
+    text_char_count: int
+
+
+@dataclass(frozen=True)
+class StyleSnapshotRecord:
+    snapshot_id: str
+    author_id: str
+    article_count: int
+    language: str
+    status: str
+    stats_json: str
+    excerpt_pack_json: str
+    warnings_json: str
+    created_at: str
+
+
 class StyleScribeRepository:
     """SQLite repository for authors, articles, and ingestion runs."""
 
@@ -174,9 +205,96 @@ class StyleScribeRepository:
 
         return [self._map_article_list_item(row) for row in rows]
 
+    def fetch_articles_for_analysis(
+        self,
+        author_id: str,
+    ) -> list[ArticleForAnalysis]:
+        with get_connection(self.db_path) as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    article_id, author_id, filename, title, heading, url,
+                    category, tags, keywords, meta_description, added_date,
+                    content_from_metadata, extracted_text, text_char_count
+                FROM author_articles
+                WHERE author_id = ?
+                ORDER BY filename
+                """,
+                (author_id,),
+            ).fetchall()
+
+        return [self._map_article_for_analysis(row) for row in rows]
+
+    def fetch_author_language(self, author_id: str) -> str | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                "SELECT language FROM authors WHERE author_id = ?",
+                (author_id,),
+            ).fetchone()
+        return str(row["language"]) if row else None
+
+    def save_style_snapshot(self, snapshot: StyleSnapshotRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO author_style_snapshots (
+                    snapshot_id, author_id, article_count, language, status,
+                    stats_json, excerpt_pack_json, warnings_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    snapshot.snapshot_id,
+                    snapshot.author_id,
+                    snapshot.article_count,
+                    snapshot.language,
+                    snapshot.status,
+                    snapshot.stats_json,
+                    snapshot.excerpt_pack_json,
+                    snapshot.warnings_json,
+                    snapshot.created_at,
+                ),
+            )
+
+    def fetch_latest_style_snapshot(
+        self,
+        author_id: str,
+    ) -> StyleSnapshotRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    snapshot_id, author_id, article_count, language, status,
+                    stats_json, excerpt_pack_json, warnings_json, created_at
+                FROM author_style_snapshots
+                WHERE author_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (author_id,),
+            ).fetchone()
+
+        return self._map_style_snapshot(row) if row else None
+
     @staticmethod
     def encode_warnings(warnings: list[str]) -> str:
         return json.dumps(warnings, ensure_ascii=False)
+
+    @staticmethod
+    def encode_json(value: object) -> str:
+        return json.dumps(value, ensure_ascii=False)
+
+    @staticmethod
+    def decode_json_object(value: str) -> dict[str, object]:
+        decoded = json.loads(value)
+        return decoded if isinstance(decoded, dict) else {}
+
+    @staticmethod
+    def decode_json_list(value: str) -> list[str]:
+        decoded = json.loads(value)
+        if not isinstance(decoded, list):
+            return []
+        return [str(item) for item in decoded]
 
     @staticmethod
     def _map_article_list_item(row: sqlite3.Row) -> ArticleListItem:
@@ -188,4 +306,37 @@ class StyleScribeRepository:
             category=row["category"],
             text_char_count=int(row["text_char_count"]),
             url=row["url"],
+        )
+
+    @staticmethod
+    def _map_article_for_analysis(row: sqlite3.Row) -> ArticleForAnalysis:
+        return ArticleForAnalysis(
+            article_id=str(row["article_id"]),
+            author_id=str(row["author_id"]),
+            filename=str(row["filename"]),
+            title=row["title"],
+            heading=row["heading"],
+            url=row["url"],
+            category=row["category"],
+            tags=row["tags"],
+            keywords=row["keywords"],
+            meta_description=row["meta_description"],
+            added_date=row["added_date"],
+            content_from_metadata=row["content_from_metadata"],
+            extracted_text=str(row["extracted_text"]),
+            text_char_count=int(row["text_char_count"]),
+        )
+
+    @staticmethod
+    def _map_style_snapshot(row: sqlite3.Row) -> StyleSnapshotRecord:
+        return StyleSnapshotRecord(
+            snapshot_id=str(row["snapshot_id"]),
+            author_id=str(row["author_id"]),
+            article_count=int(row["article_count"]),
+            language=str(row["language"]),
+            status=str(row["status"]),
+            stats_json=str(row["stats_json"]),
+            excerpt_pack_json=str(row["excerpt_pack_json"]),
+            warnings_json=str(row["warnings_json"]),
+            created_at=str(row["created_at"]),
         )

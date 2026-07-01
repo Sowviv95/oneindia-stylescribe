@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from backend.app.db.repository import StyleScribeRepository
 from backend.app.models.ingestion_models import (
@@ -15,8 +15,14 @@ from backend.app.models.response_models import (
     ArticleGenerationStubResponse,
     HealthResponse,
 )
+from backend.app.models.style_models import AuthorStyleSnapshotResponse
 from backend.app.services.author_ingestion_service import ingest_author_samples
 from backend.app.services.generation_service import build_stub_generation_response
+from backend.app.services.style_snapshot_service import (
+    AuthorStyleSnapshotError,
+    build_author_style_snapshot,
+    get_latest_author_style_snapshot,
+)
 
 app = FastAPI(title="StyleScribe API")
 
@@ -72,3 +78,29 @@ def list_author_articles(author_id: str) -> list[ArticleListResponseItem]:
         )
         for article in repository.list_articles_for_author(author_id)
     ]
+
+
+@app.post(
+    "/authors/{author_id}/style-snapshot",
+    response_model=AuthorStyleSnapshotResponse,
+)
+def create_author_style_snapshot(author_id: str) -> AuthorStyleSnapshotResponse:
+    """Build and store a deterministic style snapshot for an author."""
+
+    try:
+        return build_author_style_snapshot(author_id)
+    except AuthorStyleSnapshotError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get(
+    "/authors/{author_id}/style-snapshot/latest",
+    response_model=AuthorStyleSnapshotResponse,
+)
+def latest_author_style_snapshot(author_id: str) -> AuthorStyleSnapshotResponse:
+    """Return the latest deterministic style snapshot for an author."""
+
+    try:
+        return get_latest_author_style_snapshot(author_id)
+    except AuthorStyleSnapshotError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
