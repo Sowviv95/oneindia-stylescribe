@@ -141,6 +141,10 @@ class ArticleDraftRecord:
     model_name: str
     status: str
     author_instruction: str | None
+    article_type: str | None
+    desired_word_count: int | None
+    tone_override: str | None
+    include_seo: bool
     draft_json: str
     warnings_json: str
     created_at: str
@@ -156,6 +160,7 @@ class StyleScribeRepository:
         schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
         with get_connection(self.db_path) as connection:
             connection.executescript(schema_sql)
+            self._ensure_article_draft_columns(connection)
 
     def upsert_author(self, author: AuthorRecord) -> None:
         with get_connection(self.db_path) as connection:
@@ -460,9 +465,10 @@ class StyleScribeRepository:
                 INSERT INTO article_drafts (
                     draft_id, author_id, profile_id, brief_id, target_language,
                     model_provider, model_name, status, author_instruction,
+                    article_type, desired_word_count, tone_override, include_seo,
                     draft_json, warnings_json, created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     draft.draft_id,
@@ -474,6 +480,10 @@ class StyleScribeRepository:
                     draft.model_name,
                     draft.status,
                     draft.author_instruction,
+                    draft.article_type,
+                    draft.desired_word_count,
+                    draft.tone_override,
+                    int(draft.include_seo),
                     draft.draft_json,
                     draft.warnings_json,
                     draft.created_at,
@@ -487,6 +497,7 @@ class StyleScribeRepository:
                 SELECT
                     draft_id, author_id, profile_id, brief_id, target_language,
                     model_provider, model_name, status, author_instruction,
+                    article_type, desired_word_count, tone_override, include_seo,
                     draft_json, warnings_json, created_at
                 FROM article_drafts
                 WHERE draft_id = ?
@@ -506,6 +517,7 @@ class StyleScribeRepository:
                 SELECT
                     draft_id, author_id, profile_id, brief_id, target_language,
                     model_provider, model_name, status, author_instruction,
+                    article_type, desired_word_count, tone_override, include_seo,
                     draft_json, warnings_json, created_at
                 FROM article_drafts
                 WHERE author_id = ?
@@ -628,7 +640,30 @@ class StyleScribeRepository:
             model_name=str(row["model_name"]),
             status=str(row["status"]),
             author_instruction=row["author_instruction"],
+            article_type=row["article_type"],
+            desired_word_count=row["desired_word_count"],
+            tone_override=row["tone_override"],
+            include_seo=bool(row["include_seo"]),
             draft_json=str(row["draft_json"]),
             warnings_json=str(row["warnings_json"]),
             created_at=str(row["created_at"]),
         )
+
+    @staticmethod
+    def _ensure_article_draft_columns(connection: sqlite3.Connection) -> None:
+        rows = connection.execute("PRAGMA table_info(article_drafts)").fetchall()
+        existing_columns = {str(row["name"]) for row in rows}
+        migrations = {
+            "article_type": "ALTER TABLE article_drafts ADD COLUMN article_type TEXT",
+            "desired_word_count": (
+                "ALTER TABLE article_drafts ADD COLUMN desired_word_count INTEGER"
+            ),
+            "tone_override": "ALTER TABLE article_drafts ADD COLUMN tone_override TEXT",
+            "include_seo": (
+                "ALTER TABLE article_drafts ADD COLUMN include_seo INTEGER "
+                "NOT NULL DEFAULT 1"
+            ),
+        }
+        for column_name, sql in migrations.items():
+            if column_name not in existing_columns:
+                connection.execute(sql)

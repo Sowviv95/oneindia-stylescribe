@@ -9,5 +9,6 @@ node_modules/
 dist/
 data/
 data/*.db
+review_outputs/
 sample_data/raw/
 sample_data/extracted/

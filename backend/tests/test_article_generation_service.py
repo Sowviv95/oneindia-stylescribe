@@ -31,8 +31,12 @@ def test_generate_article_draft_saves_to_sqlite(tmp_path: Path) -> None:
     assert response.draft_id
     assert response.profile_id == "profile-1"
     assert response.brief_id == "brief-1"
+    assert response.article_type == "news"
+    assert response.desired_word_count == 600
+    assert response.include_seo is True
     assert response.draft["headline"] == "சென்னையில் வெள்ள எச்சரிக்கை முயற்சி"
     assert saved is not None
+    assert saved.article_type == "news"
 
 
 def test_missing_style_profile_error(tmp_path: Path) -> None:
@@ -88,10 +92,24 @@ def test_prompt_input_separates_style_and_facts(tmp_path: Path) -> None:
     assert profile is not None
     assert brief is not None
 
-    payload = build_article_generation_input(profile, brief, None, "ta")
+    payload = build_article_generation_input(
+        profile_record=profile,
+        brief_record=brief,
+        author_instruction=None,
+        target_language="ta",
+        article_type="public_interest",
+        desired_word_count=700,
+        tone_override="measured public-interest",
+        include_seo=True,
+    )
 
     assert "style_profile_for_voice_only" in payload
     assert "grounded_brief_for_facts_only" in payload
+    assert "public_interest" in payload
+    assert "700" in payload
+    assert "measured public-interest" in payload
+    assert "outside knowledge" in payload
+    assert "style_adaptation_rule" in payload
     assert "FULL_AUTHOR_SAMPLE_CORPUS" not in payload
     assert "FULL_SOURCE_ARTICLE_TEXT" not in payload
 
@@ -106,8 +124,11 @@ class MockDraftClient:
         user_payload: str,
     ) -> dict[str, object]:
         assert "Use only the grounded brief for facts" in system_prompt
+        assert "Use the author style profile as a writing influence" in system_prompt
         assert "style_profile_for_voice_only" in user_payload
         assert "grounded_brief_for_facts_only" in user_payload
+        assert "desired_word_count" in user_payload
+        assert "article_type" in user_payload
         return {
             "headline": "சென்னையில் வெள்ள எச்சரிக்கை முயற்சி",
             "subheadline": "மூன்று பகுதிகளில் அடுத்த மாதம் தொடங்குகிறது.",

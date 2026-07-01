@@ -44,6 +44,10 @@ def generate_article_draft(
     brief_id: str,
     author_instruction: str | None = None,
     target_language: str = "ta",
+    article_type: str | None = None,
+    desired_word_count: int | None = None,
+    tone_override: str | None = None,
+    include_seo: bool = True,
     repository: StyleScribeRepository | None = None,
     model_client: StructuredJsonClient | None = None,
 ) -> ArticleDraftResponse:
@@ -62,7 +66,14 @@ def generate_article_draft(
         message = f"No grounded brief found for brief_id: {brief_id}"
         raise ArticleGenerationError(message)
 
-    warnings = _build_warnings(profile_record, brief_record, target_language)
+    resolved_article_type = article_type or "news"
+    resolved_word_count = desired_word_count or 600
+    warnings = _build_warnings(
+        profile_record=profile_record,
+        brief_record=brief_record,
+        target_language=target_language,
+        desired_word_count=resolved_word_count,
+    )
     draft_client = model_client or OpenAIJsonClient(
         missing_key_message="OPENAI_API_KEY is required for article draft generation."
     )
@@ -72,6 +83,10 @@ def generate_article_draft(
         brief_record=brief_record,
         author_instruction=author_instruction,
         target_language=target_language,
+        article_type=resolved_article_type,
+        desired_word_count=resolved_word_count,
+        tone_override=tone_override,
+        include_seo=include_seo,
     )
 
     try:
@@ -92,6 +107,10 @@ def generate_article_draft(
         model_name=draft_client.model_name,
         status="completed",
         author_instruction=author_instruction,
+        article_type=resolved_article_type,
+        desired_word_count=resolved_word_count,
+        tone_override=tone_override,
+        include_seo=include_seo,
         draft_json=StyleScribeRepository.encode_json(draft),
         warnings_json=StyleScribeRepository.encode_warnings(warnings),
         created_at=created_at,
@@ -123,11 +142,19 @@ def build_article_generation_input(
     brief_record: GroundedBriefRecord,
     author_instruction: str | None,
     target_language: str,
+    article_type: str = "news",
+    desired_word_count: int = 600,
+    tone_override: str | None = None,
+    include_seo: bool = True,
 ) -> str:
     """Build explicitly separated style/fact input for the model."""
 
     payload = {
         "target_language": target_language,
+        "article_type": article_type,
+        "desired_word_count": desired_word_count,
+        "tone_override": tone_override,
+        "include_seo": include_seo,
         "author_instruction": author_instruction,
         "style_profile_for_voice_only": {
             "profile_id": profile_record.profile_id,
@@ -148,6 +175,14 @@ def build_article_generation_input(
             "Use style_profile_for_voice_only only for tone and writing style. "
             "Use grounded_brief_for_facts_only as the only factual source."
         ),
+        "grounding_rule": (
+            "Facts must come only from grounded_brief_for_facts_only. Do not use "
+            "outside knowledge or facts from author samples/style profile."
+        ),
+        "style_adaptation_rule": (
+            "Use the author style profile as writing influence, not a fixed "
+            "emotional template. Adapt tone to article_type and topic."
+        ),
     }
     return json.dumps(payload, ensure_ascii=False)
 
@@ -156,6 +191,7 @@ def _build_warnings(
     profile_record: AuthorStyleProfileRecord,
     brief_record: GroundedBriefRecord,
     target_language: str,
+    desired_word_count: int,
 ) -> list[str]:
     warnings: list[str] = []
     profile_warnings = StyleScribeRepository.decode_json_list(
@@ -167,6 +203,13 @@ def _build_warnings(
     if target_language != "ta":
         warnings.append(
             "MVP article draft generation is Tamil-focused; target_language is not ta."
+        )
+    brief = StyleScribeRepository.decode_json_object(brief_record.brief_json)
+    confirmed_facts = brief.get("confirmed_facts")
+    fact_count = len(confirmed_facts) if isinstance(confirmed_facts, list) else 0
+    if desired_word_count >= 800 and fact_count < 5:
+        warnings.append(
+            "Grounded brief may be too thin to support a long article without padding."
         )
     return warnings
 
@@ -185,6 +228,10 @@ def _draft_response(
         model_provider=record.model_provider,
         model_name=record.model_name,
         status=record.status,
+        article_type=record.article_type,
+        desired_word_count=record.desired_word_count,
+        tone_override=record.tone_override,
+        include_seo=record.include_seo,
         draft=draft,
         warnings=warnings,
         created_at=record.created_at,

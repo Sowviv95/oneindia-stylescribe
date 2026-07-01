@@ -10,6 +10,10 @@ class ArticleDraftRequest(BaseModel):
     brief_id: str = Field(..., min_length=1)
     author_instruction: str | None = Field(default=None)
     target_language: str = Field(default="ta", min_length=1)
+    article_type: str | None = Field(default=None)
+    desired_word_count: int | None = Field(default=None, ge=250, le=1200)
+    tone_override: str | None = Field(default=None)
+    include_seo: bool = Field(default=True)
 
 
 class ArticleDraftSummary(BaseModel):
@@ -21,6 +25,10 @@ class ArticleDraftSummary(BaseModel):
     model_provider: str
     model_name: str
     status: str
+    article_type: str | None = None
+    desired_word_count: int | None = None
+    tone_override: str | None = None
+    include_seo: bool = True
     created_at: str
 
 

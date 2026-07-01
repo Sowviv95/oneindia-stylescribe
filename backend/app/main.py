@@ -198,6 +198,10 @@ def create_article_draft(request: ArticleDraftRequest) -> ArticleDraftResponse:
             brief_id=request.brief_id,
             author_instruction=request.author_instruction,
             target_language=request.target_language,
+            article_type=request.article_type,
+            desired_word_count=request.desired_word_count,
+            tone_override=request.tone_override,
+            include_seo=request.include_seo,
         )
     except ArticleGenerationError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

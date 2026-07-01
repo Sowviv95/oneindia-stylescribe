@@ -175,7 +175,11 @@ curl -X POST http://127.0.0.1:8000/drafts/article `
     "author_id": "v_vasanthi",
     "brief_id": "<saved_brief_id>",
     "author_instruction": "Write this as a 500-word Tamil news article in the author's style.",
-    "target_language": "ta"
+    "target_language": "ta",
+    "article_type": "public_interest",
+    "desired_word_count": 600,
+    "tone_override": "measured public-interest",
+    "include_seo": true
   }'
 ```
 
@@ -183,9 +187,11 @@ Review a saved draft:
 
 ```powershell
 python -m backend.app.scripts.review_article_draft --draft-id <draft_id>
+python -m backend.app.scripts.review_article_draft --draft-id <draft_id> --format html --output review_outputs/draft_review.html
 ```
 
-See [docs/article_drafts.md](docs/article_drafts.md).
+Use Markdown/HTML export when Windows terminal rendering makes Tamil hard to
+read. See [docs/article_drafts.md](docs/article_drafts.md).
 
 ## Sample Data
 

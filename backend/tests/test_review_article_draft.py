@@ -22,6 +22,10 @@ def test_review_article_draft_helper_output(
         model_name="gpt-4o-mini",
         status="completed",
         author_instruction=None,
+        article_type="public_interest",
+        desired_word_count=600,
+        tone_override="measured public-interest",
+        include_seo=True,
         draft_json=StyleScribeRepository.encode_json(
             {
                 "headline": "தலைப்பு",
@@ -111,6 +115,10 @@ def test_review_article_draft_helper_output(
             model_provider=draft.model_provider,
             model_name=draft.model_name,
             status=draft.status,
+            article_type=draft.article_type,
+            desired_word_count=draft.desired_word_count,
+            tone_override=draft.tone_override,
+            include_seo=draft.include_seo,
             draft=StyleScribeRepository.decode_json_object(draft.draft_json),
             warnings=[],
             created_at=draft.created_at,
