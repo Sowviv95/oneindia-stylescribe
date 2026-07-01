@@ -5,6 +5,10 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 
 from backend.app.db.repository import StyleScribeRepository
+from backend.app.models.grounded_brief_models import (
+    GroundedBriefRequest,
+    GroundedBriefResponse,
+)
 from backend.app.models.ingestion_models import (
     ArticleListResponseItem,
     AuthorIngestionRequest,
@@ -24,7 +28,13 @@ from backend.app.services.author_style_profile_service import (
     get_latest_author_style_profile,
 )
 from backend.app.services.generation_service import build_stub_generation_response
+from backend.app.services.grounded_brief_service import (
+    GroundedBriefError,
+    generate_grounded_brief,
+    get_grounded_brief,
+)
 from backend.app.services.model_clients.openai_client import OpenAIClientError
+from backend.app.services.source_processor import SourceProcessingError
 from backend.app.services.style_snapshot_service import (
     AuthorStyleSnapshotError,
     build_author_style_snapshot,
@@ -138,4 +148,32 @@ def latest_author_style_profile(author_id: str) -> AuthorStyleProfileResponse:
     try:
         return get_latest_author_style_profile(author_id)
     except AuthorStyleProfileError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/briefs/grounded", response_model=GroundedBriefResponse)
+def create_grounded_brief(request: GroundedBriefRequest) -> GroundedBriefResponse:
+    """Generate and save a grounded factual brief."""
+
+    try:
+        return generate_grounded_brief(
+            source_type=request.source_type,
+            source_input=request.source_input,
+            target_language=request.target_language,
+        )
+    except SourceProcessingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except GroundedBriefError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except OpenAIClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.get("/briefs/{brief_id}", response_model=GroundedBriefResponse)
+def read_grounded_brief(brief_id: str) -> GroundedBriefResponse:
+    """Return a saved grounded factual brief."""
+
+    try:
+        return get_grounded_brief(brief_id)
+    except GroundedBriefError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

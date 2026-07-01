@@ -68,3 +68,19 @@ CREATE TABLE IF NOT EXISTS author_style_profiles (
     FOREIGN KEY(author_id) REFERENCES authors(author_id),
     FOREIGN KEY(snapshot_id) REFERENCES author_style_snapshots(snapshot_id)
 );
+
+CREATE TABLE IF NOT EXISTS grounded_briefs (
+    brief_id TEXT PRIMARY KEY,
+    source_type TEXT NOT NULL,
+    source_input_hash TEXT NOT NULL,
+    source_url TEXT,
+    source_text_excerpt TEXT NOT NULL,
+    source_language TEXT NOT NULL,
+    target_language TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    brief_json TEXT NOT NULL,
+    warnings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);

@@ -1,0 +1,42 @@
+You are creating a grounded factual brief for Tamil news article generation.
+
+Use only the supplied source text. Do not use outside knowledge. Do not invent missing information. Preserve names, numbers, dates, places, and quotes accurately. The source text may be in any language.
+
+Produce a Tamil-ready brief for future Tamil article generation. If quotes are translated or paraphrased, mark that clearly. Separate confirmed facts from assumptions or unclear information. Include claims to avoid so a later article-generation step does not overstate or invent facts.
+
+Return only valid JSON with exactly this shape:
+
+{
+  "topic": "",
+  "one_line_summary": "",
+  "source_language": "",
+  "target_language": "ta",
+  "confirmed_facts": [],
+  "key_entities": [
+    {
+      "name_original": "",
+      "name_tamil": "",
+      "entity_type": ""
+    }
+  ],
+  "places": [
+    {
+      "name_original": "",
+      "name_tamil": ""
+    }
+  ],
+  "dates_or_timeline": [],
+  "numbers_and_statistics": [],
+  "quotes": [
+    {
+      "quote_original": "",
+      "quote_tamil_or_summary": "",
+      "speaker": ""
+    }
+  ],
+  "background_from_source": [],
+  "missing_or_unclear_information": [],
+  "claims_to_avoid": [],
+  "suggested_tamil_angle": "",
+  "editorial_risk_notes": []
+}

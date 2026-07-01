@@ -113,6 +113,23 @@ class AuthorStyleProfileRecord:
     created_at: str
 
 
+@dataclass(frozen=True)
+class GroundedBriefRecord:
+    brief_id: str
+    source_type: str
+    source_input_hash: str
+    source_url: str | None
+    source_text_excerpt: str
+    source_language: str
+    target_language: str
+    model_provider: str
+    model_name: str
+    status: str
+    brief_json: str
+    warnings_json: str
+    created_at: str
+
+
 class StyleScribeRepository:
     """SQLite repository for authors, articles, and ingestion runs."""
 
@@ -357,6 +374,69 @@ class StyleScribeRepository:
 
         return self._map_author_style_profile(row) if row else None
 
+    def save_grounded_brief(self, brief: GroundedBriefRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO grounded_briefs (
+                    brief_id, source_type, source_input_hash, source_url,
+                    source_text_excerpt, source_language, target_language,
+                    model_provider, model_name, status, brief_json,
+                    warnings_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    brief.brief_id,
+                    brief.source_type,
+                    brief.source_input_hash,
+                    brief.source_url,
+                    brief.source_text_excerpt,
+                    brief.source_language,
+                    brief.target_language,
+                    brief.model_provider,
+                    brief.model_name,
+                    brief.status,
+                    brief.brief_json,
+                    brief.warnings_json,
+                    brief.created_at,
+                ),
+            )
+
+    def fetch_grounded_brief(self, brief_id: str) -> GroundedBriefRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    brief_id, source_type, source_input_hash, source_url,
+                    source_text_excerpt, source_language, target_language,
+                    model_provider, model_name, status, brief_json,
+                    warnings_json, created_at
+                FROM grounded_briefs
+                WHERE brief_id = ?
+                """,
+                (brief_id,),
+            ).fetchone()
+
+        return self._map_grounded_brief(row) if row else None
+
+    def fetch_latest_grounded_brief(self) -> GroundedBriefRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    brief_id, source_type, source_input_hash, source_url,
+                    source_text_excerpt, source_language, target_language,
+                    model_provider, model_name, status, brief_json,
+                    warnings_json, created_at
+                FROM grounded_briefs
+                ORDER BY created_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
+
+        return self._map_grounded_brief(row) if row else None
+
     @staticmethod
     def encode_warnings(warnings: list[str]) -> str:
         return json.dumps(warnings, ensure_ascii=False)
@@ -434,6 +514,24 @@ class StyleScribeRepository:
             status=str(row["status"]),
             profile_json=str(row["profile_json"]),
             source_excerpt_refs_json=str(row["source_excerpt_refs_json"]),
+            warnings_json=str(row["warnings_json"]),
+            created_at=str(row["created_at"]),
+        )
+
+    @staticmethod
+    def _map_grounded_brief(row: sqlite3.Row) -> GroundedBriefRecord:
+        return GroundedBriefRecord(
+            brief_id=str(row["brief_id"]),
+            source_type=str(row["source_type"]),
+            source_input_hash=str(row["source_input_hash"]),
+            source_url=row["source_url"],
+            source_text_excerpt=str(row["source_text_excerpt"]),
+            source_language=str(row["source_language"]),
+            target_language=str(row["target_language"]),
+            model_provider=str(row["model_provider"]),
+            model_name=str(row["model_name"]),
+            status=str(row["status"]),
+            brief_json=str(row["brief_json"]),
             warnings_json=str(row["warnings_json"]),
             created_at=str(row["created_at"]),
         )

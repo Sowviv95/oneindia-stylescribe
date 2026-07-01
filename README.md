@@ -138,6 +138,31 @@ python -m backend.app.scripts.review_style_profile --author-id v_vasanthi --limi
 
 See [docs/author_style_profiles.md](docs/author_style_profiles.md).
 
+## Grounded Briefs
+
+Sprint 5 generates a structured factual brief from source text or a URL using
+OpenAI only. The grounded brief is separate from author style and will be used
+later as the factual source of truth for article generation.
+
+```powershell
+curl -X POST http://127.0.0.1:8000/briefs/grounded `
+  -H "Content-Type: application/json" `
+  -d '{
+    "source_type": "text",
+    "source_input": "Short news source text here",
+    "target_language": "ta"
+  }'
+```
+
+Fetch or review a saved brief:
+
+```powershell
+curl http://127.0.0.1:8000/briefs/<brief_id>
+python -m backend.app.scripts.review_grounded_brief --brief-id <brief_id>
+```
+
+See [docs/grounded_briefs.md](docs/grounded_briefs.md).
+
 ## Sample Data
 
 Sample author articles may exist locally under `sample_data`. The

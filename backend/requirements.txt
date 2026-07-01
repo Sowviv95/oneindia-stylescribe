@@ -9,3 +9,5 @@ httpx
 python-docx
 openpyxl
 openai
+requests
+beautifulsoup4

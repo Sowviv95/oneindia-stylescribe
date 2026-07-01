@@ -13,7 +13,7 @@ class OpenAIClientError(RuntimeError):
 
 
 class OpenAIStyleClient:
-    """Small reusable OpenAI client for JSON profile generation."""
+    """Small reusable OpenAI client for JSON generation."""
 
     provider = "openai"
 
@@ -47,6 +47,41 @@ class OpenAIStyleClient:
         return _parse_json_object(content)
 
 
+class OpenAIJsonClient(OpenAIStyleClient):
+    """Reusable OpenAI client that returns raw JSON objects."""
+
+    def __init__(
+        self,
+        model_name: str | None = None,
+        missing_key_message: str = "OPENAI_API_KEY is required.",
+    ) -> None:
+        settings = get_settings()
+        if settings.openai_api_key is None:
+            raise OpenAIClientError(missing_key_message)
+
+        self.model_name = model_name or settings.openai_model or "gpt-4o-mini"
+        self._client = OpenAI(api_key=settings.openai_api_key.get_secret_value())
+
+    def generate_structured_json(
+        self,
+        system_prompt: str,
+        user_payload: str,
+    ) -> dict[str, object]:
+        response = self._client.chat.completions.create(
+            model=self.model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_payload},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.1,
+        )
+        content = response.choices[0].message.content
+        if content is None:
+            raise OpenAIClientError("OpenAI returned an empty response.")
+        return _parse_raw_json_object(content)
+
+
 def _parse_json_object(content: str) -> dict[str, object]:
     try:
         parsed = json.loads(content)
@@ -55,6 +90,16 @@ def _parse_json_object(content: str) -> dict[str, object]:
     if not isinstance(parsed, dict):
         raise OpenAIClientError("OpenAI returned JSON that is not an object.")
     return _coerce_profile_object(parsed)
+
+
+def _parse_raw_json_object(content: str) -> dict[str, object]:
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise OpenAIClientError("OpenAI returned invalid JSON.") from exc
+    if not isinstance(parsed, dict):
+        raise OpenAIClientError("OpenAI returned JSON that is not an object.")
+    return parsed
 
 
 def _coerce_profile_object(parsed: dict[str, object]) -> dict[str, object]:
