@@ -26,6 +26,7 @@ class Settings(BaseModel):
     gemma_model: str | None = Field(default=None)
     default_target_language: str = Field(default="ta")
     default_source_language: str | None = Field(default=None)
+    stylescribe_db_path: str = Field(default="data/stylescribe.db")
 
 
 @lru_cache
@@ -44,4 +45,5 @@ def get_settings() -> Settings:
         gemma_model=os.getenv("GEMMA_MODEL"),
         default_target_language=os.getenv("DEFAULT_TARGET_LANGUAGE", "ta"),
         default_source_language=os.getenv("DEFAULT_SOURCE_LANGUAGE"),
+        stylescribe_db_path=os.getenv("STYLESCRIBE_DB_PATH", "data/stylescribe.db"),
     )

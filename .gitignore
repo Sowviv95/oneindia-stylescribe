@@ -7,6 +7,7 @@ __pycache__/
 .mypy_cache/
 node_modules/
 dist/
+data/
 data/*.db
 sample_data/raw/
 sample_data/extracted/

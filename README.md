@@ -65,6 +65,34 @@ python -m ruff check .
 python -m mypy backend/app
 ```
 
+## Local Author Ingestion
+
+Sprint 2 can ingest local DOCX author samples into SQLite. The default database
+path is `data/stylescribe.db`; override it with `STYLESCRIBE_DB_PATH` if needed.
+
+Run the API, then call:
+
+```powershell
+curl -X POST http://127.0.0.1:8000/authors/ingest-local `
+  -H "Content-Type: application/json" `
+  -d '{
+    "author_id": "v_vasanthi",
+    "display_name": "V Vasanthi",
+    "language": "ta",
+    "articles_dir": "sample_data/extracted/authors/v_vasanthi/articles_docx",
+    "metadata_path": "sample_data/raw/authors/v_vasanthi/metadata/Author Context _ Author wise content.xlsx"
+  }'
+```
+
+List lightweight article records:
+
+```powershell
+curl http://127.0.0.1:8000/authors/v_vasanthi/articles
+```
+
+See [docs/ingestion.md](docs/ingestion.md) for details and metadata matching
+limitations.
+
 ## Sample Data
 
 Sample author articles may exist locally under `sample_data`. The

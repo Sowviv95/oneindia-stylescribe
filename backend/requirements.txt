@@ -6,3 +6,5 @@ pytest
 ruff
 mypy
 httpx
+python-docx
+openpyxl
