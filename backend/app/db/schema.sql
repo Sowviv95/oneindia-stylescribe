@@ -106,3 +106,18 @@ CREATE TABLE IF NOT EXISTS article_drafts (
     FOREIGN KEY(profile_id) REFERENCES author_style_profiles(profile_id),
     FOREIGN KEY(brief_id) REFERENCES grounded_briefs(brief_id)
 );
+
+CREATE TABLE IF NOT EXISTS draft_evaluations (
+    evaluation_id TEXT PRIMARY KEY,
+    draft_id TEXT NOT NULL,
+    brief_id TEXT NOT NULL,
+    author_id TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    evaluation_json TEXT NOT NULL,
+    warnings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(draft_id) REFERENCES article_drafts(draft_id),
+    FOREIGN KEY(brief_id) REFERENCES grounded_briefs(brief_id)
+);

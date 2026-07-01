@@ -193,6 +193,26 @@ python -m backend.app.scripts.review_article_draft --draft-id <draft_id> --forma
 Use Markdown/HTML export when Windows terminal rendering makes Tamil hard to
 read. See [docs/article_drafts.md](docs/article_drafts.md).
 
+## Draft Grounding Evaluation
+
+Sprint 8 evaluates generated drafts against the grounded brief to flag
+unsupported claims, overclaims, invented facts, and claims-to-avoid violations.
+
+```powershell
+curl -X POST http://127.0.0.1:8000/drafts/<draft_id>/evaluate-grounding
+curl http://127.0.0.1:8000/drafts/<draft_id>/evaluation/latest
+python -m backend.app.scripts.review_draft_evaluation --draft-id <draft_id> --format html --output review_outputs/evaluation.html
+```
+
+Recommended workflow:
+
+1. Generate grounded brief.
+2. Generate article draft.
+3. Evaluate grounding.
+4. Revise if needed.
+
+See [docs/draft_grounding_evaluations.md](docs/draft_grounding_evaluations.md).
+
 ## Sample Data
 
 Sample author articles may exist locally under `sample_data`. The

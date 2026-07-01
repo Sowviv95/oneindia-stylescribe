@@ -1,0 +1,53 @@
+You are evaluating a generated Tamil article draft against a grounded brief.
+
+Use the grounded brief as the only factual source of truth. Compare the generated article draft only against the grounded brief. Do not use outside knowledge.
+
+Identify:
+- unsupported claims
+- overclaims
+- invented facts
+- contradictions
+- claims_to_avoid violations
+- unsupported impact or benefit language
+- missing key facts from the grounded brief
+- number, date, name, location, and timeline preservation issues
+
+Flag language that implies effectiveness, benefit, impact, safety assurance, reduction of harm, new hope, reader protection, or public benefit unless the grounded brief explicitly supports it.
+
+Provide actionable rewrite suggestions. Return only strict JSON with exactly this shape:
+
+{
+  "grounding_score": 0,
+  "claim_safety_score": 0,
+  "fact_preservation_score": 0,
+  "overall_risk": "low|medium|high",
+  "editorial_readiness": "review_required|revision_required|safe_to_review",
+  "unsupported_claims": [
+    {
+      "claim": "",
+      "reason": "",
+      "suggested_fix": ""
+    }
+  ],
+  "overclaim_phrases": [
+    {
+      "phrase": "",
+      "reason": "",
+      "suggested_fix": ""
+    }
+  ],
+  "invented_facts": [],
+  "contradictions": [],
+  "claims_to_avoid_violations": [],
+  "missing_key_facts": [],
+  "preserved_facts": [],
+  "number_date_name_checks": [],
+  "rewrite_guidance": [],
+  "summary": ""
+}
+
+Scoring guidance:
+- 90-100: strongly grounded
+- 75-89: mostly grounded, minor caution
+- 50-74: review required
+- below 50: revision required

@@ -150,6 +150,20 @@ class ArticleDraftRecord:
     created_at: str
 
 
+@dataclass(frozen=True)
+class DraftEvaluationRecord:
+    evaluation_id: str
+    draft_id: str
+    brief_id: str
+    author_id: str
+    model_provider: str
+    model_name: str
+    status: str
+    evaluation_json: str
+    warnings_json: str
+    created_at: str
+
+
 class StyleScribeRepository:
     """SQLite repository for authors, articles, and ingestion runs."""
 
@@ -529,6 +543,80 @@ class StyleScribeRepository:
 
         return self._map_article_draft(row) if row else None
 
+    def save_draft_evaluation(self, evaluation: DraftEvaluationRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO draft_evaluations (
+                    evaluation_id, draft_id, brief_id, author_id, model_provider,
+                    model_name, status, evaluation_json, warnings_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    evaluation.evaluation_id,
+                    evaluation.draft_id,
+                    evaluation.brief_id,
+                    evaluation.author_id,
+                    evaluation.model_provider,
+                    evaluation.model_name,
+                    evaluation.status,
+                    evaluation.evaluation_json,
+                    evaluation.warnings_json,
+                    evaluation.created_at,
+                ),
+            )
+
+    def fetch_draft_evaluation(
+        self,
+        evaluation_id: str,
+    ) -> DraftEvaluationRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    evaluation_id, draft_id, brief_id, author_id, model_provider,
+                    model_name, status, evaluation_json, warnings_json, created_at
+                FROM draft_evaluations
+                WHERE evaluation_id = ?
+                """,
+                (evaluation_id,),
+            ).fetchone()
+
+        return self._map_draft_evaluation(row) if row else None
+
+    def fetch_latest_draft_evaluation(
+        self,
+        draft_id: str,
+    ) -> DraftEvaluationRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    evaluation_id, draft_id, brief_id, author_id, model_provider,
+                    model_name, status, evaluation_json, warnings_json, created_at
+                FROM draft_evaluations
+                WHERE draft_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (draft_id,),
+            ).fetchone()
+
+        return self._map_draft_evaluation(row) if row else None
+
+    def fetch_draft_with_grounded_brief(
+        self,
+        draft_id: str,
+    ) -> tuple[ArticleDraftRecord, GroundedBriefRecord] | None:
+        draft = self.fetch_article_draft(draft_id)
+        if draft is None:
+            return None
+        brief = self.fetch_grounded_brief(draft.brief_id)
+        if brief is None:
+            return None
+        return draft, brief
+
     @staticmethod
     def encode_warnings(warnings: list[str]) -> str:
         return json.dumps(warnings, ensure_ascii=False)
@@ -645,6 +733,21 @@ class StyleScribeRepository:
             tone_override=row["tone_override"],
             include_seo=bool(row["include_seo"]),
             draft_json=str(row["draft_json"]),
+            warnings_json=str(row["warnings_json"]),
+            created_at=str(row["created_at"]),
+        )
+
+    @staticmethod
+    def _map_draft_evaluation(row: sqlite3.Row) -> DraftEvaluationRecord:
+        return DraftEvaluationRecord(
+            evaluation_id=str(row["evaluation_id"]),
+            draft_id=str(row["draft_id"]),
+            brief_id=str(row["brief_id"]),
+            author_id=str(row["author_id"]),
+            model_provider=str(row["model_provider"]),
+            model_name=str(row["model_name"]),
+            status=str(row["status"]),
+            evaluation_json=str(row["evaluation_json"]),
             warnings_json=str(row["warnings_json"]),
             created_at=str(row["created_at"]),
         )

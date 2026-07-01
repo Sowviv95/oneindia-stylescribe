@@ -63,10 +63,20 @@ def load_review_context(draft_id: str) -> dict[str, Any]:
         if brief_record
         else {}
     )
+    fetch_latest_evaluation = getattr(repo, "fetch_latest_draft_evaluation", None)
+    evaluation_record = (
+        fetch_latest_evaluation(draft_id) if fetch_latest_evaluation else None
+    )
+    evaluation = (
+        StyleScribeRepository.decode_json_object(evaluation_record.evaluation_json)
+        if evaluation_record
+        else {}
+    )
     return {
         "draft": draft_response,
         "profile": profile,
         "brief": brief,
+        "evaluation": evaluation,
     }
 
 
@@ -79,6 +89,9 @@ def render_console(context: dict[str, Any]) -> str:
     lines.extend(_style_lines(context["profile"]))
     lines.extend(["", "Generated draft:"])
     lines.extend(_draft_lines(draft_response.draft, wrap=True))
+    if context.get("evaluation"):
+        lines.extend(["", "Latest grounding evaluation:"])
+        lines.extend(_evaluation_lines(context["evaluation"]))
     return "\n".join(lines)
 
 
@@ -92,6 +105,9 @@ def render_markdown(context: dict[str, Any]) -> str:
     lines.extend(_markdown_list(_style_lines(context["profile"])))
     lines.extend(["", "## Generated Draft", ""])
     lines.extend(_draft_markdown_lines(draft_response.draft))
+    if context.get("evaluation"):
+        lines.extend(["", "## Latest Grounding Evaluation", ""])
+        lines.extend(_markdown_list(_evaluation_lines(context["evaluation"])))
     return "\n".join(lines) + "\n"
 
 
@@ -196,6 +212,24 @@ def _draft_lines(draft: dict[str, Any], wrap: bool) -> list[str]:
     return lines
 
 
+def _evaluation_lines(evaluation: dict[str, Any]) -> list[str]:
+    lines = [
+        f"Grounding score: {evaluation.get('grounding_score')}",
+        f"Claim safety score: {evaluation.get('claim_safety_score')}",
+        f"Overall risk: {evaluation.get('overall_risk')}",
+        f"Editorial readiness: {evaluation.get('editorial_readiness')}",
+        "Unsupported claims:",
+    ]
+    lines.extend(_format_list_items(evaluation.get("unsupported_claims")))
+    lines.append("Overclaim phrases:")
+    lines.extend(_format_list_items(evaluation.get("overclaim_phrases")))
+    lines.append("Claims-to-avoid violations:")
+    lines.extend(_format_list_items(evaluation.get("claims_to_avoid_violations")))
+    lines.append("Rewrite guidance:")
+    lines.extend(_format_list_items(evaluation.get("rewrite_guidance")))
+    return lines
+
+
 def _draft_markdown_lines(draft: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     for key in (
@@ -225,6 +259,13 @@ def _draft_response(context: dict[str, Any]) -> ArticleDraftResponse:
 
 def _list_value(value: object) -> list[object]:
     return value if isinstance(value, list) else []
+
+
+def _format_list_items(value: object) -> list[str]:
+    items = _list_value(value)
+    if not items:
+        return ["- None"]
+    return [f"- {item}" for item in items]
 
 
 def _wrap(value: str, wrap: bool) -> str:

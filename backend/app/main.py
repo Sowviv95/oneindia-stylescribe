@@ -9,6 +9,7 @@ from backend.app.models.article_draft_models import (
     ArticleDraftRequest,
     ArticleDraftResponse,
 )
+from backend.app.models.draft_evaluation_models import DraftEvaluationResponse
 from backend.app.models.grounded_brief_models import (
     GroundedBriefRequest,
     GroundedBriefResponse,
@@ -35,6 +36,11 @@ from backend.app.services.author_style_profile_service import (
     AuthorStyleProfileError,
     generate_author_style_profile,
     get_latest_author_style_profile,
+)
+from backend.app.services.draft_grounding_evaluation_service import (
+    DraftEvaluationError,
+    evaluate_draft_grounding,
+    get_latest_draft_evaluation,
 )
 from backend.app.services.generation_service import build_stub_generation_response
 from backend.app.services.grounded_brief_service import (
@@ -216,4 +222,32 @@ def read_article_draft(draft_id: str) -> ArticleDraftResponse:
     try:
         return get_article_draft(draft_id)
     except ArticleGenerationError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post(
+    "/drafts/{draft_id}/evaluate-grounding",
+    response_model=DraftEvaluationResponse,
+)
+def create_draft_grounding_evaluation(draft_id: str) -> DraftEvaluationResponse:
+    """Evaluate a draft against its grounded brief."""
+
+    try:
+        return evaluate_draft_grounding(draft_id)
+    except DraftEvaluationError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OpenAIClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.get(
+    "/drafts/{draft_id}/evaluation/latest",
+    response_model=DraftEvaluationResponse,
+)
+def latest_draft_grounding_evaluation(draft_id: str) -> DraftEvaluationResponse:
+    """Return the latest grounding evaluation for a draft."""
+
+    try:
+        return get_latest_draft_evaluation(draft_id)
+    except DraftEvaluationError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
