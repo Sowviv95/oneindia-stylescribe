@@ -112,6 +112,32 @@ The snapshot contains measurable style statistics and bounded excerpts only. It
 does not call any LLM or generate a final author style profile. See
 [docs/style_snapshots.md](docs/style_snapshots.md).
 
+## LLM Author Style Profiles
+
+Sprint 4 generates a structured author style profile from the latest
+deterministic snapshot using OpenAI only. Set `OPENAI_API_KEY` in `.env`.
+`OPENAI_MODEL` is optional and defaults to `gpt-4o-mini`.
+
+Generate and save a profile:
+
+```powershell
+curl -X POST http://127.0.0.1:8000/authors/v_vasanthi/style-profile
+```
+
+Fetch the latest profile:
+
+```powershell
+curl http://127.0.0.1:8000/authors/v_vasanthi/style-profile/latest
+```
+
+Review bounded excerpts and generated profile sections:
+
+```powershell
+python -m backend.app.scripts.review_style_profile --author-id v_vasanthi --limit 2
+```
+
+See [docs/author_style_profiles.md](docs/author_style_profiles.md).
+
 ## Sample Data
 
 Sample author articles may exist locally under `sample_data`. The

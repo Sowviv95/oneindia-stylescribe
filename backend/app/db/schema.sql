@@ -52,3 +52,19 @@ CREATE TABLE IF NOT EXISTS author_style_snapshots (
     created_at TEXT NOT NULL,
     FOREIGN KEY(author_id) REFERENCES authors(author_id)
 );
+
+CREATE TABLE IF NOT EXISTS author_style_profiles (
+    profile_id TEXT PRIMARY KEY,
+    author_id TEXT NOT NULL,
+    snapshot_id TEXT NOT NULL,
+    language TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    profile_json TEXT NOT NULL,
+    source_excerpt_refs_json TEXT NOT NULL,
+    warnings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(author_id) REFERENCES authors(author_id),
+    FOREIGN KEY(snapshot_id) REFERENCES author_style_snapshots(snapshot_id)
+);

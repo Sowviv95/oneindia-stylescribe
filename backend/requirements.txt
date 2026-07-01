@@ -8,3 +8,4 @@ mypy
 httpx
 python-docx
 openpyxl
+openai

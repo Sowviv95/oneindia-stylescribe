@@ -1,0 +1,27 @@
+You are generating an author writing-style profile for future Tamil news article generation.
+
+Use only the provided deterministic statistics and curated excerpts. Do not infer personal details about the author. Do not treat article facts, people, parties, locations, events, or opinions as permanent style rules. Separate reusable writing style from factual content.
+
+The examples are for style only, not facts. Do not copy the excerpt content into the profile. Focus on practical guidance that can help a future generation pipeline write new Tamil news articles in a similar style.
+
+Return only valid JSON with exactly this shape:
+
+{
+  "overall_tone": "",
+  "headline_style": "",
+  "intro_style": "",
+  "paragraph_style": "",
+  "sentence_style": "",
+  "vocabulary_style": "",
+  "narrative_flow": "",
+  "closing_style": "",
+  "reader_engagement_style": "",
+  "tamil_register": "",
+  "english_or_transliterated_word_usage": "",
+  "category_specific_observations": [],
+  "dos": [],
+  "donts": [],
+  "few_shot_usage_guidance": "",
+  "generation_guidance": "",
+  "style_risks": []
+}

@@ -98,6 +98,21 @@ class StyleSnapshotRecord:
     created_at: str
 
 
+@dataclass(frozen=True)
+class AuthorStyleProfileRecord:
+    profile_id: str
+    author_id: str
+    snapshot_id: str
+    language: str
+    model_provider: str
+    model_name: str
+    status: str
+    profile_json: str
+    source_excerpt_refs_json: str
+    warnings_json: str
+    created_at: str
+
+
 class StyleScribeRepository:
     """SQLite repository for authors, articles, and ingestion runs."""
 
@@ -276,6 +291,72 @@ class StyleScribeRepository:
 
         return self._map_style_snapshot(row) if row else None
 
+    def save_author_style_profile(self, profile: AuthorStyleProfileRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO author_style_profiles (
+                    profile_id, author_id, snapshot_id, language, model_provider,
+                    model_name, status, profile_json, source_excerpt_refs_json,
+                    warnings_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    profile.profile_id,
+                    profile.author_id,
+                    profile.snapshot_id,
+                    profile.language,
+                    profile.model_provider,
+                    profile.model_name,
+                    profile.status,
+                    profile.profile_json,
+                    profile.source_excerpt_refs_json,
+                    profile.warnings_json,
+                    profile.created_at,
+                ),
+            )
+
+    def fetch_latest_author_style_profile(
+        self,
+        author_id: str,
+    ) -> AuthorStyleProfileRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    profile_id, author_id, snapshot_id, language, model_provider,
+                    model_name, status, profile_json, source_excerpt_refs_json,
+                    warnings_json, created_at
+                FROM author_style_profiles
+                WHERE author_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (author_id,),
+            ).fetchone()
+
+        return self._map_author_style_profile(row) if row else None
+
+    def fetch_author_style_profile(
+        self,
+        profile_id: str,
+    ) -> AuthorStyleProfileRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    profile_id, author_id, snapshot_id, language, model_provider,
+                    model_name, status, profile_json, source_excerpt_refs_json,
+                    warnings_json, created_at
+                FROM author_style_profiles
+                WHERE profile_id = ?
+                """,
+                (profile_id,),
+            ).fetchone()
+
+        return self._map_author_style_profile(row) if row else None
+
     @staticmethod
     def encode_warnings(warnings: list[str]) -> str:
         return json.dumps(warnings, ensure_ascii=False)
@@ -337,6 +418,22 @@ class StyleScribeRepository:
             status=str(row["status"]),
             stats_json=str(row["stats_json"]),
             excerpt_pack_json=str(row["excerpt_pack_json"]),
+            warnings_json=str(row["warnings_json"]),
+            created_at=str(row["created_at"]),
+        )
+
+    @staticmethod
+    def _map_author_style_profile(row: sqlite3.Row) -> AuthorStyleProfileRecord:
+        return AuthorStyleProfileRecord(
+            profile_id=str(row["profile_id"]),
+            author_id=str(row["author_id"]),
+            snapshot_id=str(row["snapshot_id"]),
+            language=str(row["language"]),
+            model_provider=str(row["model_provider"]),
+            model_name=str(row["model_name"]),
+            status=str(row["status"]),
+            profile_json=str(row["profile_json"]),
+            source_excerpt_refs_json=str(row["source_excerpt_refs_json"]),
             warnings_json=str(row["warnings_json"]),
             created_at=str(row["created_at"]),
         )

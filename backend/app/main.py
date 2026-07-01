@@ -16,8 +16,15 @@ from backend.app.models.response_models import (
     HealthResponse,
 )
 from backend.app.models.style_models import AuthorStyleSnapshotResponse
+from backend.app.models.style_profile_models import AuthorStyleProfileResponse
 from backend.app.services.author_ingestion_service import ingest_author_samples
+from backend.app.services.author_style_profile_service import (
+    AuthorStyleProfileError,
+    generate_author_style_profile,
+    get_latest_author_style_profile,
+)
 from backend.app.services.generation_service import build_stub_generation_response
+from backend.app.services.model_clients.openai_client import OpenAIClientError
 from backend.app.services.style_snapshot_service import (
     AuthorStyleSnapshotError,
     build_author_style_snapshot,
@@ -103,4 +110,32 @@ def latest_author_style_snapshot(author_id: str) -> AuthorStyleSnapshotResponse:
     try:
         return get_latest_author_style_snapshot(author_id)
     except AuthorStyleSnapshotError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post(
+    "/authors/{author_id}/style-profile",
+    response_model=AuthorStyleProfileResponse,
+)
+def create_author_style_profile(author_id: str) -> AuthorStyleProfileResponse:
+    """Generate and store an OpenAI-based author style profile."""
+
+    try:
+        return generate_author_style_profile(author_id)
+    except AuthorStyleProfileError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OpenAIClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.get(
+    "/authors/{author_id}/style-profile/latest",
+    response_model=AuthorStyleProfileResponse,
+)
+def latest_author_style_profile(author_id: str) -> AuthorStyleProfileResponse:
+    """Return the latest saved OpenAI-based author style profile."""
+
+    try:
+        return get_latest_author_style_profile(author_id)
+    except AuthorStyleProfileError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
