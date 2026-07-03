@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StyleScribe Manual Validation Output</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5c667a;
+      --border: #d9e0ec;
+      --blocker-bg: #fff1f0;
+      --blocker-border: #d93025;
+      --warning-bg: #fff8e6;
+      --warning-border: #d99a00;
+      --accent: #2457c5;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Nirmala UI", "Latha", "Vijaya", "Noto Sans Tamil", Arial, sans-serif;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin: 0 0 14px;
+    }
+    h1 {
+      font-size: 30px;
+      margin-bottom: 22px;
+    }
+    h2 {
+      font-size: 21px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(20, 32, 50, 0.05);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcff;
+    }
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .value {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .article {
+      font-size: 18px;
+      white-space: pre-wrap;
+    }
+    .article-headline {
+      font-size: 28px;
+      line-height: 1.25;
+      margin: 6px 0 14px;
+    }
+    .article-subheadline {
+      color: var(--muted);
+      font-size: 17px;
+      margin: -4px 0 16px;
+    }
+    .source {
+      white-space: pre-wrap;
+      color: #263247;
+    }
+    .list {
+      margin: 0;
+      padding-left: 22px;
+    }
+    .blockers {
+      background: var(--blocker-bg);
+      border-color: var(--blocker-border);
+    }
+    .warnings {
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+    }
+    .tag {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>StyleScribe Manual Validation Output</h1>
+  <section class="card">
+  <h2>Summary</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">workflow_completed</span>
+  <span class="value">true</span>
+</div><div class="metric">
+  <span class="label">author_id</span>
+  <span class="value">v_vasanthi</span>
+</div><div class="metric">
+  <span class="label">desired_word_count</span>
+  <span class="value">600</span>
+</div><div class="metric">
+  <span class="label">target_min_word_count</span>
+  <span class="value">450</span>
+</div><div class="metric">
+  <span class="label">target_max_word_count</span>
+  <span class="value">690</span>
+</div><div class="metric">
+  <span class="label">final_article_word_count</span>
+  <span class="value">507</span>
+</div><div class="metric">
+  <span class="label">length_status</span>
+  <span class="value">pass</span>
+</div><div class="metric">
+  <span class="label">final_readiness</span>
+  <span class="value">revision_required</span>
+</div><div class="metric">
+  <span class="label">publication_ready_completeness_passed</span>
+  <span class="value">true</span>
+</div>
+  </div>
+  <div class="card">
+  <h3>Final readiness reasons</h3>
+  <ul class="list"><li>unsupported_claims_remaining</li><li>publication_ready_completeness_passed</li></ul>
+</div>
+  <div class="card blockers">
+  <h3>Final publication blockers</h3>
+  <ul class="list"><li>unsupported_claims_remaining</li></ul>
+</div>
+  <div class="card warnings">
+  <h3>Final publication warnings</h3>
+  <ul class="list"><li>grounding_score_review_band</li><li>overclaim_phrases_remaining</li></ul>
+</div>
+</section>
+  <section class="card">
+  <h2>Generated Tamil Article</h2>
+  <div class="tag">Headline source: generated_headline</div>
+  <h3 class="article-headline">தமிழ்நாடு சுகாதாரத்துறை: குழந்தைகள் மற்றும் மூத்த குடிமக்களுக்கான தடுப்பூசி மற்றும் சுகாதார பரிசோதனை முகாம்</h3>
+  <div class="article-subheadline">சுகாதார பரிசோதனை முகாம் மூலம் அடிப்படையான சுகாதார பரிசோதனைகள் மற்றும் ஆலோசனைகள் வழங்கப்படும்</div>
+  <div class="tag">Article source: article_drafts.draft_json.article_body</div>
+  <div class="article">தமிழ்நாடு சுகாதாரத்துறை ஜூலை 3 ஆம் தேதி சிறப்பு தடுப்பூசி மற்றும் சுகாதார பரிசோதனை முகாமை தொடங்கியது. இந்த முகாம் அரசு மருத்துவமனைகள் மற்றும் முதன்மை சுகாதார மையங்களில் குழந்தைகள் மற்றும் மூத்த குடிமக்களை இலக்காகக் கொண்டு நடத்தப்படுகிறது. இந்த முயற்சி, சமூகத்தின் முக்கியமான பகுதிகளுக்கு அடிப்படை சுகாதார சேவைகளை வழங்குவதற்கான ஒரு முக்கியமான முயற்சியாகும். இது, மக்கள் நலனுக்காக முன்னெடுக்கப்படும் ஒரு முக்கியமான திட்டமாகும்.
+
+இந்த சுகாதார முகாம், குழந்தைகளுக்கான வழக்கமான தடுப்பூசி, நீரிழிவு பரிசோதனை, இரத்த அழுத்த பரிசோதனை மற்றும் மூத்த குடிமக்களுக்கு அடிப்படை சுகாதார ஆலோசனைகளை வழங்குவதில் கவனம் செலுத்துகிறது. மொபைல் மருத்துவ குழுக்கள் தேர்ந்தெடுக்கப்பட்ட கிராமப்புற மற்றும் அரை நகர்ப்புற பகுதிகளைச் சென்று சேவைகளை வழங்குகின்றன. இது, சமூகத்தின் அடிப்படை சுகாதார தேவைகளை பூர்த்தி செய்யும் ஒரு முக்கியமான முயற்சியாகும். இந்த முயற்சி, மக்கள் நலனுக்காக முன்னெடுக்கப்படும் ஒரு முக்கியமான திட்டமாகும்.
+
+இந்த சுகாதார முகாமின் முக்கிய இலக்கு குழுக்கள் குழந்தைகள் மற்றும் மூத்த குடிமக்கள் ஆகும். குழந்தைகளுக்கு வழக்கமான தடுப்பூசி செலுத்துதல் முக்கியமாக கவனிக்கப்படுகிறது. இதன் மூலம், அவர்கள் எதிர்காலத்தில் நோய்களைத் தடுக்க முடியும். மூத்த குடிமக்களுக்கு அடிப்படை சுகாதார பரிசோதனைகள் மேற்கொள்ளப்படுகின்றன. இதன் மூலம், அவர்களின் உடல்நலம் பராமரிக்கப்படுவதுடன், தேவையான சிகிச்சைகளும் வழங்கப்படும். இந்த முயற்சியின் மூலம், குழந்தைகள் மற்றும் மூத்த குடிமக்கள் இருவரும் தங்கள் உடல்நலத்தை பராமரிக்க தேவையான சிகிச்சைகளை பெறுவார்கள்.
+
+சுகாதார பணியாளர்கள் இந்த முகாமில் முக்கிய பங்கு வகிக்கின்றனர். அவர்கள், திட்டமிட்ட தடுப்பூசிகளை தவறவிட்ட குழந்தைகளை அடையாளம் காண்பதுடன், பெற்றோர்களை மீதமுள்ள தடுப்பூசிகளை நிறைவு செய்ய ஊக்குவிக்கின்றனர். இது குழந்தைகளின் எதிர்கால ஆரோக்கியத்தை உறுதிப்படுத்த உதவும். மேலும், மூத்த குடிமக்கள் பொதுவான வாழ்க்கை முறை தொடர்பான நோய்களுக்கு பரிசோதிக்கப்படுவார்கள். தேவையானால், அவர்களை மேல் மருத்துவ மையங்களுக்கு பரிந்துரைக்கவும் செய்யப்படுகின்றனர். இதன் மூலம், மூத்த குடிமக்கள் தங்கள் உடல்நலத்தை பராமரிக்க தேவையான சிகிச்சைகளை பெறுவார்கள்.
+
+தமிழ்நாடு சுகாதாரத்துறை ஜூலை 3ஆம் தேதி தொடங்கியுள்ள தடுப்பூசி மற்றும் சுகாதார பரிசோதனை முகாம் இரண்டு வாரங்கள் நீடிக்கும் என அறிவிக்கப்பட்டுள்ளது. இந்த காலகட்டத்தில், அரசு மருத்துவமனைகள் மற்றும் முதன்மை சுகாதார மையங்களில் குழந்தைகள் மற்றும் மூத்த குடிமக்களுக்கு தேவையான சிகிச்சைகள் வழங்கப்படும். இந்த முயற்சியின் மூலம், மக்கள் தங்கள் உடல்நலத்தை பராமரிக்க தேவையான சிகிச்சைகளை பெற முடியும். மேலும், இந்த முகாமின் மூலம், மக்கள் தங்கள் உடல்நலத்தை மேம்படுத்துவதற்கான வாய்ப்புகளை பயன்படுத்த வேண்டும் என சுகாதாரத்துறை வலியுறுத்துகிறது.
+
+இந்த சுகாதார முகாம் முற்றிலும் தடுப்பு நடவடிக்கையாகும். இது எந்தவொரு நோய் பரவலுடனும் தொடர்புடையதல்ல. மக்கள் தங்கள் உடல்நலத்தை பராமரிக்க இந்த முகாமை பயன்படுத்த வேண்டும் என மருத்துவர்கள் வலியுறுத்துகின்றனர். அடிப்படையான பரிசோதனைகள் மற்றும் மருத்துவ ஆலோசனைகளை பெறுவதற்கான வாய்ப்பாக இந்த முகாம் அமைந்துள்ளது. இதன் மூலம், மக்கள் தங்கள் உடல்நலத்தை மேம்படுத்த முடியும். மேலும், இந்த முயற்சி மூலம், மக்கள் தங்கள் உடல்நலத்தை பராமரிக்க தேவையான விழிப்புணர்வை பெற முடியும்.
+
+மருத்துவர்கள் கூறியதாவது, பல குடும்பங்கள் சிகிச்சை தேவைகள் தீவிரமாக மாறும் வரை சுகாதார பரிசோதனைகளை ஒத்திவைக்கிறார்கள். இது பொதுவாக காணப்படும் ஒரு பிரச்சினை. மக்கள் இந்த முகாமை அடிப்படையான பரிசோதனை மற்றும் மருத்துவ ஆலோசனை பெறுவதற்கான வாய்ப்பாக பயன்படுத்த வேண்டும் என்று அவர்கள் கேட்டுக்கொண்டனர். இந்த முகாம் மூலம் மக்கள் தங்கள் உடல்நலத்தை பரிசோதிக்கவும், தேவையான சிகிச்சைகளை பெறவும் ஊக்குவிக்கப்படுகிறார்கள். மேலும், இது அவர்களின் உடல்நலத்தை மேம்படுத்துவதற்கான ஒரு முக்கியமான முயற்சியாகும்.
+
+இந்த சுகாதார முகாம், மக்கள் தங்கள் உடல்நலத்தை பரிசோதிக்கவும், தேவையான சிகிச்சைகளை பெறவும் ஒரு முக்கிய வாய்ப்பாக உள்ளது. இது நோய்களைத் தடுக்கவும், ஆரோக்கியமான வாழ்க்கை முறையை ஊக்குவிக்கவும் உதவுகிறது. மக்கள் இந்த வாய்ப்பை முழுமையாக பயன்படுத்தி, தங்கள் உடல்நலத்தை மேம்படுத்த வேண்டும். சமூகத்தின் ஆரோக்கியத்தை மேம்படுத்துவதில் இது ஒரு முக்கியமான முயற்சியாகும். இதன் மூலம், மக்கள் தங்கள் உடல்நலத்தை மேம்படுத்துவதற்கான முக்கியமான அடிப்படை பரிசோதனைகளை மேற்கொள்ள முடியும்.
+
+தமிழ்நாடு சுகாதாரத்துறை ஜூலை 3 ஆம் தேதி தொடங்கிய இந்த சுகாதார முகாம், இரண்டு வாரங்களுக்கு நீடிக்கும். இந்த காலத்தில், மருத்துவ குழுக்கள் கிராமப்புற மற்றும் நகர்ப்புற பகுதிகளில் சென்று, குழந்தைகள் மற்றும் மூத்த குடிமக்களை பரிசோதிக்கின்றன. தினசரி வருகை, பரிந்துரை மற்றும் மருந்து கிடைப்பது பற்றிய அறிக்கைகளை உள்ளூர் சுகாதார அதிகாரிகள் சமர்ப்பிக்க வேண்டும். இந்த முகாம் நோய் பரவலுடன் தொடர்புடையதல்ல, ஆனால் முன்னெச்சரிக்கை நடவடிக்கையாக செயல்படுகிறது, மேலும் இது சமூக ஆரோக்கியத்தை மேம்படுத்த உதவுகிறது.
+
+இந்த சுகாதார முகாம் மூலம், குழந்தைகள் மற்றும் மூத்த குடிமக்கள் அடிப்படையான சுகாதார பரிசோதனைகளை பெறுவதற்கான வாய்ப்பு கிடைக்கிறது. மருத்துவர்கள், மக்கள் இந்த வாய்ப்பை பயன்படுத்தி, அடிப்படையான பரிசோதனை மற்றும் மருத்துவ ஆலோசனைகளை பெற வேண்டும் என்று வலியுறுத்துகின்றனர். இந்த முயற்சி, சமூகத்தின் ஆரோக்கியத்தை மேம்படுத்துவதற்கான முக்கியமான முன்னெச்சரிக்கை நடவடிக்கையாகும், மேலும் இது மக்கள் ஆரோக்கியத்தை பாதுகாக்கும் ஒரு முக்கியமான முயற்சியாகும்.</div>
+</section>
+  <section class="card">
+  <h2>Source Input</h2>
+  <div class="source">Health Department Launches Vaccination, Screening Drive
+
+Chennai, July 3: The state health department has launched a special vaccination and health screening drive for children and senior citizens across government hospitals and primary health centres.
+
+Officials said the campaign will focus on routine childhood vaccination, diabetes screening, blood pressure checks and basic health counselling for elderly residents. Mobile medical teams will also visit selected rural and semi-urban areas where access to hospitals is limited.
+
+Health workers have been asked to identify children who missed scheduled vaccines and encourage parents to complete the pending doses. Senior citizens will be screened for common lifestyle-related conditions and referred to higher medical centres if needed.
+
+The department said the drive is preventive in nature and is not linked to any disease outbreak. Officials added that early detection of health risks can reduce complications and hospitalisation.
+
+Doctors said many families postpone regular health checks unless symptoms become serious. They urged people to use the campaign as an opportunity for basic screening and medical advice.
+
+The drive will continue for two weeks, and local health officials have been asked to submit daily reports on attendance, referrals and medicine availability.</div>
+</section>
+  <section class="card">
+  <h2>Telemetry</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">total_runtime_seconds</span>
+  <span class="value">103.181</span>
+</div><div class="metric">
+  <span class="label">llm_call_count_total</span>
+  <span class="value">44</span>
+</div><div class="metric">
+  <span class="label">total_prompt_tokens</span>
+  <span class="value">33805</span>
+</div><div class="metric">
+  <span class="label">total_completion_tokens</span>
+  <span class="value">8478</span>
+</div><div class="metric">
+  <span class="label">total_tokens</span>
+  <span class="value">42283</span>
+</div><div class="metric">
+  <span class="label">cached_prompt_tokens_total</span>
+  <span class="value">13312</span>
+</div><div class="metric">
+  <span class="label">prompt_cache_hit_ratio</span>
+  <span class="value">0.3938</span>
+</div><div class="metric">
+  <span class="label">estimated_cost_total_usd</span>
+  <span class="value">0.218178</span>
+</div><div class="metric">
+  <span class="label">slowest_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">highest_cost_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">max_concurrent_section_calls</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_section_group_size</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_group_call_count</span>
+  <span class="value">10</span>
+</div><div class="metric">
+  <span class="label">generation_single_section_fallback_count</span>
+  <span class="value">0</span>
+</div><div class="metric">
+  <span class="label">generation_context_compression_ratio</span>
+  <span class="value">0.5311</span>
+</div>
+  </div>
+</section>
+</main>
+</body>
+</html>

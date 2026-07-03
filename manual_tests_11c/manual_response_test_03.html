@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StyleScribe Manual Validation Output</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5c667a;
+      --border: #d9e0ec;
+      --blocker-bg: #fff1f0;
+      --blocker-border: #d93025;
+      --warning-bg: #fff8e6;
+      --warning-border: #d99a00;
+      --accent: #2457c5;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Nirmala UI", "Latha", "Vijaya", "Noto Sans Tamil", Arial, sans-serif;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin: 0 0 14px;
+    }
+    h1 {
+      font-size: 30px;
+      margin-bottom: 22px;
+    }
+    h2 {
+      font-size: 21px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(20, 32, 50, 0.05);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcff;
+    }
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .value {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .article {
+      font-size: 18px;
+      white-space: pre-wrap;
+    }
+    .article-headline {
+      font-size: 28px;
+      line-height: 1.25;
+      margin: 6px 0 14px;
+    }
+    .article-subheadline {
+      color: var(--muted);
+      font-size: 17px;
+      margin: -4px 0 16px;
+    }
+    .source {
+      white-space: pre-wrap;
+      color: #263247;
+    }
+    .list {
+      margin: 0;
+      padding-left: 22px;
+    }
+    .blockers {
+      background: var(--blocker-bg);
+      border-color: var(--blocker-border);
+    }
+    .warnings {
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+    }
+    .tag {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>StyleScribe Manual Validation Output</h1>
+  <section class="card">
+  <h2>Summary</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">workflow_completed</span>
+  <span class="value">true</span>
+</div><div class="metric">
+  <span class="label">author_id</span>
+  <span class="value">v_vasanthi</span>
+</div><div class="metric">
+  <span class="label">desired_word_count</span>
+  <span class="value">600</span>
+</div><div class="metric">
+  <span class="label">target_min_word_count</span>
+  <span class="value">450</span>
+</div><div class="metric">
+  <span class="label">target_max_word_count</span>
+  <span class="value">690</span>
+</div><div class="metric">
+  <span class="label">final_article_word_count</span>
+  <span class="value">509</span>
+</div><div class="metric">
+  <span class="label">length_status</span>
+  <span class="value">pass</span>
+</div><div class="metric">
+  <span class="label">final_readiness</span>
+  <span class="value">revision_required</span>
+</div><div class="metric">
+  <span class="label">publication_ready_completeness_passed</span>
+  <span class="value">true</span>
+</div>
+  </div>
+  <div class="card">
+  <h3>Final readiness reasons</h3>
+  <ul class="list"><li>unsupported_claims_remaining</li><li>claims_to_avoid_violations_remaining</li><li>publication_ready_completeness_passed</li></ul>
+</div>
+  <div class="card blockers">
+  <h3>Final publication blockers</h3>
+  <ul class="list"><li>unsupported_claims_remaining</li><li>claims_to_avoid_violations_remaining</li></ul>
+</div>
+  <div class="card warnings">
+  <h3>Final publication warnings</h3>
+  <ul class="list"><li>grounding_score_review_band</li><li>overclaim_phrases_remaining</li><li>tamil_quality_warning</li></ul>
+</div>
+</section>
+  <section class="card">
+  <h2>Generated Tamil Article</h2>
+  <div class="tag">Headline source: generated_headline</div>
+  <h3 class="article-headline">AI தொழில்நுட்பம் மூலம் உள்ளூர் மொழிகளில் வாடிக்கையாளர் ஆதரவு மேம்பாடு</h3>
+  <div class="article-subheadline">இந்திய தொழில்நுட்ப நிறுவனங்கள் உள்ளூர் மொழிகளை புரிந்துகொள்ளும் AI ஆதரவு அமைப்புகளை சோதனை செய்கின்றன</div>
+  <div class="tag">Article source: article_drafts.draft_json.article_body</div>
+  <div class="article">இந்திய தொழில்நுட்ப நிறுவனங்கள், வாடிக்கையாளர் ஆதரவை மேம்படுத்துவதற்காக AI சக்தியூட்டப்பட்ட அமைப்புகளை சோதனை செய்யத் தொடங்கியுள்ளன. இந்த அமைப்புகள் தமிழ், ஹிந்தி, தெலுங்கு, கன்னடம் மற்றும் வங்காளி போன்ற உள்ளூர் மொழிகளை புரிந்து கொள்ளும் திறன் கொண்டவை. இது வாடிக்கையாளர்களின் கேள்விகளை துல்லியமாக புரிந்து கொண்டு, அவர்களின் விருப்ப மொழியில் பதிலளிக்க உதவும். இந்த முயற்சி வாடிக்கையாளர் சேவையில் புதிய மாற்றங்களை ஏற்படுத்தும் என எதிர்பார்க்கப்படுகிறது.
+
+இந்த AI அமைப்புகளின் சோதனை திட்டங்கள் மூன்று முதல் ஆறு மாதங்கள் வரை நீடிக்கப்படும் என எதிர்பார்க்கப்படுகிறது. இதன் நோக்கம் வங்கிகள், மின்வணிக தளங்கள் மற்றும் பொது சேவை வழங்குநர்களுக்கு அதிக அளவிலான பயனர் கேள்விகளை கையாள உதவுவதாகும். இந்த முயற்சி வாடிக்கையாளர் சேவையை மேம்படுத்துவதில் முக்கிய பங்கு வகிக்கிறது. இது வாடிக்கையாளர்களின் கேள்விகளை விரைவாகவும் துல்லியமாகவும் தீர்க்க உதவும்.
+
+இந்திய தொழில்நுட்ப நிறுவனங்கள் உருவாக்கியுள்ள AI அமைப்புகள் வாடிக்கையாளர் கேள்விகளின் நோக்கத்தை மிகத் துல்லியமாக அடையாளம் கண்டு, பயனர் விரும்பும் மொழியில் பதில்களை உருவாக்குகின்றன. இது வாடிக்கையாளர் சேவையை மேம்படுத்துவதில் முக்கிய பங்கு வகிக்கிறது. குறிப்பாக, நுணுக்கமான கேள்விகள் அல்லது உணர்ச்சிவசப்பட்ட கேள்விகள் வந்தால், அவை மனித ஆதரவு நிர்வாகிகளுக்கு மாற்றப்படுகின்றன. இதனால், வாடிக்கையாளர்களுக்கு துல்லியமான மற்றும் நம்பகமான சேவை கிடைக்கிறது. இந்த முறையில், AI அமைப்புகள் வாடிக்கையாளர்களின் தேவைகளைப் புரிந்து கொண்டு, அவர்களுக்கு விரைவான பதில்களை வழங்குகின்றன.
+
+இந்த AI அமைப்புகள் ஆங்கிலத்தில் வசதியில்லாத பயனர்களுக்கு பெரும் நன்மை அளிக்கின்றன. பலர் தங்கள் சொந்த மொழியில் சேவைகளைப் பெற விரும்புகின்றனர், ஆனால் மொழி தடைகள் காரணமாக அவ்வாறு செய்ய முடியாமல் போகின்றனர். இப்போது, இந்த AI தொழில்நுட்பம் மூலம், அவர்கள் தங்கள் சொந்த மொழியில் கேள்விகளை எழுப்பி, அதற்கேற்ப பதில்களைப் பெற முடிகிறது. இது அவர்களின் சேவை அனுபவத்தை மிகுந்த சிரமமின்றி மேம்படுத்துகிறது. இதனால், மொழி தடைகள் இல்லாமல், அவர்கள் தங்கள் தேவைகளை எளிதாகப் புரிய வைக்க முடிகிறது.
+
+தொழில்நுட்ப நிபுணர்கள், உள்ளூர் மொழிகளில் செயல்படும் AI அமைப்புகள் ஆங்கிலத்தில் வசதியில்லாத பயனர்களுக்கு அணுகலை மேம்படுத்தும் என்று கூறுகின்றனர். இது வாடிக்கையாளர் சேவையை மேம்படுத்தும் ஒரு முக்கிய முன்னேற்றமாக பார்க்கப்படுகிறது. ஆனால், இவ்வமைப்புகள் தவறான பதில்கள், தனியுரிமை ஆபத்துகள் மற்றும் தானியங்கி செயல்பாட்டில் அதிக நம்பிக்கை வைப்பதை தவிர்க்க கவனமாக சோதிக்கப்பட வேண்டும் என்று எச்சரிக்கின்றனர். இவ்வாறு, AI அமைப்புகள் பயனர்களின் தேவைகளை சரியாக புரிந்து கொள்ளும் திறனை வளர்க்க வேண்டும்.
+
+AI மூலம் உருவாக்கப்படும் பதில்களுக்கு கண்காணிப்பு தடங்கள் சேர்க்கப்படுகின்றன, இது இணக்கமான குழுக்களுக்கு உதவுகிறது. சில நிறுவனங்கள் இந்த நடவடிக்கைகளை மேற்கொண்டு வருகின்றன. இது AI அமைப்புகளின் செயல்பாட்டை கண்காணிக்கவும், சட்டப்பூர்வமான தேவைகளை பூர்த்தி செய்யவும் உதவுகிறது. இவ்வாறு, AI அமைப்புகள் சட்டரீதியான மற்றும் கொள்கை சார்ந்த தேவைகளை பூர்த்தி செய்யும் வகையில் செயல்படுகின்றன. இது நிறுவனங்களுக்கு நம்பகத்தன்மையை வழங்குகிறது.
+
+இந்திய தொழில்நுட்ப நிறுவனங்கள் பரிசோதித்து வரும் AI வாடிக்கையாளர் ஆதரவு அமைப்புகள், உள்ளூர் மொழிகளில் சேவைகளை மேம்படுத்துவதில் முக்கிய பங்கு வகிக்கின்றன. இவை வங்கிகள், மின் வணிக தளங்கள் மற்றும் பொது சேவை வழங்குநர்களுக்கு பயனர்களின் கேள்விகளை எளிதாக கையாள உதவுகின்றன. இதன் மூலம், ஆங்கிலத்தில் வசதியில்லாத பயனர்களுக்கு சேவை அணுகல் மேம்படும் என நிபுணர்கள் நம்புகின்றனர். மேலும், இந்த முயற்சிகள் பயனர்களின் அனுபவத்தை மேம்படுத்துவதோடு, தொழில்நுட்பத்தின் வளர்ச்சியையும் ஊக்குவிக்கின்றன.
+
+ஆனால், இந்த AI அமைப்புகளை கவனமாக சோதிக்க வேண்டும் என்பதில் நிபுணர்கள் எச்சரிக்கின்றனர். தவறான பதில்கள் மற்றும் தனியுரிமை ஆபத்துகளை தவிர்க்க, தானியங்கி செயல்பாட்டில் அதிக நம்பிக்கை வைக்காமல் இருக்க வேண்டும். இதனால், AI அமைப்புகள் பயனர்களுக்கு நம்பகமான சேவைகளை வழங்குவதில் முக்கிய பங்கு வகிக்க முடியும். மேலும், இந்த அமைப்புகள் சரியான சோதனைகளின் மூலம் மட்டுமே பயனர்களின் நம்பிக்கையை பெற முடியும் என்பதால், அவற்றின் செயல்திறனை உறுதிப்படுத்துவது அவசியம்.
+
+இந்திய தொழில்நுட்ப நிறுவனங்கள் AI தொழில்நுட்பத்தை பயன்படுத்தி வாடிக்கையாளர் ஆதரவை மேம்படுத்தும் முயற்சியில், மூன்று முதல் ஆறு மாதங்கள் வரை பைலட் திட்டங்களை செயல்படுத்த உள்ளன. இந்த காலகட்டத்தில், வாடிக்கையாளர் கேள்விகளை புரிந்து கொண்டு, அவர்களின் விருப்ப மொழியில் பதிலளிக்க AI அமைப்புகள் சோதிக்கப்படும். உணர்வுப்பூர்வமான கேள்விகள் மனித ஆதரவு நிர்வாகிகளுக்கு மாற்றப்படும். இந்த முயற்சிகள் வாடிக்கையாளர் சேவையில் உள்ள சிக்கல்களை தீர்க்கும் வழிகளை கண்டறிய உதவும் என எதிர்பார்க்கப்படுகிறது. மேலும், AI மூலம் உருவாக்கப்படும் பதில்களுக்கு கண்காணிப்பு தடங்கள் சேர்க்கப்படுகின்றன, இது ஒழுங்குமுறை குழுக்களுக்கு உதவக்கூடும்.
+
+இந்திய தொழில்நுட்ப நிறுவனங்கள் AI தொழில்நுட்பத்தை பயன்படுத்தி வாடிக்கையாளர் சேவையை மேம்படுத்தும் முயற்சியில், உள்ளூர் மொழிகளில் ஆதரவை வழங்கும் புதிய வழிகளை ஆராய்கின்றன. தொழில்நுட்ப நிபுணர்கள், ஆங்கிலத்தில் வசதியில்லாத பயனர்களுக்கு இந்த முயற்சிகள் உதவக்கூடும் என நம்புகின்றனர். ஆனால், தவறான பதில்கள் மற்றும் தனியுரிமை ஆபத்துகளை தவிர்க்க, இந்த அமைப்புகளை கவனமாக சோதிக்க வேண்டும் என எச்சரிக்கின்றனர். இந்த முயற்சிகள் வாடிக்கையாளர் சேவையில் புதிய மாற்றங்களை ஏற்படுத்தும் என எதிர்பார்க்கப்படுகிறது.</div>
+</section>
+  <section class="card">
+  <h2>Source Input</h2>
+  <div class="source">Indian Firms Test Regional-Language AI Customer Support Tools
+
+Bengaluru, July 3: A group of Indian technology companies has started testing AI-powered customer support systems that can understand regional languages and respond to users in a more natural conversational style.
+
+The systems are being piloted in Tamil, Hindi, Telugu, Kannada and Bengali, with the aim of helping banks, e-commerce platforms and public service providers handle large volumes of user queries. Companies involved in the trials said the tools are designed to support human agents rather than replace them fully.
+
+According to project teams, the AI systems can identify the intent of a customer query, retrieve relevant information from approved company documents and draft a response in the user’s preferred language. In sensitive cases such as payment disputes, account access issues or legal complaints, the query is routed to a human support executive.
+
+Industry experts said regional-language AI could improve access for users who are not comfortable with English. However, they warned that such systems must be carefully tested to avoid incorrect responses, privacy risks and over-reliance on automation.
+
+Some companies are also adding audit trails so every AI-generated response can be reviewed later. This is expected to help compliance teams verify whether the system followed approved policies.
+
+The pilot projects are expected to continue for three to six months before wider rollout decisions are taken.</div>
+</section>
+  <section class="card">
+  <h2>Telemetry</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">total_runtime_seconds</span>
+  <span class="value">90.004</span>
+</div><div class="metric">
+  <span class="label">llm_call_count_total</span>
+  <span class="value">44</span>
+</div><div class="metric">
+  <span class="label">total_prompt_tokens</span>
+  <span class="value">33671</span>
+</div><div class="metric">
+  <span class="label">total_completion_tokens</span>
+  <span class="value">8037</span>
+</div><div class="metric">
+  <span class="label">total_tokens</span>
+  <span class="value">41708</span>
+</div><div class="metric">
+  <span class="label">cached_prompt_tokens_total</span>
+  <span class="value">13184</span>
+</div><div class="metric">
+  <span class="label">prompt_cache_hit_ratio</span>
+  <span class="value">0.3916</span>
+</div><div class="metric">
+  <span class="label">estimated_cost_total_usd</span>
+  <span class="value">0.215827</span>
+</div><div class="metric">
+  <span class="label">slowest_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">highest_cost_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">max_concurrent_section_calls</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_section_group_size</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_group_call_count</span>
+  <span class="value">10</span>
+</div><div class="metric">
+  <span class="label">generation_single_section_fallback_count</span>
+  <span class="value">0</span>
+</div><div class="metric">
+  <span class="label">generation_context_compression_ratio</span>
+  <span class="value">0.5532</span>
+</div>
+  </div>
+</section>
+</main>
+</body>
+</html>

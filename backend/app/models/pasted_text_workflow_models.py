@@ -63,6 +63,8 @@ class PastedTextWorkflowResponse(BaseModel):
     initial_evaluation_id: str | None = None
     revision_id: str | None = None
     final_evaluation_id: str | None = None
+    generated_headline: str | None = None
+    generated_subheadline: str | None = None
     source_cleanup: SourceCleanupSummary
     brief_summary: WorkflowBriefSummary
     draft_summary: WorkflowDraftSummary

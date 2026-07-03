@@ -32,6 +32,10 @@ def test_pasted_text_workflow_success_with_mocked_models(tmp_path: Path) -> None
     assert response.source_cleanup.removed_line_count >= 3
     assert response.brief_summary.topic == "Flood warning pilot"
     assert response.draft_summary.headline == "சென்னை வெள்ள எச்சரிக்கை முயற்சி"
+    assert response.generated_headline == "சென்னை வெள்ள எச்சரிக்கை முயற்சி"
+    assert response.generated_subheadline == (
+        "18 சென்சார்கள் அமைக்கும் முயற்சி அடுத்த மாதம் தொடங்குகிறது."
+    )
     assert response.evaluation_summary is not None
     assert response.evaluation_summary.overall_risk == "medium"
     assert response.tamil_quality_status

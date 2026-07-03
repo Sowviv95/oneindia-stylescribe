@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StyleScribe Manual Validation Output</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5c667a;
+      --border: #d9e0ec;
+      --blocker-bg: #fff1f0;
+      --blocker-border: #d93025;
+      --warning-bg: #fff8e6;
+      --warning-border: #d99a00;
+      --accent: #2457c5;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Nirmala UI", "Latha", "Vijaya", "Noto Sans Tamil", Arial, sans-serif;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin: 0 0 14px;
+    }
+    h1 {
+      font-size: 30px;
+      margin-bottom: 22px;
+    }
+    h2 {
+      font-size: 21px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(20, 32, 50, 0.05);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcff;
+    }
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .value {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .article {
+      font-size: 18px;
+      white-space: pre-wrap;
+    }
+    .article-headline {
+      font-size: 28px;
+      line-height: 1.25;
+      margin: 6px 0 14px;
+    }
+    .article-subheadline {
+      color: var(--muted);
+      font-size: 17px;
+      margin: -4px 0 16px;
+    }
+    .source {
+      white-space: pre-wrap;
+      color: #263247;
+    }
+    .list {
+      margin: 0;
+      padding-left: 22px;
+    }
+    .blockers {
+      background: var(--blocker-bg);
+      border-color: var(--blocker-border);
+    }
+    .warnings {
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+    }
+    .tag {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>StyleScribe Manual Validation Output</h1>
+  <section class="card">
+  <h2>Summary</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">workflow_completed</span>
+  <span class="value">true</span>
+</div><div class="metric">
+  <span class="label">author_id</span>
+  <span class="value">v_vasanthi</span>
+</div><div class="metric">
+  <span class="label">desired_word_count</span>
+  <span class="value">600</span>
+</div><div class="metric">
+  <span class="label">target_min_word_count</span>
+  <span class="value">450</span>
+</div><div class="metric">
+  <span class="label">target_max_word_count</span>
+  <span class="value">690</span>
+</div><div class="metric">
+  <span class="label">final_article_word_count</span>
+  <span class="value">478</span>
+</div><div class="metric">
+  <span class="label">length_status</span>
+  <span class="value">pass</span>
+</div><div class="metric">
+  <span class="label">final_readiness</span>
+  <span class="value">revision_required</span>
+</div><div class="metric">
+  <span class="label">publication_ready_completeness_passed</span>
+  <span class="value">true</span>
+</div>
+  </div>
+  <div class="card">
+  <h3>Final readiness reasons</h3>
+  <ul class="list"><li>grounding_score_below_threshold</li><li>unsupported_claims_remaining</li><li>claims_to_avoid_violations_remaining</li><li>publication_ready_completeness_passed</li></ul>
+</div>
+  <div class="card blockers">
+  <h3>Final publication blockers</h3>
+  <ul class="list"><li>grounding_score_below_threshold</li><li>unsupported_claims_remaining</li><li>claims_to_avoid_violations_remaining</li></ul>
+</div>
+  <div class="card warnings">
+  <h3>Final publication warnings</h3>
+  <ul class="list"><li>overclaim_phrases_remaining</li></ul>
+</div>
+</section>
+  <section class="card">
+  <h2>Generated Tamil Article</h2>
+  <div class="tag">Headline source: generated_headline</div>
+  <h3 class="article-headline">அமெரிக்கா விசா செயல்முறை மாற்றம்: திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கு புதிய மாற்றங்கள்</h3>
+  <div class="article-subheadline">அமெரிக்கா, திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கான விசா செயல்முறை விதிகளை மறுபரிசீலனை செய்ய உள்ளது.</div>
+  <div class="tag">Article source: article_drafts.draft_json.article_body</div>
+  <div class="article">அமெரிக்கா அரசு தற்போது விசா செயலாக்க விதிகளை மறுபரிசீலனை செய்யும் முயற்சியில் ஈடுபட்டுள்ளது. இந்த முயற்சி, குறிப்பாக திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களை குறிக்கோளாகக் கொண்டுள்ளது. அமெரிக்காவில் வேலை செய்யும் திறமையான தொழிலாளர்கள் மற்றும் கல்வி கற்கும் சர்வதேச மாணவர்களுக்கு இது முக்கியமான மாற்றங்களை ஏற்படுத்தக்கூடும். இந்த நடவடிக்கை, அமெரிக்காவில் வேலை வாய்ப்புகளைப் பெறுவதற்கான வழிகளை எளிதாக்கும் நோக்கத்துடன் மேற்கொள்ளப்படுகிறது. இதன் மூலம், அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளை மேம்படுத்தும் முயற்சியாக இது பார்க்கப்படுகிறது.
+
+இந்த மறுபரிசீலனை அமெரிக்காவின் விசா செயலாக்க விதிகளை மேம்படுத்தும் நோக்கத்துடன் நடைபெறுகிறது. திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கு அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளை மேம்படுத்தும் விதமாக இந்த விதிகள் மாற்றப்படலாம். இதன் மூலம், அமெரிக்காவில் வேலை செய்யும் திறமையான தொழிலாளர்கள் மற்றும் கல்வி கற்கும் மாணவர்கள் எதிர்கொள்ளும் சிக்கல்களை குறைக்க முடியும் என எதிர்பார்க்கப்படுகிறது. இது, அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளை மேம்படுத்தும் முக்கியமான முயற்சியாக கருதப்படுகிறது.
+
+அமெரிக்காவின் விசா செயலாக்க விதிகளை மறுபரிசீலனை செய்வது முக்கியத்துவம் வாய்ந்தது. இது அமெரிக்காவில் வேலை செய்யும் திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கு பெரும் தாக்கத்தை ஏற்படுத்தும். அமெரிக்காவில் வேலை வாய்ப்புகள் மற்றும் கல்வி வாய்ப்புகளை நாடும் பலர், இந்த விதிமுறைகளின் அடிப்படையில் தங்களின் எதிர்காலத்தை திட்டமிடுகின்றனர். இதனால், இந்த விதிமுறைகளின் மாற்றம் அவர்களின் வாழ்க்கையில் முக்கியமான மாற்றங்களை ஏற்படுத்தக்கூடும். மேலும், அமெரிக்காவின் பொருளாதார வளர்ச்சிக்கும் இது முக்கியமானது, ஏனெனில் திறமையான தொழிலாளர்கள் மற்றும் மாணவர்கள் அமெரிக்காவின் தொழில்நுட்ப மற்றும் கல்வி துறைகளில் முக்கிய பங்கு வகிக்கின்றனர்.
+
+இந்த விசா செயலாக்க விதிகளின் மறுபரிசீலனை, திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களை நேரடியாக பாதிக்கும். அமெரிக்காவில் வேலை செய்யும் திறமையான தொழிலாளர்கள், புதிய விதிமுறைகளால் தங்கள் வேலை வாய்ப்புகளைப் பெறுவதில் சிரமங்களை எதிர்கொள்ளலாம். அதேபோல், சர்வதேச மாணவர்கள், அமெரிக்காவில் கல்வி கற்கும் வாய்ப்புகளைப் பெறுவதில் புதிய சவால்களை எதிர்கொள்ள நேரிடலாம். இதனால், அவர்களின் கல்வி மற்றும் தொழில் வாழ்க்கையில் மாற்றங்கள் ஏற்படலாம். மேலும், இந்த மாற்றங்கள் அவர்களின் குடும்பங்களுக்கும் பொருளாதார நிலைக்கும் பாதிப்பை ஏற்படுத்தக்கூடும்.
+
+அமெரிக்கா அரசு தனது விசா செயலாக்க விதிகளை மறுபரிசீலனை செய்யும் அறிவிப்பு ஜூலை 3 அன்று வெளியிடப்பட்டது. இந்த அறிவிப்பு, திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கு முக்கியமானது. அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளை நாடும் பலரின் எதிர்காலத்தை இந்த மறுபரிசீலனை பாதிக்கக்கூடியதாக இருக்கலாம். இதனால், பலர் எதிர்காலத்தில் ஏற்படக்கூடிய மாற்றங்களை கவனமாக எதிர்நோக்கி வருகின்றனர்.
+
+இந்த மறுபரிசீலனை, திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கு பல்வேறு விளைவுகளை ஏற்படுத்தக்கூடும். அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளை நாடும் பலரின் எதிர்காலம் இந்த மாற்றங்களால் பாதிக்கப்படலாம். ஆனால், இந்த மறுபரிசீலனையின் முடிவுகள் குறித்து எந்தவொரு உறுதியான தகவல்களும் இதுவரை வெளியிடப்படவில்லை. இதனால், பலர் எதிர்காலத்தில் ஏற்படக்கூடிய மாற்றங்களை கவனமாக எதிர்நோக்கி வருகின்றனர்.
+
+அமெரிக்காவின் விசா செயலாக்க விதிகளை மறுபரிசீலனை செய்யும் நடவடிக்கை, திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கு மிக முக்கியமானது. இது அவர்களின் எதிர்காலத்தைப் பாதிக்கும் என்பதால், பலரின் கவனத்தை ஈர்த்துள்ளது. இந்த மாற்றங்கள், அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளைப் பெறுவதில் முக்கிய பங்கு வகிக்கக்கூடும். இதனால், பலர் எதிர்காலத்தில் எதிர்கொள்ளக்கூடிய சவால்களைப் பற்றிய கவலைகள் அதிகரிக்கின்றன.
+
+இந்த மாற்றங்கள் எவ்வாறு அமல்படுத்தப்படும் என்பது இன்னும் தெளிவாகவில்லை. எனினும், திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்கள் எதிர்காலத்தில் எதிர்கொள்ளக்கூடிய சவால்களைப் பற்றிய கவலைகள் அதிகரிக்கின்றன. அமெரிக்காவின் இந்த நடவடிக்கை, உலகளாவிய அளவில் பலரின் கவனத்தை ஈர்க்கும் என்பதில் சந்தேகமில்லை. இது அவர்களின் வாழ்க்கையில் மாற்றங்களை ஏற்படுத்தக்கூடும் என்பதால், அனைவரும் இதனை கவனமாகக் கண்காணிக்கின்றனர்.
+
+அமெரிக்கா தனது விசா செயலாக்க விதிகளை மறுபரிசீலனை செய்யும் முயற்சியில், ஜூலை 3 ஆம் தேதி முதல் இந்த நடவடிக்கையை தொடங்கியுள்ளது. இந்த மறுபரிசீலனை, திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களை குறிவைத்து மேற்கொள்ளப்படுகிறது. இதன் மூலம், அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளைப் பெறுவதற்கான நடைமுறைகள் எவ்வாறு மாறக்கூடும் என்பதற்கான எதிர்பார்ப்புகள் உருவாகின்றன. இதற்கான அடுத்த கட்ட நடவடிக்கைகள் மற்றும் முடிவுகள் குறித்து அதிகாரப்பூர்வ அறிவிப்புகள் விரைவில் வெளிவரும் என எதிர்பார்க்கப்படுகிறது.
+
+அமெரிக்காவின் இந்த விசா விதி மறுபரிசீலனை, திறமையான தொழிலாளர்கள் மற்றும் சர்வதேச மாணவர்களுக்கு முக்கியமான மாற்றங்களை ஏற்படுத்தக்கூடும். இது, அமெரிக்காவில் வேலை மற்றும் கல்வி வாய்ப்புகளைப் பெறுவதற்கான நடைமுறைகளை எவ்வாறு மாறக்கூடும் என்பதற்கான எதிர்பார்ப்புகளை உருவாக்குகிறது. இதற்கான அடுத்த கட்ட நடவடிக்கைகள் மற்றும் முடிவுகள் குறித்து அதிகாரப்பூர்வ அறிவிப்புகள் விரைவில் வெளிவரும் என எதிர்பார்க்கப்படுகிறது, இது பலரின் எதிர்பார்ப்புகளை மேலும் அதிகரிக்கிறது.</div>
+</section>
+  <section class="card">
+  <h2>Source Input</h2>
+  <div class="source">US To Review Visa Processing Rules For Skilled Workers, International Students
+
+Washington, July 3: ...</div>
+</section>
+  <section class="card">
+  <h2>Telemetry</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">total_runtime_seconds</span>
+  <span class="value">84.687</span>
+</div><div class="metric">
+  <span class="label">llm_call_count_total</span>
+  <span class="value">44</span>
+</div><div class="metric">
+  <span class="label">total_prompt_tokens</span>
+  <span class="value">28065</span>
+</div><div class="metric">
+  <span class="label">total_completion_tokens</span>
+  <span class="value">7057</span>
+</div><div class="metric">
+  <span class="label">total_tokens</span>
+  <span class="value">35122</span>
+</div><div class="metric">
+  <span class="label">cached_prompt_tokens_total</span>
+  <span class="value">9728</span>
+</div><div class="metric">
+  <span class="label">prompt_cache_hit_ratio</span>
+  <span class="value">0.3466</span>
+</div><div class="metric">
+  <span class="label">estimated_cost_total_usd</span>
+  <span class="value">0.183472</span>
+</div><div class="metric">
+  <span class="label">slowest_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">highest_cost_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">max_concurrent_section_calls</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_section_group_size</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_group_call_count</span>
+  <span class="value">10</span>
+</div><div class="metric">
+  <span class="label">generation_single_section_fallback_count</span>
+  <span class="value">0</span>
+</div><div class="metric">
+  <span class="label">generation_context_compression_ratio</span>
+  <span class="value">0.5209</span>
+</div>
+  </div>
+</section>
+</main>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StyleScribe Manual Validation Output</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5c667a;
+      --border: #d9e0ec;
+      --blocker-bg: #fff1f0;
+      --blocker-border: #d93025;
+      --warning-bg: #fff8e6;
+      --warning-border: #d99a00;
+      --accent: #2457c5;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Nirmala UI", "Latha", "Vijaya", "Noto Sans Tamil", Arial, sans-serif;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin: 0 0 14px;
+    }
+    h1 {
+      font-size: 30px;
+      margin-bottom: 22px;
+    }
+    h2 {
+      font-size: 21px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(20, 32, 50, 0.05);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcff;
+    }
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .value {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .article {
+      font-size: 18px;
+      white-space: pre-wrap;
+    }
+    .article-headline {
+      font-size: 28px;
+      line-height: 1.25;
+      margin: 6px 0 14px;
+    }
+    .article-subheadline {
+      color: var(--muted);
+      font-size: 17px;
+      margin: -4px 0 16px;
+    }
+    .source {
+      white-space: pre-wrap;
+      color: #263247;
+    }
+    .list {
+      margin: 0;
+      padding-left: 22px;
+    }
+    .blockers {
+      background: var(--blocker-bg);
+      border-color: var(--blocker-border);
+    }
+    .warnings {
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+    }
+    .tag {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>StyleScribe Manual Validation Output</h1>
+  <section class="card">
+  <h2>Summary</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">workflow_completed</span>
+  <span class="value">true</span>
+</div><div class="metric">
+  <span class="label">author_id</span>
+  <span class="value">v_vasanthi</span>
+</div><div class="metric">
+  <span class="label">desired_word_count</span>
+  <span class="value">600</span>
+</div><div class="metric">
+  <span class="label">target_min_word_count</span>
+  <span class="value">450</span>
+</div><div class="metric">
+  <span class="label">target_max_word_count</span>
+  <span class="value">690</span>
+</div><div class="metric">
+  <span class="label">final_article_word_count</span>
+  <span class="value">466</span>
+</div><div class="metric">
+  <span class="label">length_status</span>
+  <span class="value">pass</span>
+</div><div class="metric">
+  <span class="label">final_readiness</span>
+  <span class="value">revision_required</span>
+</div><div class="metric">
+  <span class="label">publication_ready_completeness_passed</span>
+  <span class="value">true</span>
+</div>
+  </div>
+  <div class="card">
+  <h3>Final readiness reasons</h3>
+  <ul class="list"><li>claims_to_avoid_violations_remaining</li><li>publication_ready_completeness_passed</li></ul>
+</div>
+  <div class="card blockers">
+  <h3>Final publication blockers</h3>
+  <ul class="list"><li>claims_to_avoid_violations_remaining</li></ul>
+</div>
+  <div class="card warnings">
+  <h3>Final publication warnings</h3>
+  <ul class="list"><li>grounding_score_review_band</li><li>overclaim_phrases_remaining</li></ul>
+</div>
+</section>
+  <section class="card">
+  <h2>Generated Tamil Article</h2>
+  <div class="tag">Headline source: generated_headline</div>
+  <h3 class="article-headline">சென்னையில் மழையால் பாதிக்கப்பட்ட சாலைகள்: குடியினர்களின் கவலைகள்</h3>
+  <div class="article-subheadline">மழை காரணமாக சேதமடைந்த சாலைகள் மற்றும் நீர்நிலைகள் குறித்து சென்னைவாசிகள் கவலை</div>
+  <div class="tag">Article source: article_drafts.draft_json.article_body</div>
+  <div class="article">சென்னையின் பல பகுதிகளில் குடியினர்கள் பாதிக்கப்பட்ட சாலைகள் மற்றும் மந்தமான வடிகால் பழுது வேலைகள் குறித்து கவலை தெரிவித்துள்ளனர். தொடர்ந்து பெய்த மழையால் முக்கியமான பகுதிகளில் உள்ள பலவீனமான குடியிருப்பு அடிப்படை வசதிகள் வெளிப்படுத்தப்பட்டுள்ளன. இந்த நிலைமை, நகரின் அடிப்படை கட்டமைப்பின் பலவீனத்தை வெளிப்படுத்துகிறது, மேலும் குடியினர்கள் தங்கள் அன்றாட வாழ்க்கையில் பல சிரமங்களை எதிர்கொள்கின்றனர். இதனால், அவர்கள் தங்கள் பயணங்களில் பெரும் சிரமங்களை எதிர்கொள்கின்றனர், மேலும் இது அவர்களின் அன்றாட நடவடிக்கைகளில் பெரும் பாதிப்பை ஏற்படுத்துகிறது.
+
+சென்னையின் பல உள்ளக சாலைகள் குழிவடிவம் பெற்றுள்ளன, இதனால் வாகன ஓட்டிகள், பள்ளி வான்கள் மற்றும் முதியவர்கள் பயணிக்க கடினமாக உள்ளது. மேலும், சில பகுதிகளில் நீண்ட நாட்களாக நீர் தேங்கி உள்ளது, இது அடைக்கப்பட்ட அல்லது முழுமையற்ற புயல் நீர் வடிகால் காரணமாகும். இந்த நிலை, நகரின் அடிப்படை வசதிகளில் உள்ள குறைகளை வெளிப்படுத்துகிறது. இதனால், பொதுமக்கள் தங்கள் அன்றாட நடவடிக்கைகளில் பெரும் சிரமங்களை எதிர்கொள்கின்றனர், மேலும் இது அவர்களின் வாழ்க்கை தரத்தை பாதிக்கிறது.
+
+சென்னையில் மழை காரணமாக பாதிக்கப்பட்ட சாலைகளின் பழுது வேலைகள் முன்னுரிமை பகுதிகளில் தொடங்கப்பட்டுள்ளன. மேலும், தாழ்வான தெருக்களை ஆய்வு செய்ய கூடுதல் குழுக்கள் பணியில் ஈடுபடுத்தப்பட்டுள்ளன. முதலில் தற்காலிகமாக சாலைகளை சரிசெய்யும் பணிகள் மேற்கொள்ளப்பட்டு, மழை குறைந்த பிறகு நிரந்தர சாலை அமைப்புகள் செய்யப்படும் என அதிகாரிகள் தெரிவித்துள்ளனர். இந்த நடவடிக்கைகள் மூலம் பாதிக்கப்பட்ட பகுதிகளில் போக்குவரத்து சீராக நடைபெறுவதற்கு உதவியாக இருக்கும் என்று நம்பப்படுகிறது.
+
+சென்னையில் குடியினர்கள், சாலைகள் மீண்டும் மீண்டும் பழுது பார்க்கப்படுவதால் நிரந்தர தீர்வு கிடைக்கவில்லை என புகார் தெரிவித்துள்ளனர். &quot;ஆனால், குடியினர்கள், இந்த வேலைக்கு மேலும் கவனம் செலுத்த வேண்டும்&quot; என்று அவர்கள் கூறினர். இது போன்ற நிலைமைகள் ஒவ்வொரு ஆண்டும் தொடர்வதால், அவர்கள் சாலைகள் மற்றும் வடிகால் பணிகள் மேல் அதிக கவனம் செலுத்த வேண்டும் என வலியுறுத்துகின்றனர். குடியினர்கள், இந்த நிலைமையை மாற்றுவதற்கான நிரந்தர தீர்வுகளை எதிர்பார்க்கின்றனர்.
+
+சென்னையில் பல்வேறு பகுதிகளில் சாலைகளின் மோசமான நிலைமை அன்றாட வாழ்க்கையை பெரிதும் பாதித்துள்ளது. குறிப்பாக, கடைக்காரர்கள் வாடிக்கையாளர்கள் குறைவதால் வருவாய் இழப்பை சந்திக்கின்றனர். வாகனங்கள் சேதமடைவதால், வணிக நடவடிக்கைகள் குறைந்து, பொருளாதார பாதிப்புகள் ஏற்படுகின்றன. பள்ளி வாகனங்கள் மற்றும் மூத்த குடிமக்கள் போன்றோர் சாலைகளில் பயணிக்க கடினமாக உள்ளது. இதனால், மக்கள் அன்றாட தேவைகளை நிறைவேற்றுவதில் சிரமம் அடைகின்றனர், இது அவர்களின் வாழ்க்கை தரத்தை பாதிக்கிறது.
+
+நகர்ப்புற திட்டமிடல் நிபுணர்கள், மழைக்காலத்திற்கு முன் சாலை பழுது, வடிகால் சுத்தம் மற்றும் பயன்பாட்டு பணிகளை ஒருங்கிணைக்க வேண்டும் என்று வலியுறுத்துகின்றனர். இது, மழைக்காலத்தில் ஏற்படும் பாதிப்புகளை குறைக்க உதவும். இவ்வாறு ஒருங்கிணைந்த நடவடிக்கைகள், நகரின் அடிப்படை வசதிகளை மேம்படுத்துவதில் முக்கிய பங்கு வகிக்கின்றன. இதனால், மக்கள் எதிர்கொள்ளும் சிரமங்கள் குறைந்து, நகரின் வளர்ச்சிக்கு வழிவகுக்கும்.
+
+சென்னையில் நீர்நிலைகள் மற்றும் சேதமடைந்த சாலைகள் தொடர்பான புகார்களைத் தீர்க்க நகராட்சி அதிகாரிகள் பல நடவடிக்கைகளை மேற்கொண்டுள்ளனர். பொதுமக்கள் பாதிக்கப்பட்ட பகுதிகளை அதிகாரப்பூர்வ புகார் தொலைபேசி மற்றும் மொபைல் பயன்பாட்டின் மூலம் அறிவிக்குமாறு கேட்டுக்கொள்ளப்பட்டுள்ளனர். மேலும், நீர்நிலைகள் மற்றும் சேதமடைந்த சாலைகள் தொடர்பான புகார்களை நிலைமை மேம்படும் வரை தினசரி ஆய்வு செய்வதாக அதிகாரிகள் உறுதியளித்துள்ளனர். இது பொதுமக்களின் நலனுக்காக மேற்கொள்ளப்படும் முக்கியமான நடவடிக்கையாகும்.
+
+சென்னையின் குடியிருப்புகள் மற்றும் வணிகர்கள் எதிர்கொள்ளும் சாலைகள் மற்றும் நீர்நிலைகள் தொடர்பான சவால்கள், நகரத்தின் அடிப்படை கட்டமைப்பின் பலவீனங்களை வெளிப்படுத்துகின்றன. நகராட்சி அதிகாரிகள் நடவடிக்கைகளை மேற்கொண்டாலும், நீண்டகால தீர்வுகள் தேவைப்படுகிறது. நகரின் வளர்ச்சியை முன்னேற்றுவதற்கான திட்டமிடல் மற்றும் செயல்பாடுகள் முன்னுரிமையாக இருக்க வேண்டும் என்பதில் அனைவரும் ஒப்புக்கொள்கின்றனர். இது நகரத்தின் எதிர்கால நலனுக்கான முக்கியமான கட்டமாகும்.
+
+சென்னையில் மழையால் பாதிக்கப்பட்ட சாலைகள் மற்றும் நீர்நிலைகள் தொடர்பான புகார்களை தினமும் மதிப்பீடு செய்ய அதிகாரிகள் உறுதியளித்துள்ளனர். முதற்கட்டமாக, முக்கிய பகுதிகளில் தற்காலிக சீரமைப்பு பணிகள் தொடங்கப்பட்டுள்ளன. மழை குறைந்தவுடன், நிரந்தர சாலை சீரமைப்பு பணிகள் மேற்கொள்ளப்படும். குடியினர்கள், பாதிக்கப்பட்ட பகுதிகளை அதிகாரப்பூர்வ புகார் ஹெல்ப்லைன் மற்றும் மொபைல் பயன்பாட்டின் மூலம் தெரிவிக்குமாறு கேட்டுக்கொள்ளப்பட்டுள்ளனர். இது, நிலைமை மேம்படும் வரை தொடர்ச்சியாக கண்காணிக்கப்படும்.
+
+சென்னையில் மழையால் பாதிக்கப்பட்ட சாலைகள் மற்றும் நீர்நிலைகள் தொடர்பான பிரச்சினைகள், குடியினர்களின் அன்றாட வாழ்க்கையை பெரிதும் பாதித்துள்ளன. நகர்ப்புற திட்டமிடல் நிபுணர்கள், மழைக்காலத்திற்கு முன் சாலைகள் மற்றும் நீர்நிலைகளை சீரமைப்பது அவசியம் என வலியுறுத்துகின்றனர். நகராட்சி நிர்வாகம், குடியினர்களின் புகார்களை கவனித்து, விரைவாக நடவடிக்கை எடுக்க வேண்டும் என எதிர்பார்க்கப்படுகிறது. இது, நகரின் அடிப்படை வசதிகளை மேம்படுத்துவதற்கான முக்கியமான கட்டமாகும்.</div>
+</section>
+  <section class="card">
+  <h2>Source Input</h2>
+  <div class="source">Chennai Residents Raise Concern Over Damaged Roads After Rain
+
+Chennai, July 3: Residents in several parts of Chennai have raised concerns over damaged roads and slow drainage repair work after repeated spells of rain exposed weak civic infrastructure in key neighbourhoods.
+
+Local residents said several interior roads have developed potholes, making daily travel difficult for motorists, school vans and elderly pedestrians. In some areas, stagnant water has remained for several days as stormwater drains are either blocked or incomplete.
+
+Civic officials said repair work has started in priority zones and additional teams have been deployed to inspect low-lying streets. They added that temporary patchwork will be completed first, followed by permanent road relaying once the rain reduces.
+
+Residents, however, said the work must be monitored more closely. They complained that the same stretches are repaired repeatedly every year without a permanent solution. Shopkeepers in affected areas said poor road conditions have reduced customer footfall and increased vehicle damage.
+
+Urban planning experts said road repair, drain desilting and utility work should be coordinated before the monsoon season instead of being handled as separate emergency tasks.
+
+The civic body has asked residents to report damaged stretches through the official complaint helpline and mobile application. Officials said complaints related to waterlogging and damaged roads will be reviewed on a daily basis until the situation improves.</div>
+</section>
+  <section class="card">
+  <h2>Telemetry</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">total_runtime_seconds</span>
+  <span class="value">104.236</span>
+</div><div class="metric">
+  <span class="label">llm_call_count_total</span>
+  <span class="value">44</span>
+</div><div class="metric">
+  <span class="label">total_prompt_tokens</span>
+  <span class="value">34049</span>
+</div><div class="metric">
+  <span class="label">total_completion_tokens</span>
+  <span class="value">8539</span>
+</div><div class="metric">
+  <span class="label">total_tokens</span>
+  <span class="value">42588</span>
+</div><div class="metric">
+  <span class="label">cached_prompt_tokens_total</span>
+  <span class="value">14080</span>
+</div><div class="metric">
+  <span class="label">prompt_cache_hit_ratio</span>
+  <span class="value">0.4135</span>
+</div><div class="metric">
+  <span class="label">estimated_cost_total_usd</span>
+  <span class="value">0.226309</span>
+</div><div class="metric">
+  <span class="label">slowest_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">highest_cost_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">max_concurrent_section_calls</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_section_group_size</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_group_call_count</span>
+  <span class="value">10</span>
+</div><div class="metric">
+  <span class="label">generation_single_section_fallback_count</span>
+  <span class="value">0</span>
+</div><div class="metric">
+  <span class="label">generation_context_compression_ratio</span>
+  <span class="value">0.5511</span>
+</div>
+  </div>
+</section>
+</main>
+</body>
+</html>

@@ -478,6 +478,8 @@ def run_pasted_text_to_draft_workflow(
     final_article = (
         revision_response.revised_draft if revision_response else draft_response.draft
     )
+    generated_headline = _optional_str(final_article.get("headline"))
+    generated_subheadline = _optional_str(final_article.get("subheadline"))
     final_article_source_stage = (
         "length_recovery"
         if expansion_response
@@ -722,6 +724,8 @@ def run_pasted_text_to_draft_workflow(
             if final_evaluation_response
             else None
         ),
+        generated_headline=generated_headline,
+        generated_subheadline=generated_subheadline,
         source_cleanup=cleanup_summary,
         brief_summary=brief_summary,
         draft_summary=draft_summary,

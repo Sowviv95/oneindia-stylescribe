@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StyleScribe Manual Validation Output</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5c667a;
+      --border: #d9e0ec;
+      --blocker-bg: #fff1f0;
+      --blocker-border: #d93025;
+      --warning-bg: #fff8e6;
+      --warning-border: #d99a00;
+      --accent: #2457c5;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Nirmala UI", "Latha", "Vijaya", "Noto Sans Tamil", Arial, sans-serif;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin: 0 0 14px;
+    }
+    h1 {
+      font-size: 30px;
+      margin-bottom: 22px;
+    }
+    h2 {
+      font-size: 21px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(20, 32, 50, 0.05);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcff;
+    }
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .value {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .article {
+      font-size: 18px;
+      white-space: pre-wrap;
+    }
+    .article-headline {
+      font-size: 28px;
+      line-height: 1.25;
+      margin: 6px 0 14px;
+    }
+    .article-subheadline {
+      color: var(--muted);
+      font-size: 17px;
+      margin: -4px 0 16px;
+    }
+    .source {
+      white-space: pre-wrap;
+      color: #263247;
+    }
+    .list {
+      margin: 0;
+      padding-left: 22px;
+    }
+    .blockers {
+      background: var(--blocker-bg);
+      border-color: var(--blocker-border);
+    }
+    .warnings {
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+    }
+    .tag {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>StyleScribe Manual Validation Output</h1>
+  <section class="card">
+  <h2>Summary</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">workflow_completed</span>
+  <span class="value">true</span>
+</div><div class="metric">
+  <span class="label">author_id</span>
+  <span class="value">v_vasanthi</span>
+</div><div class="metric">
+  <span class="label">desired_word_count</span>
+  <span class="value">600</span>
+</div><div class="metric">
+  <span class="label">target_min_word_count</span>
+  <span class="value">450</span>
+</div><div class="metric">
+  <span class="label">target_max_word_count</span>
+  <span class="value">690</span>
+</div><div class="metric">
+  <span class="label">final_article_word_count</span>
+  <span class="value">469</span>
+</div><div class="metric">
+  <span class="label">length_status</span>
+  <span class="value">pass</span>
+</div><div class="metric">
+  <span class="label">final_readiness</span>
+  <span class="value">review_required</span>
+</div><div class="metric">
+  <span class="label">publication_ready_completeness_passed</span>
+  <span class="value">true</span>
+</div>
+  </div>
+  <div class="card">
+  <h3>Final readiness reasons</h3>
+  <ul class="list"><li>grounding_score_review_band</li><li>overclaim_phrases_remaining</li><li>publication_ready_completeness_passed</li></ul>
+</div>
+  <div class="card blockers">
+  <h3>Final publication blockers</h3>
+  <p>None</p>
+</div>
+  <div class="card warnings">
+  <h3>Final publication warnings</h3>
+  <ul class="list"><li>grounding_score_review_band</li><li>overclaim_phrases_remaining</li></ul>
+</div>
+</section>
+  <section class="card">
+  <h2>Generated Tamil Article</h2>
+  <div class="tag">Headline source: generated_headline</div>
+  <h3 class="article-headline">தமிழ்நாட்டில் கனமழை எச்சரிக்கை: மக்கள் பாதுகாப்பு ஆலோசனைகள்</h3>
+  <div class="article-subheadline">கனமழையால் பாதிக்கப்பட்ட பகுதிகளில் பாதுகாப்பு நடவடிக்கைகள் அறிவிக்கப்பட்டுள்ளன</div>
+  <div class="tag">Article source: article_drafts.draft_json.article_body</div>
+  <div class="article">தமிழ்நாட்டில் பல பகுதிகளில் கனமழை பெய்து வருகிறது. இதனால், குறைந்த உயரம் மற்றும் வெள்ளம் ஏற்படும் பகுதிகளில் வசிக்கும் மக்களுக்கு மாவட்ட நிர்வாகங்கள் பாதுகாப்பு அறிவுறுத்தல்களை வெளியிட்டுள்ளன. மக்கள் அச்சமடைந்துள்ள நிலையில், வெள்ளம் ஏற்படும் அபாயம் உள்ள பகுதிகளில் மக்கள் பாதுகாப்பாக இருக்க வேண்டும் என அதிகாரிகள் அறிவுறுத்தியுள்ளனர். இந்த மழை நிலைமை காரணமாக, மக்கள் தேவையற்ற பயணங்களை தவிர்க்கவும், பாதுகாப்பாக இருக்கவும் அறிவுறுத்தப்பட்டுள்ளனர்.
+
+தமிழ்நாட்டின் கடலோர மற்றும் உள்நாட்டு மாவட்டங்களில் பலத்த மழை பதிவாகியுள்ளது. இதனால் சில சாலைகளில் நீர் தேங்கியுள்ளதால், போக்குவரத்து நெரிசல் ஏற்பட்டுள்ளது. குறிப்பாக, பீக் நேரங்களில் மக்கள் பெரும் சிரமங்களை சந்திக்கின்றனர். இந்த மழை நிலைமை காரணமாக, மக்கள் பாதுகாப்பாக இருக்கவும், தேவையற்ற பயணங்களை தவிர்க்கவும் அறிவுறுத்தப்பட்டுள்ளனர். மேலும், நகர்ப்புற பகுதிகளில் மக்கள் வெள்ளம் சூழ்ந்த சாலைகளில் செல்ல வேண்டாம் எனவும், அபாயங்களை உள்ளூர் அதிகாரிகளுக்கு தெரிவிக்கவும் கேட்டுக்கொள்ளப்பட்டுள்ளனர்.
+
+தமிழ்நாட்டில் கனமழை காரணமாக பல்வேறு பாதுகாப்பு அறிவுறுத்தல்கள் வெளியிடப்பட்டுள்ளன. மாவட்ட நிர்வாகங்கள், நீர்நிலைகளில் நீர் தேங்கல் ஏற்படாமல் இருக்க, மின்சார ஜெனரேட்டர்கள், அவசர வாகனங்கள் ஆகியவற்றை தயார் நிலையில் வைத்திருக்க உள்ளூர் நிர்வாகங்களை அறிவுறுத்தியுள்ளன. மேலும், பேரிடர் மீட்பு குழுக்கள் எப்போதும் தயாராக இருக்கின்றன. இவ்வாறு முன்னெச்சரிக்கை நடவடிக்கைகள் மூலம் மக்கள் பாதுகாப்பாக இருக்க வேண்டும் என்பதே அதிகாரிகளின் நோக்கம் ஆகும். இதனால், மக்கள் தங்கள் பாதுகாப்பை உறுதிப்படுத்திக் கொள்ள வேண்டும்.
+
+வானிலை துறை, அடுத்த இரண்டு நாட்களுக்கு மேலும் மழை பெய்யும் என எதிர்பார்க்கிறது. இதற்குக் காரணம், வங்காள விரிகுடாவில் உருவாகியுள்ள வானிலை அமைப்பு ஆகும். இதனால், மக்கள் முன்னெச்சரிக்கையாக இருக்க வேண்டும் என வானிலை துறை அறிவுறுத்தியுள்ளது. குறிப்பாக, கடலோர பகுதிகளில் உள்ள மீனவர்கள் கடலுக்கு செல்ல வேண்டாம் எனவும் அறிவுறுத்தப்பட்டுள்ளது. இதனால், மக்கள் தங்கள் பாதுகாப்பை உறுதிப்படுத்திக் கொள்ள வேண்டும்.
+
+தமிழ்நாட்டில் கடுமையான மழை காரணமாக மீனவர்கள் கடலுக்கு செல்ல வேண்டாம் என அதிகாரிகள் அறிவுறுத்தியுள்ளனர். கடல் நிலை மிகவும் மோசமாக உள்ளதால், அவர்கள் பாதுகாப்பாக இருக்க வேண்டியது அவசியம். நகர்ப்புறங்களில் வசிக்கும் மக்கள் வெள்ளம் சூழ்ந்த சாலைகளில் வாகனங்களை இயக்க வேண்டாம் எனவும், எந்தவொரு அபாயமும் ஏற்பட்டால் உடனடியாக உள்ளூர் அதிகாரிகளுக்கு தகவல் தெரிவிக்கவும் அறிவுறுத்தப்பட்டுள்ளனர். இது அவர்களின் பாதுகாப்பை உறுதிப்படுத்தும் முக்கியமான நடவடிக்கையாகும்.
+
+தமிழ்நாட்டில் பெய்து வரும் கடுமையான மழை காரணமாக, பாதிக்கப்பட்ட பகுதிகளில் உள்ள பள்ளிகள் ஆன்லைன் வகுப்புகளுக்கு மாற வாய்ப்பு உள்ளது. மாணவர்களின் பாதுகாப்பை கருத்தில் கொண்டு, பள்ளிகள் இந்த முடிவை எடுக்கலாம். மழை நிலைமை மேலும் மோசமாக இருந்தால், மாணவர்கள் வீட்டிலிருந்தே கல்வியை தொடர்வதற்கான ஏற்பாடுகள் செய்யப்படலாம். இது மாணவர்களின் கல்வி பாதிக்கப்படாமல் பாதுகாப்பாக இருக்க உதவும்.
+
+தமிழ்நாட்டில் கனமழை காரணமாக நீர்நிலைகள் மற்றும் பெரிய நீர்த்தேக்கங்கள் மிகுந்த கவனத்துடன் கண்காணிக்கப்படுகின்றன. நீர்மட்டம் அதிகரிப்பதை கண்காணித்து, அவசர நிலைமைகளைத் தவிர்க்கும் முயற்சியில் அதிகாரிகள் தீவிரமாக செயல்படுகின்றனர். நீர்நிலைகளின் நிலைமைகளை தொடர்ந்து கண்காணிப்பதன் மூலம், வெள்ள அபாயங்களை குறைக்க அதிகாரிகள் முயற்சிக்கின்றனர். இது பொதுமக்களின் பாதுகாப்பை உறுதிசெய்யும் முக்கியமான நடவடிக்கையாகும். நீர்மட்டம் அதிகரிக்கும் போது, அவசர நடவடிக்கைகள் எடுக்கப்படும் என அதிகாரிகள் உறுதியளிக்கின்றனர்.
+
+தமிழ்நாட்டில் நிலவும் கனமழை நிலைமைகள் பொதுமக்களின் அன்றாட வாழ்க்கையை பெரிதும் பாதிக்கின்றன. பாதுகாப்பு அறிவுறுத்தல்களை பின்பற்றுவது அவசியம் என்பதை அதிகாரிகள் வலியுறுத்துகின்றனர். பொதுமக்கள் மற்றும் அதிகாரிகள் இணைந்து செயல்படுவதன் மூலம், இந்த சவால்களை சமாளிக்க முடியும். எதிர்காலத்தில் மழை குறைவாகும் என்ற எதிர்பார்ப்பு உள்ளதால், அனைவரும் பாதுகாப்பாக இருக்க வேண்டும். இந்த நேரத்தில், அனைவரும் எச்சரிக்கையாக இருக்க வேண்டும் என்பதையும் அதிகாரிகள் நினைவூட்டுகின்றனர்.
+
+தமிழ்நாட்டில் கனமழை தொடர்ந்து பெய்து வருவதால், அடுத்த இரண்டு நாட்களில் மேலும் மழை பெய்யும் என வானிலை ஆய்வு மையம் எச்சரிக்கை விடுத்துள்ளது. இதனால், மீனவர்கள் கடலுக்கு செல்ல வேண்டாம் என அறிவுறுத்தப்பட்டுள்ளனர். நகர்ப்புறங்களில் மக்கள் வெள்ளம் சூழ்ந்த சாலைகளில் வாகனங்களை இயக்க வேண்டாம் எனவும், எந்தவொரு ஆபத்தையும் உள்ளூர் அதிகாரிகளுக்கு உடனடியாக தெரிவிக்கவும் அறிவுறுத்தப்பட்டுள்ளனர். பள்ளிகள் மழை தொடர்ந்தால் ஆன்லைன் வகுப்புகளுக்கு மாறலாம். நீர்த்தேக்கங்கள் மற்றும் முக்கிய நீர்நிலைகள் தொடர்ந்து கண்காணிக்கப்படுகின்றன.
+
+தமிழ்நாட்டில் கனமழை காரணமாக மக்கள் பாதுகாப்பு நடவடிக்கைகளை கடைப்பிடிக்க வேண்டும். வெள்ளம் மற்றும் போக்குவரத்து தடங்கல்களை சமாளிக்க, மாவட்ட நிர்வாகங்கள் முன்னெச்சரிக்கை அறிவுறுத்தல்களை வெளியிட்டுள்ளன. மீனவர்கள் கடலுக்கு செல்ல வேண்டாம் எனவும், பள்ளிகள் ஆன்லைன் வகுப்புகளுக்கு மாறலாம் எனவும் அறிவுறுத்தப்பட்டுள்ளது. இந்த மழை நிலைமை, மக்கள் வாழ்க்கையில் பெரும் பாதிப்பை ஏற்படுத்தும் என்பதால், அனைவரும் பாதுகாப்பாக இருக்க வேண்டும். மேலும், நீர்நிலைகள் கண்காணிக்கப்படுவதால், நீர்மட்டம் அதிகரிக்காமல் இருக்க நடவடிக்கைகள் எடுக்கப்படுகின்றன.</div>
+</section>
+  <section class="card">
+  <h2>Source Input</h2>
+  <div class="source">Heavy Rain Alert Issued In Parts Of Tamil Nadu
+
+Chennai, July 3: Heavy rain in parts of Tamil Nadu has prompted district administrations to issue safety advisories for residents living in low-lying and flood-prone areas.
+
+Officials said rainfall was reported across several coastal and interior districts, leading to waterlogging on some roads and traffic disruption during peak hours. Disaster response teams have been placed on standby, while local bodies have been instructed to keep pumps, generators and emergency vehicles ready.
+
+The weather department said more rain is likely over the next two days due to a weather system over the Bay of Bengal. Fishermen have been advised not to venture into rough sea conditions until further notice.
+
+In urban areas, residents have been asked to avoid driving through flooded roads and report fallen trees, open electric cables and overflowing drains to local authorities. Schools in some affected areas may shift to online classes if the rain continues.
+
+Officials said reservoirs and major water bodies are being monitored, but there is no immediate cause for panic. They added that precautionary measures are being taken to avoid last-minute emergency responses.
+
+Residents have been advised to follow official updates and avoid spreading unverified weather alerts on social media.</div>
+</section>
+  <section class="card">
+  <h2>Telemetry</h2>
+  <div class="grid">
+    <div class="metric">
+  <span class="label">total_runtime_seconds</span>
+  <span class="value">80.076</span>
+</div><div class="metric">
+  <span class="label">llm_call_count_total</span>
+  <span class="value">44</span>
+</div><div class="metric">
+  <span class="label">total_prompt_tokens</span>
+  <span class="value">31727</span>
+</div><div class="metric">
+  <span class="label">total_completion_tokens</span>
+  <span class="value">7726</span>
+</div><div class="metric">
+  <span class="label">total_tokens</span>
+  <span class="value">39453</span>
+</div><div class="metric">
+  <span class="label">cached_prompt_tokens_total</span>
+  <span class="value">13952</span>
+</div><div class="metric">
+  <span class="label">prompt_cache_hit_ratio</span>
+  <span class="value">0.4398</span>
+</div><div class="metric">
+  <span class="label">estimated_cost_total_usd</span>
+  <span class="value">0.205291</span>
+</div><div class="metric">
+  <span class="label">slowest_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">highest_cost_stage</span>
+  <span class="value">generation</span>
+</div><div class="metric">
+  <span class="label">max_concurrent_section_calls</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_section_group_size</span>
+  <span class="value">2</span>
+</div><div class="metric">
+  <span class="label">generation_group_call_count</span>
+  <span class="value">10</span>
+</div><div class="metric">
+  <span class="label">generation_single_section_fallback_count</span>
+  <span class="value">0</span>
+</div><div class="metric">
+  <span class="label">generation_context_compression_ratio</span>
+  <span class="value">0.5431</span>
+</div>
+  </div>
+</section>
+</main>
+</body>
+</html>

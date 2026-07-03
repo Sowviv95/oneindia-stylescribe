@@ -1,0 +1,480 @@
+{
+  "workflow_id": "3f632eae-8607-4e65-9e5e-fb8f96533bb4",
+  "workflow_run_id": "3f632eae-8607-4e65-9e5e-fb8f96533bb4",
+  "status": "completed",
+  "author_id": "v_vasanthi",
+  "brief_id": "d329767e-eb62-4c76-bdd3-90e26fbb01ad",
+  "draft_id": "ee57af13-df49-41f0-ab7d-7409896a6b07",
+  "evaluation_id": "922bba59-b9a1-4436-a525-8cfaf93a6df4",
+  "initial_evaluation_id": "922bba59-b9a1-4436-a525-8cfaf93a6df4",
+  "revision_id": null,
+  "final_evaluation_id": null,
+  "generated_headline": "சென்னையில் மழையால் பாதிக்கப்பட்ட சாலைகள்: குடியினர்களின் கவலைகள்",
+  "generated_subheadline": "மழை காரணமாக சேதமடைந்த சாலைகள் மற்றும் நீர்நிலைகள் குறித்து சென்னைவாசிகள் கவலை",
+  "source_cleanup": {
+    "original_char_count": 1521,
+    "cleaned_char_count": 1521,
+    "removed_line_count": 0,
+    "warnings": []
+  },
+  "brief_summary": {
+    "topic": "Chennai Residents Concerned Over Damaged Roads After Rain",
+    "one_line_summary": "Residents in Chennai express concerns about damaged roads and slow drainage repairs following heavy rains.",
+    "confirmed_facts": [
+      "Residents in several parts of Chennai have raised concerns over damaged roads and slow drainage repair work.",
+      "Repeated spells of rain have exposed weak civic infrastructure in key neighbourhoods.",
+      "Several interior roads have developed potholes, making travel difficult for motorists, school vans, and elderly pedestrians.",
+      "Stagnant water has remained in some areas for several days due to blocked or incomplete stormwater drains.",
+      "Repair work has started in priority zones, and additional teams have been deployed to inspect low-lying streets.",
+      "Temporary patchwork will be completed first, followed by permanent road relaying once the rain reduces.",
+      "Residents have complained that the same stretches are repaired repeatedly every year without a permanent solution.",
+      "Shopkeepers in affected areas reported that poor road conditions have reduced customer footfall and increased vehicle damage.",
+      "Urban planning experts suggested that road repair, drain desilting, and utility work should be coordinated before the monsoon season.",
+      "The civic body has asked residents to report damaged stretches through the official complaint helpline and mobile application.",
+      "Officials stated that complaints related to waterlogging and damaged roads will be reviewed daily until the situation improves."
+    ],
+    "claims_to_avoid": [
+      "The claim that the same stretches are repaired repeatedly every year without a permanent solution is based on resident complaints and may not be universally true."
+    ]
+  },
+  "draft_summary": {
+    "headline": "சென்னையில் மழையால் பாதிக்கப்பட்ட சாலைகள்: குடியினர்களின் கவலைகள்",
+    "subheadline": "மழை காரணமாக சேதமடைந்த சாலைகள் மற்றும் நீர்நிலைகள் குறித்து சென்னைவாசிகள் கவலை",
+    "seo_title": "சென்னையில் மழையால் பாதிக்கப்பட்ட சாலைகள்: குடியினர்களின் கவலைகள்",
+    "tags": [
+      "சென்னை",
+      "மழை",
+      "சாலைகள்",
+      "குடியினர்கள்",
+      "சீரமைப்பு"
+    ]
+  },
+  "evaluation_summary": {
+    "grounding_score": 85,
+    "claim_safety_score": 0,
+    "overall_risk": "medium",
+    "editorial_readiness": "revision_required"
+  },
+  "initial_readiness": "revision_required",
+  "initial_readiness_reasons": [
+    "grounding_score_review_band",
+    "claims_to_avoid_violations_remaining",
+    "overclaim_phrases_remaining"
+  ],
+  "final_readiness": "revision_required",
+  "final_readiness_reasons": [
+    "claims_to_avoid_violations_remaining",
+    "publication_ready_completeness_passed"
+  ],
+  "readiness_decision_source": "initial_evaluation_no_final_evaluation",
+  "final_publication_blockers": [
+    "claims_to_avoid_violations_remaining"
+  ],
+  "final_publication_warnings": [
+    "grounding_score_review_band",
+    "overclaim_phrases_remaining"
+  ],
+  "publication_ready_completeness_passed": true,
+  "final_evaluation_summary": null,
+  "article_plan_used": true,
+  "plan_id": "89d9e62c-4b8a-4370-a6ac-c3ea2d2e5cda",
+  "desired_word_count": 600,
+  "target_min_word_count": 450,
+  "target_max_word_count": 690,
+  "generation_mode_used": "section_assembled",
+  "generated_section_count": 10,
+  "assembled_section_count": 10,
+  "section_assembled_article_word_count": 466,
+  "section_assembled_article_paragraph_count": 10,
+  "original_draft_source": "section_assembled",
+  "original_draft_word_count_after_assignment": 466,
+  "original_draft_matches_section_assembly": true,
+  "revision_input_word_count": null,
+  "revision_mode": null,
+  "revision_patch_count": 0,
+  "revision_patches_applied_count": 0,
+  "revision_patches_skipped_count": 0,
+  "revision_patch_skipped_reasons": [],
+  "revision_output_word_count": null,
+  "revision_delta_word_count": null,
+  "revision_rejected_for_length_collapse": false,
+  "revision_rejected_reason": null,
+  "revised_article_source": null,
+  "unsupported_claim_findings_count": 0,
+  "unsupported_claim_patch_count": 0,
+  "unsupported_claim_patches_applied_count": 0,
+  "unsupported_claim_patches_skipped_count": 0,
+  "unsupported_claim_patch_skipped_reasons": [],
+  "unsupported_claims_unresolved_count": 0,
+  "unsupported_claims_cleared_by_patch": false,
+  "length_recovery_skipped_reason": "section assembly reached target minimum",
+  "length_recovery_input_word_count": 466,
+  "final_article_source_stage": "section_assembled",
+  "final_word_count_ratio": 0.777,
+  "section_generation_trace": [
+    {
+      "section_id": "section_1",
+      "heading": "Lead",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 40,
+      "retry_attempted": true,
+      "retry_word_count": 55,
+      "selected_word_count": 55,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {
+        "prompt_tokens": 2005,
+        "completion_tokens": 431,
+        "total_tokens": 2436,
+        "cached_prompt_tokens": 0
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2338,
+        "completion_tokens": 516,
+        "total_tokens": 2854,
+        "cached_prompt_tokens": 1920
+      }
+    },
+    {
+      "section_id": "section_2",
+      "heading": "Details of the Damage",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 40,
+      "retry_attempted": true,
+      "retry_word_count": 54,
+      "selected_word_count": 54,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {},
+      "retry_token_usage": {}
+    },
+    {
+      "section_id": "section_3",
+      "heading": "Repair Efforts",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 35,
+      "retry_attempted": true,
+      "retry_word_count": 47,
+      "selected_word_count": 47,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {
+        "prompt_tokens": 2038,
+        "completion_tokens": 434,
+        "total_tokens": 2472,
+        "cached_prompt_tokens": 1536
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2356,
+        "completion_tokens": 515,
+        "total_tokens": 2871,
+        "cached_prompt_tokens": 1024
+      }
+    },
+    {
+      "section_id": "section_4",
+      "heading": "Residents' Concerns",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 42,
+      "retry_attempted": true,
+      "retry_word_count": 49,
+      "selected_word_count": 49,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {},
+      "retry_token_usage": {}
+    },
+    {
+      "section_id": "section_5",
+      "heading": "Impact on Daily Life",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 37,
+      "retry_attempted": true,
+      "retry_word_count": 47,
+      "selected_word_count": 47,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {
+        "prompt_tokens": 1970,
+        "completion_tokens": 390,
+        "total_tokens": 2360,
+        "cached_prompt_tokens": 1024
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2294,
+        "completion_tokens": 456,
+        "total_tokens": 2750,
+        "cached_prompt_tokens": 1920
+      }
+    },
+    {
+      "section_id": "section_6",
+      "heading": "Expert Recommendations",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 32,
+      "retry_attempted": true,
+      "retry_word_count": 40,
+      "selected_word_count": 40,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {},
+      "retry_token_usage": {}
+    },
+    {
+      "section_id": "section_7",
+      "heading": "Civic Body's Response",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 40,
+      "retry_attempted": true,
+      "retry_word_count": 46,
+      "selected_word_count": 46,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {
+        "prompt_tokens": 1942,
+        "completion_tokens": 697,
+        "total_tokens": 2639,
+        "cached_prompt_tokens": 1024
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2284,
+        "completion_tokens": 416,
+        "total_tokens": 2700,
+        "cached_prompt_tokens": 1920
+      }
+    },
+    {
+      "section_id": "section_8",
+      "heading": "Cautious grounded closing",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 34,
+      "retry_attempted": true,
+      "retry_word_count": 40,
+      "selected_word_count": 40,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {},
+      "retry_token_usage": {}
+    },
+    {
+      "section_id": "section_9",
+      "heading": "Timeline and known next steps",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 40,
+      "retry_attempted": true,
+      "retry_word_count": 45,
+      "selected_word_count": 45,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {
+        "prompt_tokens": 1852,
+        "completion_tokens": 515,
+        "total_tokens": 2367,
+        "cached_prompt_tokens": 1024
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2217,
+        "completion_tokens": 503,
+        "total_tokens": 2720,
+        "cached_prompt_tokens": 1664
+      }
+    },
+    {
+      "section_id": "section_10",
+      "heading": "Final grounded synthesis",
+      "target_word_count": 60,
+      "min_word_count": 48,
+      "max_word_count": 75,
+      "first_pass_word_count": 36,
+      "retry_attempted": true,
+      "retry_word_count": 43,
+      "selected_word_count": 43,
+      "selected_reason": "group_retry_selected_longer_or_equal",
+      "group_generation_used": true,
+      "first_pass_token_usage": {},
+      "retry_token_usage": {}
+    }
+  ],
+  "max_concurrent_section_calls": 2,
+  "generation_section_group_size": 2,
+  "generation_group_call_count": 10,
+  "generation_single_section_fallback_count": 0,
+  "generation_context_pack_tokens": 1438,
+  "generation_context_pack_chars": 5752,
+  "original_generation_context_chars": 10437,
+  "compressed_generation_context_chars": 5752,
+  "generation_context_compression_ratio": 0.5511,
+  "planned_section_count": 7,
+  "planned_target_word_count": 600,
+  "planned_min_word_count": 450,
+  "planned_max_word_count": 690,
+  "section_coverage_status": "pass",
+  "section_coverage_warnings": [],
+  "tamil_quality_status": "pass",
+  "tamil_quality_issues_count": 0,
+  "tamil_quality_warnings": [],
+  "requested_word_count": 600,
+  "original_draft_word_count": 466,
+  "revised_word_count_before_expansion": null,
+  "final_article_word_count": 466,
+  "length_status": "pass",
+  "length_warning_reason": null,
+  "final_article_word_count_ratio": 0.777,
+  "length_recovery_required": false,
+  "length_recovery_attempted": false,
+  "length_recovery_succeeded": false,
+  "length_recovery_failed": false,
+  "short_output_invalid": false,
+  "expansion_items_available": 18,
+  "expansion_items_used": [],
+  "export_paths": [],
+  "warnings": [],
+  "workflow_mode": "standard",
+  "total_runtime_seconds": 104.236,
+  "llm_call_count_total": 44,
+  "llm_call_count_by_stage": {
+    "brief_generation": 1,
+    "planning": 1,
+    "generation": 11,
+    "section_generation": 10,
+    "section_retries": 10,
+    "generation_groups": 10,
+    "initial_evaluation": 1
+  },
+  "runtime_by_stage": {
+    "source_cleanup": 0.0,
+    "brief_generation": 10.758,
+    "planning": 15.813,
+    "generation": 71.426,
+    "initial_evaluation": 6.236
+  },
+  "slowest_stage": "generation",
+  "planning_runtime_seconds": 15.813,
+  "section_generation_runtime_seconds": 71.426,
+  "section_generation_call_count": 10,
+  "section_retry_call_count": 10,
+  "generation_runtime_seconds": 71.426,
+  "initial_evaluation_runtime_seconds": 6.236,
+  "revision_runtime_seconds": null,
+  "final_evaluation_runtime_seconds": null,
+  "length_recovery_runtime_seconds": null,
+  "export_runtime_seconds": null,
+  "model_used_by_stage": {
+    "brief_generation": "gpt-4o-mini",
+    "planning": "gpt-4o-mini",
+    "generation": "gpt-4o",
+    "initial_evaluation": "gpt-4o-mini"
+  },
+  "planning_model_used": "gpt-4o-mini",
+  "generation_model_used": "gpt-4o",
+  "revision_model_used": null,
+  "evaluation_model_used": "gpt-4o-mini",
+  "length_recovery_model_used": null,
+  "total_prompt_tokens": 34049,
+  "total_completion_tokens": 8539,
+  "total_tokens": 42588,
+  "cached_prompt_tokens_total": 14080,
+  "uncached_prompt_tokens_total": 19969,
+  "prompt_cache_hit_ratio": 0.4135,
+  "token_usage_by_stage": {
+    "brief_generation": {
+      "prompt_tokens": 720,
+      "completion_tokens": 599,
+      "total_tokens": 1319,
+      "cached_prompt_tokens": 0,
+      "uncached_prompt_tokens": 720,
+      "prompt_cache_hit_ratio": 0.0
+    },
+    "planning": {
+      "prompt_tokens": 1630,
+      "completion_tokens": 979,
+      "total_tokens": 2609,
+      "cached_prompt_tokens": 0,
+      "uncached_prompt_tokens": 1630,
+      "prompt_cache_hit_ratio": 0.0
+    },
+    "generation": {
+      "prompt_tokens": 24906,
+      "completion_tokens": 6617,
+      "total_tokens": 31523,
+      "cached_prompt_tokens": 14080,
+      "uncached_prompt_tokens": 10826,
+      "prompt_cache_hit_ratio": 0.5653
+    },
+    "initial_evaluation": {
+      "prompt_tokens": 6793,
+      "completion_tokens": 344,
+      "total_tokens": 7137,
+      "cached_prompt_tokens": 0,
+      "uncached_prompt_tokens": 6793,
+      "prompt_cache_hit_ratio": 0.0
+    }
+  },
+  "prompt_tokens_by_stage": {
+    "brief_generation": 720,
+    "planning": 1630,
+    "generation": 24906,
+    "initial_evaluation": 6793
+  },
+  "completion_tokens_by_stage": {
+    "brief_generation": 599,
+    "planning": 979,
+    "generation": 6617,
+    "initial_evaluation": 344
+  },
+  "cached_prompt_tokens_by_stage": {
+    "brief_generation": 0,
+    "planning": 0,
+    "generation": 14080,
+    "initial_evaluation": 0
+  },
+  "uncached_prompt_tokens_by_stage": {
+    "brief_generation": 720,
+    "planning": 1630,
+    "generation": 10826,
+    "initial_evaluation": 6793
+  },
+  "prompt_cache_hit_ratio_by_stage": {
+    "brief_generation": 0.0,
+    "planning": 0.0,
+    "generation": 0.5653,
+    "initial_evaluation": 0.0
+  },
+  "estimated_cost_total_usd": 0.226309,
+  "estimated_cost_by_stage_usd": {
+    "brief_generation": 0.000467,
+    "planning": 0.000832,
+    "generation": 0.223785,
+    "initial_evaluation": 0.001225
+  },
+  "estimated_cost_model_breakdown": {
+    "gpt-4o-mini": 0.002524,
+    "gpt-4o": 0.223785
+  },
+  "cost_estimation_available": true,
+  "cost_estimation_notes": [
+    "Costs are estimates based on configured or static per-token pricing."
+  ],
+  "highest_cost_stage": "generation",
+  "workflow_completed": true,
+  "openai_model": "gpt-4o-mini",
+  "final_grounding_score": null
+}
