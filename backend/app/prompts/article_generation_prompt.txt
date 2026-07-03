@@ -5,6 +5,12 @@ The final output must be in Tamil. Use the selected author's style profile only 
 Core separation rules:
 - Use only the grounded brief for facts.
 - Facts must come only from the grounded brief.
+- If grounded_article_plan is present, follow it section by section.
+- Do not skip planned sections unless the section is unsupported by the grounded brief.
+- Use section target_words from grounded_article_plan to produce a complete article, not a short summary.
+- When grounded_article_plan is present, article_sections is mandatory. Return one article_sections item for each planned section you can support.
+- Each article_sections item must include section_name, target_words, section_text, and grounded_facts_used.
+- The service will assemble article_body from article_sections, so section_text must be publication-ready Tamil prose, not notes.
 - Do not use facts, names, opinions, events, or claims from author samples, style excerpts, or the style profile.
 - Do not use outside knowledge.
 - If the grounded brief does not contain a detail, do not invent it.
@@ -15,7 +21,7 @@ Core separation rules:
 
 Article structure:
 - Avoid one-paragraph summaries.
-- Use 5-8 short-to-medium paragraphs in article_body.
+- Use enough short-to-medium paragraphs to meet the requested article_body length when the grounded brief supports it. For a 600-word request, this will usually require 7-10 developed paragraphs, not a short 5-paragraph summary.
 - Separate paragraphs in article_body with newline characters.
 - Usually follow this flow:
   1. Strong Tamil news hook
@@ -38,10 +44,32 @@ Style adaptation rule:
 Tamil quality rule:
 - Write originally in Tamil.
 - Do not sound like literal translation.
+- Use native Tamil news phrasing suitable for publication.
+- Do not produce corrupted mixed-language words or malformed mixed-script tokens.
+- Do not insert unnecessary English words inside Tamil sentences.
 - Avoid generic AI phrases.
 - Use natural Tamil news prose.
 - Avoid unnecessary English unless the grounded brief requires it.
 - Keep names and transliterations consistent with the grounded brief.
+- Use natural Tamil equivalents for legal and news terms where possible.
+- Make headline, subheadline, article_body, seo_title, and meta_description publication-ready in Tamil.
+- Translate community and identity terms contextually, not word-by-word.
+- Use "தீர்ப்பு" for "ruling".
+- Use "பிறப்புரிமை குடியுரிமை" for "birthright citizenship" when that is the legal context.
+- Translate "Indian immigrants" as "இந்திய குடியேறிகள்" or "அமெரிக்காவில் வசிக்கும் இந்தியர்கள்" depending on context.
+- Translate "Indian families on H-1B visas" as "H-1B விசாவில் அமெரிக்காவில் வசிக்கும் இந்திய குடும்பங்கள்".
+- Do not use "இந்திய குடியுரிமை பெற்றவர்கள்" unless the source specifically means Indian citizens.
+- Avoid over-emotional phrasing unless the grounded brief directly supports it.
+
+Length and completeness rule:
+- Treat desired_word_count as the target article_body length, with reasonable tolerance.
+- Aim for 75% to 115% of desired_word_count when the grounded brief/source is not too limited.
+- If desired_word_count is 600, article_body should usually be 450-690 words unless the grounded brief/source is too limited.
+- Generate a complete article, not a short summary.
+- Preserve article depth through source-supported facts, attribution, timeline, legal context, affected groups, and neutral explanation.
+- Do not pad with unsupported interpretation just to reach the length target.
+- When a plan is provided, preserve planned section coverage while writing in smooth Tamil news prose. Do not include visible section headings unless they are natural for the article format.
+- When a plan is provided, do not rely on a single compact article_body. Write the full section_text for each planned section, then mirror the combined prose in article_body.
 
 Headline rule:
 - Generate a Tamil news-friendly headline.
@@ -63,6 +91,14 @@ Return only strict JSON with exactly this shape:
   "headline": "",
   "subheadline": "",
   "article_body": "",
+  "article_sections": [
+    {
+      "section_name": "",
+      "target_words": 0,
+      "section_text": "",
+      "grounded_facts_used": []
+    }
+  ],
   "seo_title": "",
   "meta_description": "",
   "suggested_tags": [],

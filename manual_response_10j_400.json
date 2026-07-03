@@ -1,0 +1,226 @@
+{
+  "workflow_id": "ab95109c-c614-4486-aecf-76b3088a224d",
+  "workflow_run_id": "ab95109c-c614-4486-aecf-76b3088a224d",
+  "status": "completed",
+  "author_id": "v_vasanthi",
+  "brief_id": "7a34b4a0-5a17-466f-bf76-44f43917a4dd",
+  "draft_id": "863d0a47-b083-4806-82e4-7ae11cf324b6",
+  "evaluation_id": "f3298477-a956-4d0a-ab5a-5028a27077fa",
+  "initial_evaluation_id": "f3298477-a956-4d0a-ab5a-5028a27077fa",
+  "revision_id": "226d3f7b-9058-482b-8f40-ebdffb5405d3",
+  "final_evaluation_id": "0721390b-3c96-42e8-8c95-d280211bfcc1",
+  "source_cleanup": {
+    "original_char_count": 4616,
+    "cleaned_char_count": 4568,
+    "removed_line_count": 0,
+    "warnings": []
+  },
+  "brief_summary": {
+    "topic": "US Supreme Court Ruling on Birthright Citizenship",
+    "one_line_summary": "The US Supreme Court ruling preserves birthright citizenship, providing relief to Indian immigrants and their children born in the US.",
+    "confirmed_facts": [
+      "The US Supreme Court struck down President Donald Trump's attempt to restrict birthright citizenship.",
+      "The ruling was a 6-3 decision.",
+      "The decision affects children born to parents on H-1B visas, L-1 visas, F-1 visas, and undocumented immigrants.",
+      "Approximately 3.2 million documented Indian immigrants reside in the US.",
+      "An estimated 725,000 undocumented Indian immigrants reside in the US.",
+      "The ruling ensures US citizenship for children born to Indian immigrants in the US.",
+      "The decision is significant for the Indian American community, one of the fastest-growing immigrant groups in the US."
+    ],
+    "claims_to_avoid": [
+      "Do not claim that the ruling changes the status of undocumented immigrants themselves.",
+      "Avoid stating that the ruling provides immediate citizenship to parents."
+    ]
+  },
+  "draft_summary": {
+    "headline": "அமெரிக்க உச்ச நீதிமன்றத்தின் தீர்ப்பு: பிறப்புரிமை குடியுரிமை பாதுகாக்கப்பட்டது",
+    "subheadline": "இந்திய குடியேறிய குடும்பங்களுக்கு மகிழ்ச்சி அளிக்கும் தீர்ப்பு",
+    "seo_title": "அமெரிக்க உச்ச நீதிமன்றம்: பிறப்புரிமை குடியுரிமை பாதுகாக்கப்பட்டது",
+    "tags": [
+      "அமெரிக்கா",
+      "உச்ச நீதிமன்றம்",
+      "பிறப்புரிமை குடியுரிமை",
+      "இந்திய குடியேறிகள்",
+      "டொனால்ட் டிரம்ப்"
+    ]
+  },
+  "evaluation_summary": {
+    "grounding_score": 85,
+    "claim_safety_score": 80,
+    "overall_risk": "medium",
+    "editorial_readiness": "review_required"
+  },
+  "initial_readiness": "review_required",
+  "initial_readiness_reasons": [
+    "grounding_score_review_band",
+    "unsupported_claims_remaining",
+    "overclaim_phrases_remaining"
+  ],
+  "final_readiness": "revision_required",
+  "final_readiness_reasons": [
+    "unsupported_claims_remaining",
+    "publication_ready_completeness_passed"
+  ],
+  "readiness_decision_source": "final_article_state",
+  "final_publication_blockers": [
+    "unsupported_claims_remaining"
+  ],
+  "final_publication_warnings": [
+    "grounding_score_review_band",
+    "overclaim_phrases_remaining",
+    "allowed_english_terms_only"
+  ],
+  "publication_ready_completeness_passed": true,
+  "final_evaluation_summary": {
+    "grounding_score": 85,
+    "claim_safety_score": 80,
+    "overall_risk": "medium",
+    "editorial_readiness": "review_required"
+  },
+  "article_plan_used": true,
+  "plan_id": "66cf6eea-9ac1-4e7f-b525-6c3bb9d9776b",
+  "desired_word_count": 400,
+  "target_min_word_count": 300,
+  "target_max_word_count": 460,
+  "generation_mode_used": "section_assembled",
+  "generated_section_count": 7,
+  "assembled_section_count": 7,
+  "section_assembled_article_word_count": 360,
+  "section_assembled_article_paragraph_count": 7,
+  "original_draft_source": "section_assembled",
+  "original_draft_word_count_after_assignment": 360,
+  "original_draft_matches_section_assembly": true,
+  "revision_input_word_count": 360,
+  "revision_mode": "patch",
+  "revision_patch_count": 1,
+  "revision_patches_applied_count": 1,
+  "revision_patches_skipped_count": 0,
+  "revision_patch_skipped_reasons": [],
+  "revision_output_word_count": 355,
+  "revision_delta_word_count": -5,
+  "revision_rejected_for_length_collapse": false,
+  "revision_rejected_reason": null,
+  "revised_article_source": "patch_applied",
+  "length_recovery_skipped_reason": "section assembly reached target minimum",
+  "length_recovery_input_word_count": 360,
+  "final_article_source_stage": "revision",
+  "final_word_count_ratio": 0.887,
+  "section_generation_trace": [
+    {
+      "section_id": "section_1",
+      "heading": "Lead",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 44,
+      "retry_attempted": true,
+      "retry_word_count": 49,
+      "selected_word_count": 49,
+      "selected_reason": "retry_selected_longer_or_equal"
+    },
+    {
+      "section_id": "section_2",
+      "heading": "Decision Details",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 44,
+      "retry_attempted": true,
+      "retry_word_count": 50,
+      "selected_word_count": 50,
+      "selected_reason": "retry_selected_longer_or_equal"
+    },
+    {
+      "section_id": "section_3",
+      "heading": "Background/Context",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 49,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 49,
+      "selected_reason": "first_pass_met_minimum"
+    },
+    {
+      "section_id": "section_4",
+      "heading": "Affected Groups",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 49,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 49,
+      "selected_reason": "first_pass_met_minimum"
+    },
+    {
+      "section_id": "section_5",
+      "heading": "Quotes and Reactions",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 62,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 62,
+      "selected_reason": "first_pass_met_minimum"
+    },
+    {
+      "section_id": "section_6",
+      "heading": "Legal/Policy Explanation",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 46,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 46,
+      "selected_reason": "first_pass_met_minimum"
+    },
+    {
+      "section_id": "section_7",
+      "heading": "Legal, policy, or civic context",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 55,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 55,
+      "selected_reason": "first_pass_met_minimum"
+    }
+  ],
+  "planned_section_count": 7,
+  "planned_target_word_count": 400,
+  "planned_min_word_count": 300,
+  "planned_max_word_count": 459,
+  "section_coverage_status": "pass",
+  "section_coverage_warnings": [],
+  "tamil_quality_status": "warning",
+  "tamil_quality_issues_count": 1,
+  "tamil_quality_warnings": [
+    "Allowed English term(s) present: F-1, H-1B, L-1"
+  ],
+  "requested_word_count": 400,
+  "original_draft_word_count": 360,
+  "revised_word_count_before_expansion": 355,
+  "final_article_word_count": 355,
+  "length_status": "pass",
+  "length_warning_reason": null,
+  "final_article_word_count_ratio": 0.887,
+  "length_recovery_required": false,
+  "length_recovery_attempted": false,
+  "length_recovery_succeeded": false,
+  "length_recovery_failed": false,
+  "short_output_invalid": false,
+  "expansion_items_available": 22,
+  "expansion_items_used": [],
+  "export_paths": [
+    "review_outputs\\ab95109c-c614-4486-aecf-76b3088a224d_grounding_revision_review.html"
+  ],
+  "warnings": [],
+  "workflow_completed": true,
+  "openai_model": "gpt-4o",
+  "final_grounding_score": 85
+}

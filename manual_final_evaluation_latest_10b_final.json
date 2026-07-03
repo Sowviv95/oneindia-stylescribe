@@ -1,0 +1,67 @@
+﻿{
+    "evaluation_id":  "46a91838-cf88-44a4-82b2-5cf5b81a86fa",
+    "draft_id":  "51a618d1-d0cd-4bca-a2d7-d7633cf99b97",
+    "brief_id":  "9c5df211-da74-436e-a690-6357562ee42b",
+    "author_id":  "v_vasanthi",
+    "model_provider":  "openai",
+    "model_name":  "gpt-4o-mini",
+    "status":  "completed",
+    "evaluation":  {
+                       "grounding_score":  85,
+                       "claim_safety_score":  0,
+                       "fact_preservation_score":  90,
+                       "overall_risk":  "medium",
+                       "editorial_readiness":  "revision_required",
+                       "unsupported_claims":  [
+                                                  {
+                                                      "claim":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®à®¨à¯à®¤à®¿à®¯ à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®¤à®¾à®à¯à®à®®à¯ à®®à®±à¯à®±à¯à®®à¯ à®à®¨à¯à®¤à®¿à®¯à®¾ à®®à®±à¯à®±à¯à®®à¯ à®à®¨à¯à®¤à®¿à®¯ à®ªà®°à®ªà¯à®ªà®³à®µà®¿à®¯à®²à¯ à®à®¯à¯à®µà¯à®à¯à®à®¾à®© à®\u0085à®±à®à¯à®à®à¯à®à®³à¯ (FIIDS) à®ªà¯à®©à¯à®± à®\u0085à®®à¯à®ªà¯à®ªà¯à®à®³à®¿à®©à¯ à®à®¤à®°à®µà¯à®à®©à¯ à®µà®¨à¯à®¤à¯à®³à¯à®³à®¤à¯.",
+                                                      "reason":  "The claim implies that the ruling was supported by these organizations without direct evidence from the grounded brief.",
+                                                      "suggested_fix":  "Remove the claim or specify that these organizations commented on the ruling without implying direct support."
+                                                  }
+                                              ],
+                       "overclaim_phrases":  [
+                                                 {
+                                                     "phrase":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®²à¯ à®ªà®¿à®±à®¨à¯à®¤ à®à¯à®´à®¨à¯à®¤à¯à®à®³à®¿à®©à¯ à®à®°à®¿à®®à¯à®à®³à¯ à®à®±à¯à®¤à®¿à®ªà¯à®ªà®à¯à®¤à¯à®¤à¯à®µà®¤à®¿à®²à¯ à®¤à¯à®à®°à¯à®ªà¯à®à¯à®¯à®¤à¯.",
+                                                     "reason":  "This phrase implies a broader impact of the ruling without specific backing from the grounded brief.",
+                                                     "suggested_fix":  "Rephrase to state that the ruling preserves citizenship rights for children born in the US."
+                                                 }
+                                             ],
+                       "invented_facts":  [
+
+                                          ],
+                       "contradictions":  [
+
+                                          ],
+                       "claims_to_avoid_violations":  [
+                                                          {
+                                                              "claim":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®à®¨à¯à®¤à®¿à®¯ à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®¤à®¾à®à¯à®à®®à¯ à®®à®±à¯à®±à¯à®®à¯ à®à®¨à¯à®¤à®¿à®¯à®¾ à®®à®±à¯à®±à¯à®®à¯ à®à®¨à¯à®¤à®¿à®¯ à®ªà®°à®ªà¯à®ªà®³à®µà®¿à®¯à®²à¯ à®à®¯à¯à®µà¯à®à¯à®à®¾à®© à®\u0085à®±à®à¯à®à®à¯à®à®³à¯ (FIIDS) à®ªà¯à®©à¯à®± à®\u0085à®®à¯à®ªà¯à®ªà¯à®à®³à®¿à®©à¯ à®à®¤à®°à®µà¯à®à®©à¯ à®µà®¨à¯à®¤à¯à®³à¯à®³à®¤à¯.",
+                                                              "reason":  "This claim is similar to the claims to avoid in the grounded brief.",
+                                                              "suggested_fix":  "Remove or rephrase to avoid implying direct support."
+                                                          }
+                                                      ],
+                       "missing_key_facts":  [
+
+                                             ],
+                       "preserved_facts":  [
+                                               "The US Supreme Court ruled 6-3 against President Donald Trump\u0027s executive order to restrict birthright citizenship.",
+                                               "The ruling preserves constitutional protection for all children born on American soil.",
+                                               "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                               "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants.",
+                                               "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas."
+                                           ],
+                       "number_date_name_checks":  [
+
+                                                   ],
+                       "rewrite_guidance":  [
+                                                "Ensure that all claims are directly supported by the grounded brief.",
+                                                "Avoid language that implies broader impacts or benefits unless explicitly stated in the brief."
+                                            ],
+                       "summary":  "The article draft is mostly grounded but contains unsupported claims and overclaims that need revision. It accurately reflects key facts from the grounded brief but should avoid implying direct support from organizations without evidence.",
+                       "evaluated_revision_id":  "d40be36c-cf94-4765-ad27-a7374cc44f9f",
+                       "initial_evaluation_id":  "e83e84e4-7e9d-4004-8d9f-1a28de61a345"
+                   },
+    "warnings":  [
+
+                 ],
+    "created_at":  "2026-07-02T04:46:09.008184+00:00"
+}

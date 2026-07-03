@@ -1,0 +1,411 @@
+{
+  "workflow_id": "9d5610a4-43ab-4af4-9f96-72556534347d",
+  "workflow_run_id": "9d5610a4-43ab-4af4-9f96-72556534347d",
+  "status": "completed",
+  "author_id": "v_vasanthi",
+  "brief_id": "b1b773bc-d4e2-4fa4-ab98-4f0216a65bd2",
+  "draft_id": "3e11d003-8a18-4921-b4b4-2c5f7b36390e",
+  "evaluation_id": "3d2ede9f-4c7b-48bf-a0f3-0ca07fae5e41",
+  "initial_evaluation_id": "3d2ede9f-4c7b-48bf-a0f3-0ca07fae5e41",
+  "revision_id": "56f5c769-0136-4d1f-bedd-ad5cd0345db1",
+  "final_evaluation_id": "2ad34bcb-63fe-44b1-baad-d1d8e7226dea",
+  "source_cleanup": {
+    "original_char_count": 4616,
+    "cleaned_char_count": 4568,
+    "removed_line_count": 0,
+    "warnings": []
+  },
+  "brief_summary": {
+    "topic": "US Supreme Court Birthright Citizenship Ruling",
+    "one_line_summary": "The US Supreme Court ruling preserves birthright citizenship, providing relief to Indian immigrants and their families.",
+    "confirmed_facts": [
+      "The US Supreme Court ruled 6-3 against President Donald Trump's executive order to restrict birthright citizenship.",
+      "The ruling ensures US citizenship for children born to Indian immigrants on H-1B visas and other temporary visas.",
+      "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+      "An estimated 725,000 undocumented Indian immigrants reside in the United States.",
+      "The ruling is significant for the Indian American community, which is one of the fastest-growing immigrant groups in the US."
+    ],
+    "claims_to_avoid": [
+      "The ruling will allow 'millions of families' to look to the future with greater certainty (this is a subjective interpretation)."
+    ]
+  },
+  "draft_summary": {
+    "headline": "அமெரிக்க உச்ச நீதிமன்ற தீர்ப்பு: இந்திய குடியேறிகளுக்கு பிறப்புரிமை குடியுரிமை உறுதி",
+    "subheadline": "இந்திய குடியேறிகளின் குழந்தைகளுக்கு அமெரிக்க குடியுரிமை உறுதி செய்யப்பட்டது",
+    "seo_title": "அமெரிக்க உச்ச நீதிமன்ற தீர்ப்பு: இந்திய குடியேறிகளுக்கு பிறப்புரிமை குடியுரிமை உறுதி",
+    "tags": [
+      "அமெரிக்கா",
+      "பிறப்புரிமை குடியுரிமை",
+      "இந்திய குடியேறிகள்",
+      "உச்ச நீதிமன்றம்",
+      "டொனால்ட் டிரம்ப்"
+    ]
+  },
+  "evaluation_summary": {
+    "grounding_score": 85,
+    "claim_safety_score": 0,
+    "overall_risk": "medium",
+    "editorial_readiness": "revision_required"
+  },
+  "initial_readiness": "revision_required",
+  "initial_readiness_reasons": [
+    "grounding_score_review_band",
+    "unsupported_claims_remaining",
+    "claims_to_avoid_violations_remaining",
+    "overclaim_phrases_remaining"
+  ],
+  "final_readiness": "revision_required",
+  "final_readiness_reasons": [
+    "unsupported_claims_remaining",
+    "claims_to_avoid_violations_remaining",
+    "publication_ready_completeness_passed"
+  ],
+  "readiness_decision_source": "final_article_state",
+  "final_publication_blockers": [
+    "unsupported_claims_remaining",
+    "claims_to_avoid_violations_remaining"
+  ],
+  "final_publication_warnings": [
+    "grounding_score_review_band",
+    "overclaim_phrases_remaining",
+    "allowed_english_terms_only",
+    "revision_patch_skipped_non_critical"
+  ],
+  "publication_ready_completeness_passed": true,
+  "final_evaluation_summary": {
+    "grounding_score": 75,
+    "claim_safety_score": 0,
+    "overall_risk": "medium",
+    "editorial_readiness": "review_required"
+  },
+  "article_plan_used": true,
+  "plan_id": "14e6f348-2522-441a-bae7-a346fba4cc63",
+  "desired_word_count": 400,
+  "target_min_word_count": 300,
+  "target_max_word_count": 460,
+  "generation_mode_used": "section_assembled",
+  "generated_section_count": 7,
+  "assembled_section_count": 7,
+  "section_assembled_article_word_count": 345,
+  "section_assembled_article_paragraph_count": 7,
+  "original_draft_source": "section_assembled",
+  "original_draft_word_count_after_assignment": 345,
+  "original_draft_matches_section_assembly": true,
+  "revision_input_word_count": 345,
+  "revision_mode": "patch",
+  "revision_patch_count": 3,
+  "revision_patches_applied_count": 1,
+  "revision_patches_skipped_count": 2,
+  "revision_patch_skipped_reasons": [
+    "patch 2: claims_to_avoid_violation: target_not_found",
+    "patch 3: claims_to_avoid_violation: empty_replacement"
+  ],
+  "revision_output_word_count": 342,
+  "revision_delta_word_count": -3,
+  "revision_rejected_for_length_collapse": false,
+  "revision_rejected_reason": null,
+  "revised_article_source": "patch_applied",
+  "unsupported_claim_findings_count": 1,
+  "unsupported_claim_patch_count": 1,
+  "unsupported_claim_patches_applied_count": 1,
+  "unsupported_claim_patches_skipped_count": 0,
+  "unsupported_claim_patch_skipped_reasons": [],
+  "unsupported_claims_unresolved_count": 1,
+  "unsupported_claims_cleared_by_patch": false,
+  "length_recovery_skipped_reason": "section assembly reached target minimum",
+  "length_recovery_input_word_count": 345,
+  "final_article_source_stage": "revision",
+  "final_word_count_ratio": 0.855,
+  "section_generation_trace": [
+    {
+      "section_id": "section_1",
+      "heading": "lead",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 35,
+      "retry_attempted": true,
+      "retry_word_count": 41,
+      "selected_word_count": 41,
+      "selected_reason": "retry_selected_longer_or_equal",
+      "first_pass_token_usage": {
+        "prompt_tokens": 2214,
+        "completion_tokens": 201,
+        "total_tokens": 2415
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2412,
+        "completion_tokens": 205,
+        "total_tokens": 2617
+      }
+    },
+    {
+      "section_id": "section_2",
+      "heading": "decision details",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 43,
+      "retry_attempted": true,
+      "retry_word_count": 53,
+      "selected_word_count": 53,
+      "selected_reason": "retry_selected_longer_or_equal",
+      "first_pass_token_usage": {
+        "prompt_tokens": 2176,
+        "completion_tokens": 181,
+        "total_tokens": 2357
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2384,
+        "completion_tokens": 203,
+        "total_tokens": 2587
+      }
+    },
+    {
+      "section_id": "section_3",
+      "heading": "background context",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 31,
+      "retry_attempted": true,
+      "retry_word_count": 48,
+      "selected_word_count": 48,
+      "selected_reason": "retry_selected_longer_or_equal",
+      "first_pass_token_usage": {
+        "prompt_tokens": 2180,
+        "completion_tokens": 169,
+        "total_tokens": 2349
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2370,
+        "completion_tokens": 203,
+        "total_tokens": 2573
+      }
+    },
+    {
+      "section_id": "section_4",
+      "heading": "affected groups",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 48,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 48,
+      "selected_reason": "first_pass_met_minimum",
+      "first_pass_token_usage": {
+        "prompt_tokens": 2185,
+        "completion_tokens": 224,
+        "total_tokens": 2409
+      },
+      "retry_token_usage": {}
+    },
+    {
+      "section_id": "section_5",
+      "heading": "numbers and statistics",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 37,
+      "retry_attempted": true,
+      "retry_word_count": 51,
+      "selected_word_count": 51,
+      "selected_reason": "retry_selected_longer_or_equal",
+      "first_pass_token_usage": {
+        "prompt_tokens": 2186,
+        "completion_tokens": 186,
+        "total_tokens": 2372
+      },
+      "retry_token_usage": {
+        "prompt_tokens": 2390,
+        "completion_tokens": 215,
+        "total_tokens": 2605
+      }
+    },
+    {
+      "section_id": "section_6",
+      "heading": "reactions and quotes",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 53,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 53,
+      "selected_reason": "first_pass_met_minimum",
+      "first_pass_token_usage": {
+        "prompt_tokens": 2271,
+        "completion_tokens": 197,
+        "total_tokens": 2468
+      },
+      "retry_token_usage": {}
+    },
+    {
+      "section_id": "section_7",
+      "heading": "legal context",
+      "target_word_count": 57,
+      "min_word_count": 46,
+      "max_word_count": 71,
+      "first_pass_word_count": 51,
+      "retry_attempted": false,
+      "retry_word_count": null,
+      "selected_word_count": 51,
+      "selected_reason": "first_pass_met_minimum",
+      "first_pass_token_usage": {
+        "prompt_tokens": 2168,
+        "completion_tokens": 214,
+        "total_tokens": 2382
+      },
+      "retry_token_usage": {}
+    }
+  ],
+  "planned_section_count": 7,
+  "planned_target_word_count": 400,
+  "planned_min_word_count": 300,
+  "planned_max_word_count": 459,
+  "section_coverage_status": "pass",
+  "section_coverage_warnings": [],
+  "tamil_quality_status": "warning",
+  "tamil_quality_issues_count": 1,
+  "tamil_quality_warnings": [
+    "Allowed English term(s) present: H-1B"
+  ],
+  "requested_word_count": 400,
+  "original_draft_word_count": 345,
+  "revised_word_count_before_expansion": 342,
+  "final_article_word_count": 342,
+  "length_status": "pass",
+  "length_warning_reason": null,
+  "final_article_word_count_ratio": 0.855,
+  "length_recovery_required": false,
+  "length_recovery_attempted": false,
+  "length_recovery_succeeded": false,
+  "length_recovery_failed": false,
+  "short_output_invalid": false,
+  "expansion_items_available": 15,
+  "expansion_items_used": [],
+  "export_paths": [
+    "review_outputs\\9d5610a4-43ab-4af4-9f96-72556534347d_grounding_revision_review.html"
+  ],
+  "warnings": [],
+  "workflow_mode": "fast_review",
+  "total_runtime_seconds": 141.909,
+  "llm_call_count_total": 28,
+  "llm_call_count_by_stage": {
+    "brief_generation": 1,
+    "planning": 1,
+    "generation": 12,
+    "section_generation": 7,
+    "section_retries": 4,
+    "initial_evaluation": 1,
+    "revision": 1,
+    "final_evaluation": 1
+  },
+  "runtime_by_stage": {
+    "source_cleanup": 0.0,
+    "brief_generation": 22.828,
+    "planning": 23.136,
+    "generation": 45.307,
+    "initial_evaluation": 16.565,
+    "revision": 24.079,
+    "final_evaluation": 9.992,
+    "export": 0.001
+  },
+  "slowest_stage": "generation",
+  "planning_runtime_seconds": 23.136,
+  "section_generation_runtime_seconds": 45.307,
+  "section_generation_call_count": 7,
+  "section_retry_call_count": 4,
+  "generation_runtime_seconds": 45.307,
+  "initial_evaluation_runtime_seconds": 16.565,
+  "revision_runtime_seconds": 24.079,
+  "final_evaluation_runtime_seconds": 9.992,
+  "length_recovery_runtime_seconds": null,
+  "export_runtime_seconds": 0.001,
+  "model_used_by_stage": {
+    "brief_generation": "gpt-4o-mini",
+    "planning": "gpt-4o-mini",
+    "generation": "gpt-4o",
+    "initial_evaluation": "gpt-4o-mini",
+    "revision": "gpt-4o-mini",
+    "final_evaluation": "gpt-4o-mini"
+  },
+  "planning_model_used": "gpt-4o-mini",
+  "generation_model_used": "gpt-4o",
+  "revision_model_used": "gpt-4o-mini",
+  "evaluation_model_used": "gpt-4o-mini",
+  "length_recovery_model_used": null,
+  "total_prompt_tokens": 49110,
+  "total_completion_tokens": 7491,
+  "total_tokens": 56601,
+  "token_usage_by_stage": {
+    "brief_generation": {
+      "prompt_tokens": 1329,
+      "completion_tokens": 976,
+      "total_tokens": 2305
+    },
+    "planning": {
+      "prompt_tokens": 2062,
+      "completion_tokens": 1009,
+      "total_tokens": 3071
+    },
+    "generation": {
+      "prompt_tokens": 28880,
+      "completion_tokens": 3967,
+      "total_tokens": 32847
+    },
+    "initial_evaluation": {
+      "prompt_tokens": 5557,
+      "completion_tokens": 543,
+      "total_tokens": 6100
+    },
+    "revision": {
+      "prompt_tokens": 8548,
+      "completion_tokens": 410,
+      "total_tokens": 8958
+    },
+    "final_evaluation": {
+      "prompt_tokens": 2734,
+      "completion_tokens": 586,
+      "total_tokens": 3320
+    }
+  },
+  "prompt_tokens_by_stage": {
+    "brief_generation": 1329,
+    "planning": 2062,
+    "generation": 28880,
+    "initial_evaluation": 5557,
+    "revision": 8548,
+    "final_evaluation": 2734
+  },
+  "completion_tokens_by_stage": {
+    "brief_generation": 976,
+    "planning": 1009,
+    "generation": 3967,
+    "initial_evaluation": 543,
+    "revision": 410,
+    "final_evaluation": 586
+  },
+  "estimated_cost_total_usd": 0.209054,
+  "estimated_cost_by_stage_usd": {
+    "brief_generation": 0.000785,
+    "planning": 0.000915,
+    "generation": 0.203905,
+    "initial_evaluation": 0.001159,
+    "revision": 0.001528,
+    "final_evaluation": 0.000762
+  },
+  "estimated_cost_model_breakdown": {
+    "gpt-4o-mini": 0.005149,
+    "gpt-4o": 0.203905
+  },
+  "cost_estimation_available": true,
+  "cost_estimation_notes": [
+    "Costs are estimates based on configured or static per-token pricing."
+  ],
+  "highest_cost_stage": "generation",
+  "workflow_completed": true,
+  "openai_model": "gpt-4o-mini",
+  "final_grounding_score": 75
+}

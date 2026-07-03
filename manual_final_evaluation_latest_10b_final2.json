@@ -1,0 +1,63 @@
+﻿{
+    "evaluation_id":  "b67fdc07-73e2-437d-bb25-a4809b874901",
+    "draft_id":  "5f0f5c24-6254-4575-a7a0-492d6c711df5",
+    "brief_id":  "faa81038-b483-4b02-b8d8-d374a23fded3",
+    "author_id":  "v_vasanthi",
+    "model_provider":  "openai",
+    "model_name":  "gpt-4o-mini",
+    "status":  "completed",
+    "evaluation":  {
+                       "grounding_score":  85,
+                       "claim_safety_score":  0,
+                       "fact_preservation_score":  90,
+                       "overall_risk":  "medium",
+                       "editorial_readiness":  "revision_required",
+                       "unsupported_claims":  [
+
+                                              ],
+                       "overclaim_phrases":  [
+                                                 {
+                                                     "phrase":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à®¿à®©à¯ à®à¯à®à¯à®®à¯à®ªà®à¯à®à®³à¯à®à¯à®à¯ à®¤à¯à®à®°à¯à®ªà¯à®à¯à®¯à®¤à¯.",
+                                                     "reason":  "This phrase implies a broader impact on families without specific support from the brief.",
+                                                     "suggested_fix":  "This ruling specifically ensures citizenship for children born to Indian immigrants on H-1B and other temporary visas."
+                                                 }
+                                             ],
+                       "invented_facts":  [
+
+                                          ],
+                       "contradictions":  [
+
+                                          ],
+                       "claims_to_avoid_violations":  [
+                                                          {
+                                                              "claim":  "The ruling will allow \u0027millions of families\u0027 to look to the future with greater certainty.",
+                                                              "reason":  "This claim is explicitly mentioned in the claims to avoid from the grounded brief.",
+                                                              "suggested_fix":  "Remove this claim or rephrase it to avoid implying future certainty."
+                                                          }
+                                                      ],
+                       "missing_key_facts":  [
+
+                                             ],
+                       "preserved_facts":  [
+                                               "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                               "The ruling was a 6-3 decision.",
+                                               "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas.",
+                                               "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                               "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants."
+                                           ],
+                       "number_date_name_checks":  [
+
+                                                   ],
+                       "rewrite_guidance":  [
+                                                "Ensure that all claims about the impact of the ruling are directly supported by the brief.",
+                                                "Clarify the specific groups affected by the ruling without implying broader benefits."
+                                            ],
+                       "summary":  "The article is mostly grounded but contains phrases that imply broader impacts and benefits not explicitly supported by the brief. Revision is required to ensure all claims are accurately represented.",
+                       "evaluated_revision_id":  "7c27e500-1caa-4d61-98e8-85814d096190",
+                       "initial_evaluation_id":  "02a2315c-5ba2-4ed8-86e1-8a3ef12f6f7c"
+                   },
+    "warnings":  [
+
+                 ],
+    "created_at":  "2026-07-02T04:50:16.560640+00:00"
+}

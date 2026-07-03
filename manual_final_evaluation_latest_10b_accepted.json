@@ -1,0 +1,63 @@
+﻿{
+    "evaluation_id":  "41177a62-f7d7-49a4-96e7-10a61258319e",
+    "draft_id":  "77950660-147b-4c00-b061-60256c3633c5",
+    "brief_id":  "615d6e36-08a5-4440-b65a-79a176e455af",
+    "author_id":  "v_vasanthi",
+    "model_provider":  "openai",
+    "model_name":  "gpt-4o-mini",
+    "status":  "completed",
+    "evaluation":  {
+                       "grounding_score":  85,
+                       "claim_safety_score":  0,
+                       "fact_preservation_score":  90,
+                       "overall_risk":  "medium",
+                       "editorial_readiness":  "review_required",
+                       "unsupported_claims":  [
+                                                  {
+                                                      "claim":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à®¿à®©à¯ à®µà®¾à®´à¯à®µà®¿à®²à¯ à®¤à¯à®à®°à¯à®ªà¯à®à¯à®¯à®¤à¯ à®à®©à®à¯ à®à¯à®±à®²à®¾à®®à¯.",
+                                                      "reason":  "The claim implies a broader impact on the lives of Indian immigrants without specific support from the grounded brief.",
+                                                      "suggested_fix":  "Remove the phrase or specify how the ruling directly affects Indian immigrants based on the grounded brief."
+                                                  }
+                                              ],
+                       "overclaim_phrases":  [
+                                                 {
+                                                     "phrase":  "à®à®¤à¯, à®\u0085à®µà®°à¯à®à®³à®¿à®©à¯ à®à¯à®´à®¨à¯à®¤à¯à®à®³à¯ à®\u0085à®®à¯à®°à®¿à®à¯à® à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à®¾à® à®à®°à¯à®ªà¯à®ªà®¤à®©à¯ à®®à¯à®²à®®à¯, à®\u0085à®µà®°à¯à®à®³à®¿à®©à¯ à®à®¤à®¿à®°à¯à®à®¾à®²à®¤à¯à®¤à¯ à®à®±à¯à®¤à®¿à®ªà¯à®ªà®à¯à®¤à¯à®¤à¯à®à®¿à®±à®¤à¯.",
+                                                     "reason":  "This phrase implies a certainty about the future that is not explicitly supported by the grounded brief.",
+                                                     "suggested_fix":  "Rephrase to indicate that the ruling provides citizenship but does not guarantee future outcomes."
+                                                 }
+                                             ],
+                       "invented_facts":  [
+
+                                          ],
+                       "contradictions":  [
+
+                                          ],
+                       "claims_to_avoid_violations":  [
+                                                          "The ruling will allow millions of families to look to the future with greater certainty."
+                                                      ],
+                       "missing_key_facts":  [
+
+                                             ],
+                       "preserved_facts":  [
+                                               "The US Supreme Court ruled 6-3 against President Donald Trump\u0027s executive order to restrict birthright citizenship.",
+                                               "The ruling preserves constitutional protection for all children born on American soil.",
+                                               "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                               "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants.",
+                                               "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas."
+                                           ],
+                       "number_date_name_checks":  [
+
+                                                   ],
+                       "rewrite_guidance":  [
+                                                "Ensure that all claims about the impact of the ruling are directly supported by the grounded brief.",
+                                                "Avoid language that implies certainty about the future or benefits that are not explicitly stated in the brief."
+                                            ],
+                       "summary":  "The article draft is mostly grounded but contains unsupported claims and overclaims regarding the impact of the ruling on Indian immigrants\u0027 futures. It requires revisions to align more closely with the grounded brief.",
+                       "evaluated_revision_id":  "bc07b2f0-157c-43b5-a659-79694fe0d167",
+                       "initial_evaluation_id":  "d09719b9-73b1-4d79-89db-1ba06ad32b36"
+                   },
+    "warnings":  [
+
+                 ],
+    "created_at":  "2026-07-02T04:48:23.053421+00:00"
+}

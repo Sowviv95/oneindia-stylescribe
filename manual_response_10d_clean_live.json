@@ -1,0 +1,82 @@
+﻿{
+    "workflow_id":  "f10b1e7b-918e-43f6-a4d7-190fed3a29f6",
+    "workflow_run_id":  "f10b1e7b-918e-43f6-a4d7-190fed3a29f6",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "ebeeb820-9540-4f86-b818-a1bd9391d78c",
+    "draft_id":  "3810ecad-4c11-4124-9e58-d9d650fc3535",
+    "evaluation_id":  "0094ce3e-374d-413e-b66b-c579a577af70",
+    "initial_evaluation_id":  "0094ce3e-374d-413e-b66b-c579a577af70",
+    "revision_id":  "352718af-e2d7-4002-81b7-e74b4b70e67b",
+    "final_evaluation_id":  "c69dba4d-44e1-42d6-adfc-7cc77f6facc1",
+    "source_cleanup":  {
+                           "original_char_count":  4577,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Birthright Citizenship Ruling",
+                          "one_line_summary":  "The US Supreme Court ruling preserves birthright citizenship, providing relief to Indian immigrants and their families.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                                  "The ruling was a 6-3 decision.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "An estimated 725,000 undocumented Indian immigrants reside in the United States.",
+                                                  "The ruling is significant for the Indian American community, which is one of the fastest-growing immigrant groups in the US."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will allow millions of families to look to the future with greater certainty."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à®ªà¯à®ªà®à¯à®à®¤à¯!",
+                          "subheadline":  "à®à®¨à¯à®¤ ruling, à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯ à®®à®±à¯à®±à¯à®®à¯ à®\u0085à®µà®°à¯à®à®³à®¤à¯ à®à¯à®à¯à®®à¯à®ªà®à¯à®à®³à¯à®à¯à®à¯ à®®à¯à®à¯à®à®¿à®¯à®®à®¾à®© à®à®¤à®°à®µà®¾à® à®à®³à¯à®³à®¤à¯.",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à®ªà¯à®ªà®à¯à®à®¤à¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯",
+                                       "à®à®®à¯à®"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "review_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  85,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "review_required"
+                                 },
+    "tamil_quality_status":  "fail",
+    "tamil_quality_issues_count":  5,
+    "tamil_quality_warnings":  [
+                                   "Known bad Tamil/mixed-language phrase found: pertencà®¿à®à¯à®à®¿à®±à®¾à®°à¯à®à®³à¯",
+                                   "Corrupted mixed-language token(s): pertencà®¿à®à¯à®à®¿à®±à®¾à®°à¯à®à®³à¯",
+                                   "Unexpected Latin-script token(s): pertenc",
+                                   "Allowed English term(s) present: H-1B",
+                                   "Final article body is materially shorter than requested (148/600 words)."
+                               ],
+    "requested_word_count":  600,
+    "original_draft_word_count":  171,
+    "final_article_word_count":  148,
+    "length_status":  "warning",
+    "length_warning_reason":  "Final article body is materially shorter than requested (148/600 words).",
+    "final_article_word_count_ratio":  0.247,
+    "export_paths":  [
+                         "review_outputs\\f10b1e7b-918e-43f6-a4d7-190fed3a29f6_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

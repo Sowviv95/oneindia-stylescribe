@@ -1,0 +1,80 @@
+﻿{
+    "workflow_id":  "c1999237-fcc3-4c3a-8e13-85d037cfdd87",
+    "workflow_run_id":  "c1999237-fcc3-4c3a-8e13-85d037cfdd87",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "e82d6b82-7262-4aac-b541-d82d8480c19a",
+    "draft_id":  "e70f6611-ad54-47fd-beba-2b2fd887d7f1",
+    "evaluation_id":  "1ec15f0a-40fb-48c2-ac45-a058934e5133",
+    "initial_evaluation_id":  "1ec15f0a-40fb-48c2-ac45-a058934e5133",
+    "revision_id":  "6e58949f-13ab-4669-8e35-f0bbce9d6972",
+    "final_evaluation_id":  "16cb6af7-09f6-4531-9241-a0e7eab0aba6",
+    "source_cleanup":  {
+                           "original_char_count":  4577,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Birthright Citizenship Ruling",
+                          "one_line_summary":  "The US Supreme Court ruling preserves birthright citizenship, providing relief to Indian immigrants and their families.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                                  "The ruling was a 6-3 decision.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "An estimated 725,000 undocumented Indian immigrants reside in the United States.",
+                                                  "The ruling is significant for the Indian American community, which is one of the fastest-growing immigrant groups in the US."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will solve all immigration issues for Indian immigrants.",
+                                                  "The ruling guarantees immediate citizenship for all Indian immigrants."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®©à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯: à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯à®à¯à®à¯ à®ªà¯à®¤à®¿à®¯ à®¨à®®à¯à®ªà®¿à®à¯à®à¯",
+                          "subheadline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯, à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯ à®µà®´à®à¯à®à®¿à®¯à®¤à¯.",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®©à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯: à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯à®à¯à®à¯ à®ªà¯à®¤à®¿à®¯ à®¨à®®à¯à®ªà®¿à®à¯à®à¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯",
+                                       "à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯",
+                                       "à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "review_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  75,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "review_required"
+                                 },
+    "tamil_quality_status":  "warning",
+    "tamil_quality_issues_count":  2,
+    "tamil_quality_warnings":  [
+                                   "Allowed English term(s) present: H-1B",
+                                   "Final article body is materially shorter than requested (205/600 words)."
+                               ],
+    "requested_word_count":  600,
+    "original_draft_word_count":  212,
+    "final_article_word_count":  205,
+    "length_status":  "warning",
+    "length_warning_reason":  "Final article body is materially shorter than requested (205/600 words). Grounded brief has 17 expansion items, so this indicates generation and revision failed to meet the length target rather than source thinness.",
+    "final_article_word_count_ratio":  0.342,
+    "export_paths":  [
+                         "review_outputs\\c1999237-fcc3-4c3a-8e13-85d037cfdd87_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

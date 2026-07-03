@@ -43,6 +43,26 @@ python -m backend.app.scripts.review_draft_evaluation --draft-id <draft_id> --fo
 The article draft review helper also includes latest evaluation highlights when
 an evaluation exists.
 
+## Auto Revision
+
+Sprint 10 can revise a draft from the latest grounding evaluation:
+
+```powershell
+curl -X POST http://127.0.0.1:8000/drafts/<draft_id>/revise-grounding `
+  -H "Content-Type: application/json" `
+  -d '{
+    "run_final_evaluation": true,
+    "export_review": true,
+    "export_format": "html"
+  }'
+curl http://127.0.0.1:8000/drafts/<draft_id>/revision/latest
+```
+
+The revision removes or softens unsupported claims flagged by the evaluator,
+including headline, subheadline, body, SEO title, and meta description
+overclaims. The revised draft still uses the grounded brief as the only factual
+source and the author style profile only as voice guidance.
+
 ## Limitation
 
 This evaluator is LLM-based. It supports human editorial review; it does not

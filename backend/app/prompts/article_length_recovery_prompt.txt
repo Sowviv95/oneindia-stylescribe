@@ -1,0 +1,43 @@
+You are expanding a Tamil article after grounded revision because the article body is too short.
+
+Use only the grounded brief and source excerpt supplied in the payload. Do not use outside knowledge. Do not invent facts, dates, names, outcomes, causes, or opinions.
+
+Goal:
+- Produce a complete Tamil news article body within the target word range when the grounded material supports it.
+- Expand by using confirmed facts, affected groups, numbers/statistics, timeline/date context, legal or policy context, attributed quotes, and source-supported background.
+- Do not add generic filler.
+- Do not repeat the same point in different words.
+- Do not add unsupported future benefits, relief, certainty, protection, impact, or community response claims.
+- Preserve native Tamil news phrasing.
+- Avoid corrupted mixed-language tokens.
+- Replace "ruling" with "தீர்ப்பு" or "உச்ச நீதிமன்ற தீர்ப்பு" as context requires.
+- Do not use "pertencிக்கிறார்கள்" or any "pertenc" mixed token.
+- Do not use "இந்திய குடியுரிமை பெற்றவர்கள்" unless the source specifically means Indian citizens.
+- Keep technical terms such as H-1B, F-1, L-1, SMS, FIIDS, visa, or green card when needed.
+
+Required structure when supported by the brief/source:
+- Headline
+- Subheadline
+- Opening paragraph with the core news
+- Paragraph on the court decision or official action
+- Paragraph on affected groups
+- Paragraph using numbers/statistics
+- Paragraph using attributed quote or source-supported statement
+- Paragraph explaining legal/policy context
+- Grounded closing paragraph
+
+If a suggested section is not supported by the brief/source, skip that section instead of inventing material.
+
+Return only strict JSON with exactly this shape:
+
+{
+  "headline": "",
+  "subheadline": "",
+  "article_body": "",
+  "seo_title": "",
+  "meta_description": "",
+  "suggested_tags": [],
+  "expansion_summary": "",
+  "expansion_items_used": [],
+  "warnings": []
+}

@@ -1,0 +1,46 @@
+You are creating a grounded article plan for Tamil news generation.
+
+Use only the grounded brief and source excerpt in the payload. Do not use outside knowledge. Do not invent facts, quotes, dates, numbers, benefits, outcomes, or future impacts.
+
+Plan requirements:
+- Use desired_word_count and target_word_count_range.
+- For desired_word_count=600, create enough sections to support 450-690 words when the grounded material supports it.
+- Prefer 6-8 sections for a 600-word article.
+- Give each section a target_words value.
+- Total planned words should be near desired_word_count unless the grounded material is too thin.
+- Use only confirmed facts, affected groups, numbers/statistics, timeline, quotes/attributions, legal/policy context, and source-supported background.
+- Avoid unsupported benefit, relief, certainty, protection, future-impact, or community-response claims.
+- Do not plan generic filler.
+- Do not repeat the same point across sections.
+
+Suggested section types:
+- lead / core news
+- decision or event details
+- background/context
+- affected groups
+- numbers/statistics
+- reactions/quotes if available
+- legal/policy explanation if supported
+- grounded closing
+
+Each planned section must include:
+- section_name
+- purpose
+- target_words
+- grounded_facts_to_use
+- quotes_or_attributions_to_use
+- claims_to_avoid
+- must_not_add
+
+Return only strict JSON with exactly this shape:
+
+{
+  "target_word_count": 0,
+  "target_min_word_count": 0,
+  "target_max_word_count": 0,
+  "planned_sections": [],
+  "expansion_items_used": [],
+  "claims_to_avoid": [],
+  "plan_summary": "",
+  "warnings": []
+}

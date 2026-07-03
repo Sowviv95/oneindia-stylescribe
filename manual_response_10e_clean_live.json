@@ -1,0 +1,96 @@
+﻿{
+    "workflow_id":  "0b974996-7b79-4b37-9a29-3bc491665868",
+    "workflow_run_id":  "0b974996-7b79-4b37-9a29-3bc491665868",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "1a6c2c0f-ed34-4feb-a2ef-455fc2418a1c",
+    "draft_id":  "fcdb54df-0a57-46c9-b219-294566ef779d",
+    "evaluation_id":  "5bcbea94-8cbb-46d8-a5d6-0eea1d21a1c3",
+    "initial_evaluation_id":  "5bcbea94-8cbb-46d8-a5d6-0eea1d21a1c3",
+    "revision_id":  "2695ed9f-5f2e-4828-a6ea-f8246cefff60",
+    "final_evaluation_id":  "b8baa480-aa50-4d52-b763-4c257913dce9",
+    "source_cleanup":  {
+                           "original_char_count":  4577,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Ruling on Birthright Citizenship",
+                          "one_line_summary":  "The US Supreme Court\u0027s ruling on birthright citizenship provides relief to Indian immigrants and their families by preserving citizenship rights for children born in the US.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court ruled 6-3 against President Donald Trump\u0027s executive order to restrict birthright citizenship.",
+                                                  "The ruling ensures US citizenship for children born to Indian immigrants on H-1B visas and other temporary visas.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "An estimated 725,000 undocumented Indian immigrants reside in the United States.",
+                                                  "The ruling is significant for the Indian American community, which is one of the fastest-growing immigrant groups in the US."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will solve all immigration issues for Indian immigrants.",
+                                                  "All Indian immigrants will immediately gain citizenship."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®©à¯ à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®à¯à®±à®¿à®¤à¯à®¤à¯ à®®à¯à®à¯à®à®¿à®¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "subheadline":  "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯ à®®à®±à¯à®±à¯à®®à¯ à®\u0085à®µà®°à¯à®à®³à®¤à¯ à®à¯à®à¯à®®à¯à®ªà®à¯à®à®³à¯à®à¯à®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®à®°à®¿à®®à¯à®à®³à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à® à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯",
+                                       "à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯",
+                                       "à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "review_required"
+                           },
+    "initial_readiness":  "review_required",
+    "final_readiness":  "review_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  75,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "review_required"
+                                 },
+    "tamil_quality_status":  "warning",
+    "tamil_quality_issues_count":  2,
+    "tamil_quality_warnings":  [
+                                   "Allowed English term(s) present: H-1B",
+                                   "Final article body is materially shorter than requested (196/600 words)."
+                               ],
+    "requested_word_count":  600,
+    "original_draft_word_count":  228,
+    "revised_word_count_before_expansion":  177,
+    "final_article_word_count":  196,
+    "length_status":  "warning",
+    "length_warning_reason":  "Length recovery failed despite sufficient grounded expansion material.",
+    "final_article_word_count_ratio":  0.327,
+    "length_recovery_required":  true,
+    "length_recovery_attempted":  true,
+    "length_recovery_succeeded":  false,
+    "length_recovery_failed":  true,
+    "short_output_invalid":  true,
+    "expansion_items_available":  15,
+    "expansion_items_used":  [
+                                 "The US Supreme Court ruled 6-3 against President Donald Trump\u0027s executive order to restrict birthright citizenship.",
+                                 "The ruling ensures US citizenship for children born to Indian immigrants on H-1B visas and other temporary visas.",
+                                 "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                 "An estimated 725,000 undocumented Indian immigrants reside in the United States.",
+                                 "The ruling is significant for the Indian American community, which is one of the fastest-growing immigrant groups in the US.",
+                                 "5.2 million Indian Americans, including over 1.2 million in the green card backlog.",
+                                 "Quotes from Chinten Patel, Raja Krishnamoorthi, Khanderao Kand, and Bhavini Patel regarding the ruling.",
+                                 "The ruling preserves constitutional protections for birthright citizenship as established by the Fourteenth Amendment."
+                             ],
+    "export_paths":  [
+                         "review_outputs\\0b974996-7b79-4b37-9a29-3bc491665868_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

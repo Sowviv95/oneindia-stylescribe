@@ -5,6 +5,7 @@ import pytest
 from backend.app.db.repository import StyleScribeRepository
 from backend.app.services.grounded_brief_service import (
     MAX_SOURCE_CHARS_FOR_MODEL,
+    cleanup_grounded_brief_tamil,
     generate_grounded_brief,
     get_grounded_brief,
 )
@@ -62,6 +63,23 @@ def test_generate_grounded_brief_truncates_source_text(tmp_path: Path) -> None:
     assert len(client.last_payload) < MAX_SOURCE_CHARS_FOR_MODEL + 2000
 
 
+def test_grounded_brief_cleanup_removes_corrupted_mixed_token() -> None:
+    cleaned = cleanup_grounded_brief_tamil(
+        {
+            "quotes": [
+                {
+                    "quote_tamil_or_summary": (
+                        "அமெரிக்காவில் யார் pertencிக்கிறார்கள் என்பதற்கான கருத்து."
+                    )
+                }
+            ]
+        }
+    )
+
+    assert "pertenc" not in str(cleaned)
+    assert "சேர்ந்துள்ளனர்" in str(cleaned)
+
+
 class MockBriefClient:
     provider = "openai"
     model_name = "gpt-4o-mini"
@@ -75,6 +93,8 @@ class MockBriefClient:
         user_payload: str,
     ) -> dict[str, object]:
         assert "Use only the supplied source text" in system_prompt
+        assert "affected groups" in system_prompt
+        assert "policy/legal context" in system_prompt
         self.last_payload = user_payload
         return {
             "topic": "Project launch",
@@ -86,7 +106,9 @@ class MockBriefClient:
             "places": [{"name_original": "Chennai", "name_tamil": "சென்னை"}],
             "dates_or_timeline": ["Monday"],
             "numbers_and_statistics": ["25 workers"],
+            "affected_groups": ["workers"],
             "quotes": [],
+            "policy_or_legal_context": [],
             "background_from_source": [],
             "missing_or_unclear_information": [],
             "claims_to_avoid": ["Do not state the project is completed."],

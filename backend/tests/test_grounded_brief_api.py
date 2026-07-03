@@ -30,7 +30,7 @@ def test_create_grounded_brief_endpoint_success(
     )
     monkeypatch.setattr(
         "backend.app.main.generate_grounded_brief",
-        lambda source_type, source_input, target_language: expected,
+        lambda source_type, source_input, target_language, source_input_mode: expected,
     )
 
     response = client.post(

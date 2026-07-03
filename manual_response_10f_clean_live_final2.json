@@ -1,0 +1,99 @@
+﻿{
+    "workflow_id":  "bffbfcb2-2b9c-4ff5-939b-422704bb01da",
+    "workflow_run_id":  "bffbfcb2-2b9c-4ff5-939b-422704bb01da",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "0ba0ea61-eb6e-4b51-91b2-2bfb0cb8d8a3",
+    "draft_id":  "c6bee7be-08a4-4178-af72-900a00be90f4",
+    "evaluation_id":  "5650cb54-862e-4a5d-8069-834b2745aa2a",
+    "initial_evaluation_id":  "5650cb54-862e-4a5d-8069-834b2745aa2a",
+    "revision_id":  "e647cec3-2d66-412b-b4f4-ec65cf46512b",
+    "final_evaluation_id":  "d6cc842e-c21e-4e28-872b-976319b3f0aa",
+    "source_cleanup":  {
+                           "original_char_count":  4616,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Ruling on Birthright Citizenship",
+                          "one_line_summary":  "The US Supreme Court ruling preserves birthright citizenship, providing relief to Indian immigrants and their families.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                                  "The ruling was a 6-3 decision.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "An estimated 725,000 undocumented Indian immigrants reside in the United States.",
+                                                  "The ruling is significant for the Indian American community, which is one of the fastest-growing immigrant groups in the US."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will allow millions of families to look to the future with greater certainty."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®©à¯ à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "subheadline":  "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯ à®®à®±à¯à®±à¯à®®à¯ à®\u0085à®µà®°à¯à®à®³à®¿à®©à¯ à®à¯à®à¯à®®à¯à®ªà®à¯à®à®³à¯à®à¯à®à¯ à®®à¯à®à¯à®à®¿à®¯à®®à®¾à®© à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®©à¯ à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯",
+                                       "à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "revision_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  85,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "revision_required"
+                                 },
+    "article_plan_used":  true,
+    "plan_id":  "0eae02a6-5f21-4eaa-abee-efb8e977ba3b",
+    "planned_section_count":  8,
+    "planned_target_word_count":  600,
+    "planned_min_word_count":  450,
+    "planned_max_word_count":  690,
+    "section_coverage_status":  "warning",
+    "section_coverage_warnings":  [
+                                      "Final article word count is below the planned minimum (194/450).",
+                                      "Final article has 4 paragraphs for 8 planned sections."
+                                  ],
+    "tamil_quality_status":  "warning",
+    "tamil_quality_issues_count":  2,
+    "tamil_quality_warnings":  [
+                                   "Allowed English term(s) present: H-1B",
+                                   "Final article body is materially shorter than requested (194/600 words)."
+                               ],
+    "requested_word_count":  600,
+    "original_draft_word_count":  242,
+    "revised_word_count_before_expansion":  196,
+    "final_article_word_count":  194,
+    "length_status":  "warning",
+    "length_warning_reason":  "Length recovery failed despite sufficient grounded expansion material.",
+    "final_article_word_count_ratio":  0.323,
+    "length_recovery_required":  true,
+    "length_recovery_attempted":  true,
+    "length_recovery_succeeded":  false,
+    "length_recovery_failed":  true,
+    "short_output_invalid":  true,
+    "expansion_items_available":  16,
+    "expansion_items_used":  [
+
+                             ],
+    "export_paths":  [
+                         "review_outputs\\bffbfcb2-2b9c-4ff5-939b-422704bb01da_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

@@ -1,0 +1,77 @@
+﻿{
+    "workflow_id":  "3352c52c-c19c-4412-9c7c-37cb29338eb0",
+    "workflow_run_id":  "3352c52c-c19c-4412-9c7c-37cb29338eb0",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "cdd6332b-75af-4454-b146-dfac5744d2c2",
+    "draft_id":  "29a51059-a010-4d12-90cc-f2e0a3e34f7a",
+    "evaluation_id":  "a878d57f-2600-4d2a-b128-60236dffa491",
+    "initial_evaluation_id":  "a878d57f-2600-4d2a-b128-60236dffa491",
+    "revision_id":  "bcd9128e-4f10-4ab0-b103-615370eecab3",
+    "final_evaluation_id":  "0c601ebe-85aa-4b92-a818-79fd21de08c2",
+    "source_cleanup":  {
+                           "original_char_count":  4616,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Birthright Citizenship Ruling",
+                          "one_line_summary":  "The US Supreme Court ruling preserves birthright citizenship, providing relief to Indian immigrants and their children.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                                  "The ruling was a 6-3 decision.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will allow millions of families to look to the future with greater certainty (this is an interpretation).",
+                                                  "The decision shows the American Constitution is alive in its Well (this is an interpretation)."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à®ªà¯à®ªà®à¯à®à®¤à¯",
+                          "subheadline":  "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯ à®®à®±à¯à®±à¯à®®à¯ à®\u0085à®µà®°à¯à®à®³à®¿à®©à¯ à®à¯à®´à®¨à¯à®¤à¯à®à®³à¯à®à¯à®à¯ à®à®¤à¯ à®à®°à¯ à®®à¯à®à¯à®à®¿à®¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯.",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à®ªà¯à®ªà®à¯à®à®¤à¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯",
+                                       "à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  50,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "review_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  75,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "review_required"
+                                 },
+    "tamil_quality_status":  "warning",
+    "tamil_quality_issues_count":  3,
+    "tamil_quality_warnings":  [
+                                   "Unexpected Latin-script token(s): pertencente",
+                                   "Allowed English term(s) present: H-1B",
+                                   "Final article body is materially shorter than requested (167/600 words)."
+                               ],
+    "requested_word_count":  600,
+    "final_article_word_count":  167,
+    "length_status":  "warning",
+    "export_paths":  [
+                         "review_outputs\\3352c52c-c19c-4412-9c7c-37cb29338eb0_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

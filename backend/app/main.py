@@ -9,6 +9,11 @@ from backend.app.models.article_draft_models import (
     ArticleDraftRequest,
     ArticleDraftResponse,
 )
+from backend.app.models.article_revision_models import (
+    ArticleRevisionRequest,
+    ArticleRevisionResponse,
+    ArticleRevisionWorkflowResponse,
+)
 from backend.app.models.draft_evaluation_models import DraftEvaluationResponse
 from backend.app.models.grounded_brief_models import (
     GroundedBriefRequest,
@@ -18,6 +23,10 @@ from backend.app.models.ingestion_models import (
     ArticleListResponseItem,
     AuthorIngestionRequest,
     IngestionSummary,
+)
+from backend.app.models.pasted_text_workflow_models import (
+    PastedTextWorkflowRequest,
+    PastedTextWorkflowResponse,
 )
 from backend.app.models.request_models import ArticleGenerationRequest
 from backend.app.models.response_models import (
@@ -31,6 +40,12 @@ from backend.app.services.article_generation_service import (
     generate_article_draft,
     get_article_draft,
 )
+from backend.app.services.article_revision_service import (
+    ArticleRevisionError,
+    export_revision_review,
+    get_latest_article_revision,
+    revise_article_grounding,
+)
 from backend.app.services.author_ingestion_service import ingest_author_samples
 from backend.app.services.author_style_profile_service import (
     AuthorStyleProfileError,
@@ -40,6 +55,7 @@ from backend.app.services.author_style_profile_service import (
 from backend.app.services.draft_grounding_evaluation_service import (
     DraftEvaluationError,
     evaluate_draft_grounding,
+    evaluate_revision_grounding,
     get_latest_draft_evaluation,
 )
 from backend.app.services.generation_service import build_stub_generation_response
@@ -49,12 +65,17 @@ from backend.app.services.grounded_brief_service import (
     get_grounded_brief,
 )
 from backend.app.services.model_clients.openai_client import OpenAIClientError
+from backend.app.services.pasted_text_workflow_service import (
+    PastedTextWorkflowError,
+    run_pasted_text_to_draft_workflow,
+)
 from backend.app.services.source_processor import SourceProcessingError
 from backend.app.services.style_snapshot_service import (
     AuthorStyleSnapshotError,
     build_author_style_snapshot,
     get_latest_author_style_snapshot,
 )
+from backend.app.services.tamil_quality_scanner import approximate_tamil_word_count
 
 app = FastAPI(title="StyleScribe API")
 
@@ -175,6 +196,7 @@ def create_grounded_brief(request: GroundedBriefRequest) -> GroundedBriefRespons
             source_type=request.source_type,
             source_input=request.source_input,
             target_language=request.target_language,
+            source_input_mode=request.source_input_mode,
         )
     except SourceProcessingError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -251,3 +273,129 @@ def latest_draft_grounding_evaluation(draft_id: str) -> DraftEvaluationResponse:
         return get_latest_draft_evaluation(draft_id)
     except DraftEvaluationError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post(
+    "/drafts/{draft_id}/revise-grounding",
+    response_model=ArticleRevisionWorkflowResponse,
+)
+def create_article_grounding_revision(
+    draft_id: str,
+    request: ArticleRevisionRequest | None = None,
+) -> ArticleRevisionWorkflowResponse:
+    """Revise a draft using grounding evaluation feedback."""
+
+    options = request or ArticleRevisionRequest()
+    repository = StyleScribeRepository()
+    repository.initialize_schema()
+    try:
+        revision = revise_article_grounding(
+            draft_id,
+            evaluation_id=options.evaluation_id,
+            repository=repository,
+        )
+        initial_record = repository.fetch_draft_evaluation(revision.evaluation_id)
+        if initial_record is None:
+            raise ArticleRevisionError("Initial grounding evaluation was not found.")
+        initial_evaluation = StyleScribeRepository.decode_json_object(
+            initial_record.evaluation_json
+        )
+        final_response = (
+            evaluate_revision_grounding(revision.revision_id, repository=repository)
+            if options.run_final_evaluation
+            else None
+        )
+        export_paths = []
+        if options.export_review:
+            draft_record = repository.fetch_article_draft(draft_id)
+            brief_record = (
+                repository.fetch_grounded_brief(draft_record.brief_id)
+                if draft_record
+                else None
+            )
+            if draft_record is None or brief_record is None:
+                raise ArticleRevisionError("Draft or grounded brief was not found.")
+            original_draft = StyleScribeRepository.decode_json_object(
+                draft_record.draft_json
+            )
+            export_paths = export_revision_review(
+                workflow_id=revision.revision_id,
+                export_format=options.export_format,
+                cleaned_source_excerpt=brief_record.source_text_excerpt,
+                brief=StyleScribeRepository.decode_json_object(brief_record.brief_json),
+                original_draft=original_draft,
+                initial_evaluation=initial_evaluation,
+                revised_draft=revision.revised_draft,
+                revision_summary=revision.revision_summary,
+                final_evaluation=(
+                    final_response.evaluation if final_response else None
+                ),
+                requested_word_count=draft_record.desired_word_count,
+                original_draft_word_count=approximate_tamil_word_count(
+                    str(original_draft.get("article_body") or "")
+                ),
+                final_article_word_count=approximate_tamil_word_count(
+                    str(revision.revised_draft.get("article_body") or "")
+                ),
+            )
+        return ArticleRevisionWorkflowResponse(
+            revision=revision,
+            initial_evaluation=initial_evaluation,
+            final_evaluation_id=(
+                final_response.evaluation_id if final_response else None
+            ),
+            final_evaluation=final_response.evaluation if final_response else None,
+            export_paths=export_paths,
+        )
+    except (ArticleRevisionError, DraftEvaluationError) as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OpenAIClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.get(
+    "/drafts/{draft_id}/revision/latest",
+    response_model=ArticleRevisionResponse,
+)
+def latest_article_grounding_revision(draft_id: str) -> ArticleRevisionResponse:
+    """Return the latest stored revision for a draft."""
+
+    try:
+        return get_latest_article_revision(draft_id)
+    except ArticleRevisionError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post(
+    "/workflows/pasted-text-to-draft",
+    response_model=PastedTextWorkflowResponse,
+)
+def create_pasted_text_to_draft_workflow(
+    request: PastedTextWorkflowRequest,
+) -> PastedTextWorkflowResponse:
+    """Run pasted website text cleanup through brief, draft, and evaluation."""
+
+    try:
+        return run_pasted_text_to_draft_workflow(
+            author_id=request.author_id,
+            source_text=request.source_text,
+            author_instruction=request.author_instruction,
+            target_language=request.target_language,
+            article_type=request.article_type,
+            desired_word_count=request.desired_word_count,
+            tone_override=request.tone_override,
+            run_grounding_evaluation=request.run_grounding_evaluation,
+            run_auto_revision=request.run_auto_revision,
+            run_final_evaluation=request.run_final_evaluation,
+            export_review=request.export_review,
+            export_format=request.export_format,
+            workflow_mode=request.workflow_mode,
+        )
+    except SourceProcessingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except PastedTextWorkflowError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except (ArticleGenerationError, ArticleRevisionError) as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OpenAIClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc

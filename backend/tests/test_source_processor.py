@@ -20,6 +20,35 @@ def test_process_text_source() -> None:
     assert source.warnings == []
 
 
+def test_process_text_source_applies_pasted_web_text_cleaner() -> None:
+    source = process_source(
+        "text",
+        """
+        Advertisement
+        Share
+        Chennai officials said a pilot will begin next month with 18 sensors.
+        Subscribe
+        Residents will receive SMS alerts during heavy rain.
+        """,
+        source_input_mode="pasted_web_text",
+    )
+
+    assert "Advertisement" not in source.cleaned_text
+    assert "Subscribe" not in source.cleaned_text
+    assert "18 sensors" in source.cleaned_text
+    assert source.removed_line_count == 3
+
+
+def test_process_text_source_plain_text_does_not_apply_cleaner() -> None:
+    source = process_source(
+        "text",
+        "Advertisement\nThis useful source text has enough factual detail for a brief.",
+    )
+
+    assert "Advertisement" in source.cleaned_text
+    assert source.removed_line_count == 0
+
+
 def test_process_url_source_with_mocked_http(monkeypatch: pytest.MonkeyPatch) -> None:
     class FakeResponse:
         text = """

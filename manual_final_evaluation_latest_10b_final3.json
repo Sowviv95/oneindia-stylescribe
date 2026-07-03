@@ -1,0 +1,64 @@
+﻿{
+    "evaluation_id":  "907d2f43-ba7c-4277-a48c-a8b837c5ee18",
+    "draft_id":  "4804f659-4998-4c04-86be-1ab101cb6b22",
+    "brief_id":  "32b86a52-9e60-49fc-aee9-dae41f293526",
+    "author_id":  "v_vasanthi",
+    "model_provider":  "openai",
+    "model_name":  "gpt-4o-mini",
+    "status":  "completed",
+    "evaluation":  {
+                       "grounding_score":  85,
+                       "claim_safety_score":  0,
+                       "fact_preservation_score":  90,
+                       "overall_risk":  "medium",
+                       "editorial_readiness":  "review_required",
+                       "unsupported_claims":  [
+
+                                              ],
+                       "overclaim_phrases":  [
+                                                 {
+                                                     "phrase":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à®¿à®©à¯ à®à®®à¯à®à®¤à¯à®¤à®¿à®²à¯ à®¤à®¾à®à¯à®à®¤à¯à®¤à¯ à®à®±à¯à®ªà®à¯à®¤à¯à®¤à¯à®®à¯ à®à®©à¯à®±à¯ à®à®¤à®¿à®°à¯à®ªà®¾à®°à¯à®à¯à®à®ªà¯à®ªà®à¯à®à®¿à®±à®¤à¯",
+                                                     "reason":  "The phrase implies a specific impact without supporting evidence from the grounded brief.",
+                                                     "suggested_fix":  "Remove or rephrase to indicate that the impact is anticipated but not guaranteed."
+                                                 }
+                                             ],
+                       "invented_facts":  [
+
+                                          ],
+                       "contradictions":  [
+
+                                          ],
+                       "claims_to_avoid_violations":  [
+                                                          {
+                                                              "claim":  "The ruling will allow millions of families to look to the future with greater certainty.",
+                                                              "reason":  "This claim is explicitly listed in the claims to avoid from the grounded brief.",
+                                                              "suggested_fix":  "Remove this claim from the article."
+                                                          }
+                                                      ],
+                       "missing_key_facts":  [
+
+                                             ],
+                       "preserved_facts":  [
+                                               "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                               "The ruling was a 6-3 decision.",
+                                               "The ruling preserves constitutional protection for all children born on American soil.",
+                                               "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                               "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants.",
+                                               "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas."
+                                           ],
+                       "number_date_name_checks":  [
+
+                                                   ],
+                       "rewrite_guidance":  [
+                                                "Ensure that all claims about the impact of the ruling are supported by the grounded brief.",
+                                                "Remove any phrases that imply certainty about future outcomes."
+                                            ],
+                       "summary":  "The article is mostly grounded but contains phrases that imply unsupported impacts and includes a claim to avoid. It requires review to ensure compliance with the grounded brief.",
+                       "evaluated_revision_id":  "0bb3de86-34e0-4f41-9b9c-79d97f1b0ee4",
+                       "initial_evaluation_id":  "5d81f3fb-8274-41d6-90ee-116b1a5471ee"
+                   },
+    "warnings":  [
+
+                 ],
+    "created_at":  "2026-07-02T04:52:16.169883+00:00"
+}

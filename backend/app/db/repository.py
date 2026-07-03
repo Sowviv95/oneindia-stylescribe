@@ -131,6 +131,25 @@ class GroundedBriefRecord:
 
 
 @dataclass(frozen=True)
+class ArticlePlanRecord:
+    plan_id: str
+    brief_id: str
+    author_id: str
+    article_type: str
+    desired_word_count: int | None
+    target_min_word_count: int | None
+    target_max_word_count: int | None
+    planned_sections_json: str
+    expansion_items_used_json: str
+    claims_to_avoid_json: str
+    plan_summary: str
+    model_provider: str
+    model_name: str
+    token_usage_json: str
+    created_at: str
+
+
+@dataclass(frozen=True)
 class ArticleDraftRecord:
     draft_id: str
     author_id: str
@@ -164,6 +183,41 @@ class DraftEvaluationRecord:
     created_at: str
 
 
+@dataclass(frozen=True)
+class ArticleRevisionRecord:
+    revision_id: str
+    draft_id: str
+    evaluation_id: str
+    author_id: str
+    revised_headline: str
+    revised_subheadline: str
+    revised_article_body: str
+    revised_seo_title: str
+    revised_meta_description: str
+    revised_tags_json: str
+    revision_summary: str
+    removed_or_softened_claims_json: str
+    model_provider: str
+    model_name: str
+    token_usage_json: str
+    created_at: str
+
+
+@dataclass(frozen=True)
+class WorkflowRunRecord:
+    workflow_id: str
+    workflow_type: str
+    author_id: str
+    brief_id: str | None
+    draft_id: str | None
+    evaluation_id: str | None
+    status: str
+    input_summary_json: str
+    output_summary_json: str
+    warnings_json: str
+    created_at: str
+
+
 class StyleScribeRepository:
     """SQLite repository for authors, articles, and ingestion runs."""
 
@@ -175,6 +229,8 @@ class StyleScribeRepository:
         with get_connection(self.db_path) as connection:
             connection.executescript(schema_sql)
             self._ensure_article_draft_columns(connection)
+            self._ensure_article_revisions_table(connection)
+            self._ensure_article_plans_table(connection)
 
     def upsert_author(self, author: AuthorRecord) -> None:
         with get_connection(self.db_path) as connection:
@@ -472,6 +528,58 @@ class StyleScribeRepository:
 
         return self._map_grounded_brief(row) if row else None
 
+    def save_article_plan(self, plan: ArticlePlanRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO article_plans (
+                    plan_id, brief_id, author_id, article_type,
+                    desired_word_count, target_min_word_count,
+                    target_max_word_count, planned_sections_json,
+                    expansion_items_used_json, claims_to_avoid_json,
+                    plan_summary, model_provider, model_name,
+                    token_usage_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    plan.plan_id,
+                    plan.brief_id,
+                    plan.author_id,
+                    plan.article_type,
+                    plan.desired_word_count,
+                    plan.target_min_word_count,
+                    plan.target_max_word_count,
+                    plan.planned_sections_json,
+                    plan.expansion_items_used_json,
+                    plan.claims_to_avoid_json,
+                    plan.plan_summary,
+                    plan.model_provider,
+                    plan.model_name,
+                    plan.token_usage_json,
+                    plan.created_at,
+                ),
+            )
+
+    def fetch_article_plan(self, plan_id: str) -> ArticlePlanRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    plan_id, brief_id, author_id, article_type,
+                    desired_word_count, target_min_word_count,
+                    target_max_word_count, planned_sections_json,
+                    expansion_items_used_json, claims_to_avoid_json,
+                    plan_summary, model_provider, model_name,
+                    token_usage_json, created_at
+                FROM article_plans
+                WHERE plan_id = ?
+                """,
+                (plan_id,),
+            ).fetchone()
+
+        return self._map_article_plan(row) if row else None
+
     def save_article_draft(self, draft: ArticleDraftRecord) -> None:
         with get_connection(self.db_path) as connection:
             connection.execute(
@@ -617,6 +725,109 @@ class StyleScribeRepository:
             return None
         return draft, brief
 
+    def save_article_revision(self, revision: ArticleRevisionRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO article_revisions (
+                    revision_id, draft_id, evaluation_id, author_id,
+                    revised_headline, revised_subheadline, revised_article_body,
+                    revised_seo_title, revised_meta_description, revised_tags_json,
+                    revision_summary, removed_or_softened_claims_json,
+                    model_provider, model_name, token_usage_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    revision.revision_id,
+                    revision.draft_id,
+                    revision.evaluation_id,
+                    revision.author_id,
+                    revision.revised_headline,
+                    revision.revised_subheadline,
+                    revision.revised_article_body,
+                    revision.revised_seo_title,
+                    revision.revised_meta_description,
+                    revision.revised_tags_json,
+                    revision.revision_summary,
+                    revision.removed_or_softened_claims_json,
+                    revision.model_provider,
+                    revision.model_name,
+                    revision.token_usage_json,
+                    revision.created_at,
+                ),
+            )
+
+    def fetch_article_revision(
+        self,
+        revision_id: str,
+    ) -> ArticleRevisionRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    revision_id, draft_id, evaluation_id, author_id,
+                    revised_headline, revised_subheadline, revised_article_body,
+                    revised_seo_title, revised_meta_description, revised_tags_json,
+                    revision_summary, removed_or_softened_claims_json,
+                    model_provider, model_name, token_usage_json, created_at
+                FROM article_revisions
+                WHERE revision_id = ?
+                """,
+                (revision_id,),
+            ).fetchone()
+
+        return self._map_article_revision(row) if row else None
+
+    def fetch_latest_article_revision(
+        self,
+        draft_id: str,
+    ) -> ArticleRevisionRecord | None:
+        with get_connection(self.db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    revision_id, draft_id, evaluation_id, author_id,
+                    revised_headline, revised_subheadline, revised_article_body,
+                    revised_seo_title, revised_meta_description, revised_tags_json,
+                    revision_summary, removed_or_softened_claims_json,
+                    model_provider, model_name, token_usage_json, created_at
+                FROM article_revisions
+                WHERE draft_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (draft_id,),
+            ).fetchone()
+
+        return self._map_article_revision(row) if row else None
+
+    def save_workflow_run(self, workflow: WorkflowRunRecord) -> None:
+        with get_connection(self.db_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO workflow_runs (
+                    workflow_id, workflow_type, author_id, brief_id, draft_id,
+                    evaluation_id, status, input_summary_json, output_summary_json,
+                    warnings_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    workflow.workflow_id,
+                    workflow.workflow_type,
+                    workflow.author_id,
+                    workflow.brief_id,
+                    workflow.draft_id,
+                    workflow.evaluation_id,
+                    workflow.status,
+                    workflow.input_summary_json,
+                    workflow.output_summary_json,
+                    workflow.warnings_json,
+                    workflow.created_at,
+                ),
+            )
+
     @staticmethod
     def encode_warnings(warnings: list[str]) -> str:
         return json.dumps(warnings, ensure_ascii=False)
@@ -717,6 +928,26 @@ class StyleScribeRepository:
         )
 
     @staticmethod
+    def _map_article_plan(row: sqlite3.Row) -> ArticlePlanRecord:
+        return ArticlePlanRecord(
+            plan_id=str(row["plan_id"]),
+            brief_id=str(row["brief_id"]),
+            author_id=str(row["author_id"]),
+            article_type=str(row["article_type"]),
+            desired_word_count=row["desired_word_count"],
+            target_min_word_count=row["target_min_word_count"],
+            target_max_word_count=row["target_max_word_count"],
+            planned_sections_json=str(row["planned_sections_json"]),
+            expansion_items_used_json=str(row["expansion_items_used_json"]),
+            claims_to_avoid_json=str(row["claims_to_avoid_json"]),
+            plan_summary=str(row["plan_summary"]),
+            model_provider=str(row["model_provider"]),
+            model_name=str(row["model_name"]),
+            token_usage_json=str(row["token_usage_json"]),
+            created_at=str(row["created_at"]),
+        )
+
+    @staticmethod
     def _map_article_draft(row: sqlite3.Row) -> ArticleDraftRecord:
         return ArticleDraftRecord(
             draft_id=str(row["draft_id"]),
@@ -753,6 +984,29 @@ class StyleScribeRepository:
         )
 
     @staticmethod
+    def _map_article_revision(row: sqlite3.Row) -> ArticleRevisionRecord:
+        return ArticleRevisionRecord(
+            revision_id=str(row["revision_id"]),
+            draft_id=str(row["draft_id"]),
+            evaluation_id=str(row["evaluation_id"]),
+            author_id=str(row["author_id"]),
+            revised_headline=str(row["revised_headline"]),
+            revised_subheadline=str(row["revised_subheadline"]),
+            revised_article_body=str(row["revised_article_body"]),
+            revised_seo_title=str(row["revised_seo_title"]),
+            revised_meta_description=str(row["revised_meta_description"]),
+            revised_tags_json=str(row["revised_tags_json"]),
+            revision_summary=str(row["revision_summary"]),
+            removed_or_softened_claims_json=str(
+                row["removed_or_softened_claims_json"]
+            ),
+            model_provider=str(row["model_provider"]),
+            model_name=str(row["model_name"]),
+            token_usage_json=str(row["token_usage_json"]),
+            created_at=str(row["created_at"]),
+        )
+
+    @staticmethod
     def _ensure_article_draft_columns(connection: sqlite3.Connection) -> None:
         rows = connection.execute("PRAGMA table_info(article_drafts)").fetchall()
         existing_columns = {str(row["name"]) for row in rows}
@@ -770,3 +1024,55 @@ class StyleScribeRepository:
         for column_name, sql in migrations.items():
             if column_name not in existing_columns:
                 connection.execute(sql)
+
+    @staticmethod
+    def _ensure_article_revisions_table(connection: sqlite3.Connection) -> None:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS article_revisions (
+                revision_id TEXT PRIMARY KEY,
+                draft_id TEXT NOT NULL,
+                evaluation_id TEXT NOT NULL,
+                author_id TEXT NOT NULL,
+                revised_headline TEXT NOT NULL,
+                revised_subheadline TEXT NOT NULL,
+                revised_article_body TEXT NOT NULL,
+                revised_seo_title TEXT NOT NULL,
+                revised_meta_description TEXT NOT NULL,
+                revised_tags_json TEXT NOT NULL,
+                revision_summary TEXT NOT NULL,
+                removed_or_softened_claims_json TEXT NOT NULL,
+                model_provider TEXT NOT NULL,
+                model_name TEXT NOT NULL,
+                token_usage_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(draft_id) REFERENCES article_drafts(draft_id),
+                FOREIGN KEY(evaluation_id) REFERENCES draft_evaluations(evaluation_id)
+            )
+            """
+        )
+
+    @staticmethod
+    def _ensure_article_plans_table(connection: sqlite3.Connection) -> None:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS article_plans (
+                plan_id TEXT PRIMARY KEY,
+                brief_id TEXT NOT NULL,
+                author_id TEXT NOT NULL,
+                article_type TEXT NOT NULL,
+                desired_word_count INTEGER,
+                target_min_word_count INTEGER,
+                target_max_word_count INTEGER,
+                planned_sections_json TEXT NOT NULL,
+                expansion_items_used_json TEXT NOT NULL,
+                claims_to_avoid_json TEXT NOT NULL,
+                plan_summary TEXT NOT NULL,
+                model_provider TEXT NOT NULL,
+                model_name TEXT NOT NULL,
+                token_usage_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(brief_id) REFERENCES grounded_briefs(brief_id)
+            )
+            """
+        )

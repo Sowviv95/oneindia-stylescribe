@@ -31,6 +31,16 @@ Create a `.env` file in the project root:
 ```env
 OPENAI_API_KEY=your_openai_key
 OPENAI_MODEL=
+OPENAI_MODEL_DEFAULT=gpt-4o-mini
+OPENAI_MODEL_PLANNING=
+OPENAI_MODEL_GENERATION=gpt-4o
+OPENAI_MODEL_REVISION=
+OPENAI_MODEL_EVALUATION=
+OPENAI_MODEL_LENGTH_RECOVERY=
+OPENAI_COST_INPUT_PER_1M_GPT_4O=
+OPENAI_COST_OUTPUT_PER_1M_GPT_4O=
+OPENAI_COST_INPUT_PER_1M_GPT_4O_MINI=
+OPENAI_COST_OUTPUT_PER_1M_GPT_4O_MINI=
 QWEN_PROVIDER=ollama
 QWEN_BASE_URL=http://localhost:11434
 QWEN_MODEL=
@@ -43,7 +53,15 @@ DEFAULT_SOURCE_LANGUAGE=
 
 The API loads these values with `python-dotenv`. Missing optional model values
 do not prevent the app from starting, and secret values are not exposed by the
-model registry.
+model registry. Stage-specific OpenAI model values override `OPENAI_MODEL`;
+otherwise the workflow falls back to `OPENAI_MODEL`, then `OPENAI_MODEL_DEFAULT`,
+then `gpt-4o-mini`. Current validation uses `gpt-4o` for article/section
+generation and cheaper defaults for planning, revision, evaluation, and length
+recovery unless configured otherwise.
+
+Cost telemetry uses actual API token usage when available. Pricing can be
+overridden with the `OPENAI_COST_*_PER_1M_*` variables above; built-in fallback
+prices are estimates and should be reviewed periodically.
 
 ## Run The API
 
@@ -209,9 +227,67 @@ Recommended workflow:
 1. Generate grounded brief.
 2. Generate article draft.
 3. Evaluate grounding.
-4. Revise if needed.
+4. Revise automatically when evaluator feedback flags unsupported claims.
 
 See [docs/draft_grounding_evaluations.md](docs/draft_grounding_evaluations.md).
+
+## Grounded Auto Revision
+
+Sprint 10 adds an OpenAI-only revision loop. It uses the saved grounding
+evaluation to revise the headline, subheadline, body, SEO title, meta
+description, and tags while preserving the grounded brief as the only factual
+source.
+
+```powershell
+curl -X POST http://127.0.0.1:8000/drafts/<draft_id>/revise-grounding `
+  -H "Content-Type: application/json" `
+  -d '{
+    "run_final_evaluation": true,
+    "export_review": true,
+    "export_format": "html"
+  }'
+curl http://127.0.0.1:8000/drafts/<draft_id>/revision/latest
+```
+
+## Pasted Website Text Workflow
+
+Sprint 9 adds an OpenAI-only end-to-end workflow for copied website article
+text. It cleans common website boilerplate, generates a grounded brief,
+generates a Tamil author-style draft, runs grounding evaluation by default, and
+can export a UTF-8 review file.
+
+```powershell
+curl -X POST http://127.0.0.1:8000/workflows/pasted-text-to-draft `
+  -H "Content-Type: application/json" `
+  -d '{
+    "author_id": "v_vasanthi",
+    "source_text": "Advertisement\nShare\nChennai city officials said...\nRead more\nSubscribe",
+    "author_instruction": "Write this as a Tamil news article for Oneindia readers.",
+    "target_language": "ta",
+    "article_type": "news",
+    "desired_word_count": 600,
+    "tone_override": "clear, engaging and factual",
+    "run_grounding_evaluation": true,
+    "run_auto_revision": true,
+    "run_final_evaluation": true,
+    "export_review": true,
+    "export_format": "html"
+  }'
+```
+
+For direct grounded brief generation from pasted website text, use
+`source_input_mode: "pasted_web_text"` with `POST /briefs/grounded`.
+
+See [docs/pasted_text_workflow.md](docs/pasted_text_workflow.md). Qwen/Gemma
+comparison is planned after this workflow is stable.
+
+Manual Sprint 10 request file:
+
+```powershell
+python -c "import json, pathlib; source=pathlib.Path('manual_test_input.txt').read_text(encoding='utf-8'); payload={'author_id':'v_vasanthi','source_text':source,'author_instruction':'Write this as a Tamil news article for Oneindia readers.','target_language':'ta','article_type':'news','desired_word_count':600,'tone_override':'clear, engaging and factual','run_grounding_evaluation':True,'run_auto_revision':True,'run_final_evaluation':True,'export_review':True,'export_format':'html'}; pathlib.Path('manual_request.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding='utf-8')"
+$response = Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/workflows/pasted-text-to-draft" -ContentType "application/json; charset=utf-8" -InFile ".\manual_request.json"
+start $response.export_paths[0]
+```
 
 ## Sample Data
 

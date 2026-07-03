@@ -41,6 +41,7 @@ def generate_grounded_brief(
     source_type: str,
     source_input: str,
     target_language: str = "ta",
+    source_input_mode: str = "plain_text",
     repository: StyleScribeRepository | None = None,
     model_client: StructuredJsonClient | None = None,
 ) -> GroundedBriefResponse:
@@ -49,7 +50,7 @@ def generate_grounded_brief(
     repo = repository or StyleScribeRepository()
     repo.initialize_schema()
     try:
-        processed = process_source(source_type, source_input)
+        processed = process_source(source_type, source_input, source_input_mode)
     except SourceProcessingError:
         raise
 
@@ -86,6 +87,7 @@ def generate_grounded_brief(
         raise
     except Exception as exc:
         raise GroundedBriefError("OpenAI grounded brief generation failed.") from exc
+    brief = cleanup_grounded_brief_tamil(brief)
 
     created_at = datetime.now(UTC).isoformat()
     record = GroundedBriefRecord(
@@ -145,6 +147,27 @@ def build_grounded_brief_llm_input(
         ),
     }
     return json.dumps(payload, ensure_ascii=False)
+
+
+def cleanup_grounded_brief_tamil(brief: dict[str, object]) -> dict[str, object]:
+    """Clean known mixed-language artifacts before the brief feeds later stages."""
+
+    cleaned = _clean_object_strings(brief)
+    return cleaned if isinstance(cleaned, dict) else brief
+
+
+def _clean_object_strings(value: object) -> object:
+    if isinstance(value, str):
+        return (
+            value.replace("pertenc செய்கிறார்கள்", "சேர்ந்துள்ளனர்")
+            .replace("pertencிக்கிறார்கள்", "சேர்ந்துள்ளனர்")
+            .replace("pertenc", "சேர்ந்துள்ளனர்")
+        )
+    if isinstance(value, list):
+        return [_clean_object_strings(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _clean_object_strings(item) for key, item in value.items()}
+    return value
 
 
 def _brief_response(

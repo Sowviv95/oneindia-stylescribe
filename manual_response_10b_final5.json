@@ -1,0 +1,67 @@
+﻿{
+    "workflow_id":  "f4cb9d1d-5a8f-4eb7-9488-2bee443c24da",
+    "workflow_run_id":  "f4cb9d1d-5a8f-4eb7-9488-2bee443c24da",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "3bc30795-7b50-4305-a061-4e1a630cff8d",
+    "draft_id":  "81772f12-71e1-44cb-8f7c-f1b709a35084",
+    "evaluation_id":  "0027766c-9b73-49ef-ac6f-b69c2caedc42",
+    "initial_evaluation_id":  "0027766c-9b73-49ef-ac6f-b69c2caedc42",
+    "revision_id":  "307996c8-19b1-4996-a1ec-eb718bb98ed3",
+    "final_evaluation_id":  "cf8df45d-bde2-4c20-90c8-677264218539",
+    "source_cleanup":  {
+                           "original_char_count":  4616,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Birthright Citizenship Ruling",
+                          "one_line_summary":  "The US Supreme Court ruling protects birthright citizenship for children born in the US, providing relief to Indian immigrants and their families.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court ruled 6-3 against President Donald Trump\u0027s executive order to restrict birthright citizenship.",
+                                                  "The ruling preserves constitutional protection for all children born on American soil.",
+                                                  "The decision is significant for the Indian American community, which is one of the fastest-growing immigrant groups in the US.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the US.",
+                                                  "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will allow millions of families to look to the future with greater certainty."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à®ªà¯à®ªà®à¯à®à®¤à¯!",
+                          "subheadline":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯ à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à¯à®à¯à®à¯ à®®à®à®¿à®´à¯à®à¯à®à®¿ à®\u0085à®³à®¿à®à¯à®à®¿à®±à®¤à¯.",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à®ªà¯à®ªà®à¯à®à®¤à¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯",
+                                       "à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®\u0085à®®à¯à®°à®¿à®à¯à®à®°à¯à®à®³à¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "review_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  85,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "review_required"
+                                 },
+    "export_paths":  [
+                         "review_outputs\\f4cb9d1d-5a8f-4eb7-9488-2bee443c24da_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

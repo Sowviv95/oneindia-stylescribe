@@ -1,0 +1,63 @@
+﻿{
+    "evaluation_id":  "cf8df45d-bde2-4c20-90c8-677264218539",
+    "draft_id":  "81772f12-71e1-44cb-8f7c-f1b709a35084",
+    "brief_id":  "3bc30795-7b50-4305-a061-4e1a630cff8d",
+    "author_id":  "v_vasanthi",
+    "model_provider":  "openai",
+    "model_name":  "gpt-4o-mini",
+    "status":  "completed",
+    "evaluation":  {
+                       "grounding_score":  85,
+                       "claim_safety_score":  0,
+                       "fact_preservation_score":  90,
+                       "overall_risk":  "medium",
+                       "editorial_readiness":  "review_required",
+                       "unsupported_claims":  [
+
+                                              ],
+                       "overclaim_phrases":  [
+                                                 {
+                                                     "phrase":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®à®¨à¯à®¤à®¿à®¯ à®\u0085à®®à¯à®°à®¿à®à¯à® à®à®®à¯à®à®¤à¯à®¤à®¿à®±à¯à®à®¾à®© à®®à¯à®à¯à®à®¿à®¯à®®à®¾à®© à®à®à¯à® à®®à¯à®à®¿à®µà®¾à®à¯à®®à¯.",
+                                                     "reason":  "The phrase implies a significant impact without explicit support from the grounded brief.",
+                                                     "suggested_fix":  "Remove or rephrase to indicate that the ruling is significant for the community without implying broader implications."
+                                                 }
+                                             ],
+                       "invented_facts":  [
+
+                                          ],
+                       "contradictions":  [
+
+                                          ],
+                       "claims_to_avoid_violations":  [
+                                                          {
+                                                              "claim":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®à®¨à¯à®¤à®¿à®¯ à®\u0085à®®à¯à®°à®¿à®à¯à® à®à®®à¯à®à®¤à¯à®¤à®¿à®±à¯à®à®¾à®© à®®à¯à®à¯à®à®¿à®¯à®®à®¾à®© à®à®à¯à® à®®à¯à®à®¿à®µà®¾à®à¯à®®à¯.",
+                                                              "reason":  "This claim suggests a broader impact that is not explicitly supported by the grounded brief.",
+                                                              "suggested_fix":  "Rephrase to reflect the ruling\u0027s relevance without overstating its significance."
+                                                          }
+                                                      ],
+                       "missing_key_facts":  [
+
+                                             ],
+                       "preserved_facts":  [
+                                               "The US Supreme Court ruled 6-3 against President Donald Trump\u0027s executive order to restrict birthright citizenship.",
+                                               "The ruling preserves constitutional protection for all children born on American soil.",
+                                               "Approximately 3.2 million documented Indian immigrants reside in the US.",
+                                               "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants.",
+                                               "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas."
+                                           ],
+                       "number_date_name_checks":  [
+
+                                                   ],
+                       "rewrite_guidance":  [
+                                                "Ensure that all claims about the ruling\u0027s significance are directly supported by the grounded brief.",
+                                                "Avoid language that implies broader societal impacts unless explicitly stated in the brief."
+                                            ],
+                       "summary":  "The generated article draft is mostly grounded but contains phrases that imply broader significance and impact that are not explicitly supported by the grounded brief. Minor revisions are needed to ensure claims are accurately represented.",
+                       "evaluated_revision_id":  "307996c8-19b1-4996-a1ec-eb718bb98ed3",
+                       "initial_evaluation_id":  "0027766c-9b73-49ef-ac6f-b69c2caedc42"
+                   },
+    "warnings":  [
+
+                 ],
+    "created_at":  "2026-07-02T04:56:05.352067+00:00"
+}

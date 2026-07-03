@@ -1,0 +1,9 @@
+﻿Invoke-RestMethod : {"detail":"Workflow stage 'grounded brief generation' failed after 1.88s: OpenAI grounded brief 
+generation failed."}
+At line:2 char:692
++ ... $response = Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:800 ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebExc 
+   eption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+

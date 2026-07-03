@@ -1,0 +1,66 @@
+﻿{
+    "workflow_id":  "f49b4f02-14d5-4c16-b92f-69fd80516331",
+    "workflow_run_id":  "f49b4f02-14d5-4c16-b92f-69fd80516331",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "ed304a0d-20b9-45c7-9592-b7569a25fb8f",
+    "draft_id":  "5329e515-0504-4d15-ac36-c0bee9912766",
+    "evaluation_id":  "a1795a61-d3c5-45f4-8db0-2002b9e5f8e2",
+    "initial_evaluation_id":  "a1795a61-d3c5-45f4-8db0-2002b9e5f8e2",
+    "revision_id":  "9dba6b68-2bf1-4d6b-9c4b-24292c475471",
+    "final_evaluation_id":  "74438da8-3055-450f-b6f0-55e0df8ddb10",
+    "source_cleanup":  {
+                           "original_char_count":  4616,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Ruling on Birthright Citizenship",
+                          "one_line_summary":  "The US Supreme Court ruling preserves birthright citizenship, providing relief to Indian immigrants and their families.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                                  "The ruling was a 6-3 decision.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will allow millions of families to look to the future with greater certainty."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®à®±à¯à®¤à®¿à®ªà¯à®ªà®à¯à®¤à¯à®¤à®¿à®¯à®¤à¯",
+                          "subheadline":  "à®à®¨à¯à®¤ ruling à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à¯à®à¯à®à¯ à®®à®à®¿à®´à¯à®à¯à®à®¿ à®\u0085à®³à®¿à®à¯à®à®¿à®±à®¤à¯",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾ à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®à®±à¯à®¤à®¿à®ªà¯à®ªà®à¯à®¤à¯à®¤à®¿à®¯à®¤à¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®à®¯à®°à¯ à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à¯",
+                                       "à®à¯à®©à®¾à®²à¯à®à¯ à®à®¿à®°à®®à¯à®ªà¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "review_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  85,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "review_required"
+                                 },
+    "export_paths":  [
+                         "review_outputs\\f49b4f02-14d5-4c16-b92f-69fd80516331_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

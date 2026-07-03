@@ -85,6 +85,25 @@ CREATE TABLE IF NOT EXISTS grounded_briefs (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS article_plans (
+    plan_id TEXT PRIMARY KEY,
+    brief_id TEXT NOT NULL,
+    author_id TEXT NOT NULL,
+    article_type TEXT NOT NULL,
+    desired_word_count INTEGER,
+    target_min_word_count INTEGER,
+    target_max_word_count INTEGER,
+    planned_sections_json TEXT NOT NULL,
+    expansion_items_used_json TEXT NOT NULL,
+    claims_to_avoid_json TEXT NOT NULL,
+    plan_summary TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    token_usage_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(brief_id) REFERENCES grounded_briefs(brief_id)
+);
+
 CREATE TABLE IF NOT EXISTS article_drafts (
     draft_id TEXT PRIMARY KEY,
     author_id TEXT NOT NULL,
@@ -120,4 +139,39 @@ CREATE TABLE IF NOT EXISTS draft_evaluations (
     created_at TEXT NOT NULL,
     FOREIGN KEY(draft_id) REFERENCES article_drafts(draft_id),
     FOREIGN KEY(brief_id) REFERENCES grounded_briefs(brief_id)
+);
+
+CREATE TABLE IF NOT EXISTS article_revisions (
+    revision_id TEXT PRIMARY KEY,
+    draft_id TEXT NOT NULL,
+    evaluation_id TEXT NOT NULL,
+    author_id TEXT NOT NULL,
+    revised_headline TEXT NOT NULL,
+    revised_subheadline TEXT NOT NULL,
+    revised_article_body TEXT NOT NULL,
+    revised_seo_title TEXT NOT NULL,
+    revised_meta_description TEXT NOT NULL,
+    revised_tags_json TEXT NOT NULL,
+    revision_summary TEXT NOT NULL,
+    removed_or_softened_claims_json TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    token_usage_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(draft_id) REFERENCES article_drafts(draft_id),
+    FOREIGN KEY(evaluation_id) REFERENCES draft_evaluations(evaluation_id)
+);
+
+CREATE TABLE IF NOT EXISTS workflow_runs (
+    workflow_id TEXT PRIMARY KEY,
+    workflow_type TEXT NOT NULL,
+    author_id TEXT NOT NULL,
+    brief_id TEXT,
+    draft_id TEXT,
+    evaluation_id TEXT,
+    status TEXT NOT NULL,
+    input_summary_json TEXT NOT NULL,
+    output_summary_json TEXT NOT NULL,
+    warnings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
 );

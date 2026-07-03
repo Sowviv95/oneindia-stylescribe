@@ -3,7 +3,7 @@
 import json
 from collections.abc import Sequence
 
-from openai import OpenAI
+from openai import APITimeoutError, OpenAI
 
 from backend.app.config import get_settings
 
@@ -23,7 +23,12 @@ class OpenAIStyleClient:
             raise OpenAIClientError("OPENAI_API_KEY is required for style profiles.")
 
         self.model_name = model_name or settings.openai_model or "gpt-4o-mini"
-        self._client = OpenAI(api_key=settings.openai_api_key.get_secret_value())
+        self.timeout_seconds = settings.openai_timeout_seconds
+        self._client = OpenAI(
+            api_key=settings.openai_api_key.get_secret_value(),
+            timeout=settings.openai_timeout_seconds,
+            max_retries=settings.openai_max_retries,
+        )
 
     def generate_structured_json(
         self,
@@ -32,19 +37,26 @@ class OpenAIStyleClient:
     ) -> dict[str, object]:
         """Generate and parse a JSON object from OpenAI."""
 
-        response = self._client.chat.completions.create(
-            model=self.model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_payload},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.2,
-        )
+        try:
+            response = self._client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_payload},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.2,
+            )
+        except APITimeoutError as exc:
+            raise OpenAIClientError(
+                f"OpenAI request timed out after {self.timeout_seconds:g} seconds."
+            ) from exc
         content = response.choices[0].message.content
         if content is None:
             raise OpenAIClientError("OpenAI returned an empty response.")
-        return _parse_json_object(content)
+        parsed = _parse_json_object(content)
+        parsed["token_usage"] = _token_usage(response.usage)
+        return parsed
 
 
 class OpenAIJsonClient(OpenAIStyleClient):
@@ -60,26 +72,46 @@ class OpenAIJsonClient(OpenAIStyleClient):
             raise OpenAIClientError(missing_key_message)
 
         self.model_name = model_name or settings.openai_model or "gpt-4o-mini"
-        self._client = OpenAI(api_key=settings.openai_api_key.get_secret_value())
+        self.timeout_seconds = settings.openai_timeout_seconds
+        self._client = OpenAI(
+            api_key=settings.openai_api_key.get_secret_value(),
+            timeout=settings.openai_timeout_seconds,
+            max_retries=settings.openai_max_retries,
+        )
 
     def generate_structured_json(
         self,
         system_prompt: str,
         user_payload: str,
     ) -> dict[str, object]:
-        response = self._client.chat.completions.create(
-            model=self.model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_payload},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.1,
-        )
+        try:
+            response = self._client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_payload},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.1,
+            )
+        except APITimeoutError as exc:
+            raise OpenAIClientError(
+                f"OpenAI request timed out after {self.timeout_seconds:g} seconds."
+            ) from exc
         content = response.choices[0].message.content
         if content is None:
             raise OpenAIClientError("OpenAI returned an empty response.")
-        return _parse_raw_json_object(content)
+        parsed = _parse_raw_json_object(content)
+        parsed["token_usage"] = _token_usage(response.usage)
+        return parsed
+
+
+def _token_usage(usage: object) -> dict[str, int | None]:
+    return {
+        "prompt_tokens": getattr(usage, "prompt_tokens", None),
+        "completion_tokens": getattr(usage, "completion_tokens", None),
+        "total_tokens": getattr(usage, "total_tokens", None),
+    }
 
 
 def _parse_json_object(content: str) -> dict[str, object]:

@@ -4,6 +4,8 @@ Use only the supplied source text. Do not use outside knowledge. Do not invent m
 
 Produce a Tamil-ready brief for future Tamil article generation. If quotes are translated or paraphrased, mark that clearly. Separate confirmed facts from assumptions or unclear information. Include claims to avoid so a later article-generation step does not overstate or invent facts.
 
+Capture enough grounded material for a full article when the source supports it. Do not make the brief verbose, but do preserve key entities, numbers/statistics, affected groups, timeline/date context, quoted speakers and quote summaries, policy/legal context, source-supported background, and claims to avoid. Prefer specific source facts over generic summaries.
+
 Return only valid JSON with exactly this shape:
 
 {
@@ -27,6 +29,7 @@ Return only valid JSON with exactly this shape:
   ],
   "dates_or_timeline": [],
   "numbers_and_statistics": [],
+  "affected_groups": [],
   "quotes": [
     {
       "quote_original": "",
@@ -34,6 +37,7 @@ Return only valid JSON with exactly this shape:
       "speaker": ""
     }
   ],
+  "policy_or_legal_context": [],
   "background_from_source": [],
   "missing_or_unclear_information": [],
   "claims_to_avoid": [],

@@ -1,0 +1,66 @@
+﻿{
+    "workflow_id":  "c8135167-ee9a-4cf2-a749-c39fd4e46862",
+    "workflow_run_id":  "c8135167-ee9a-4cf2-a749-c39fd4e46862",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "70de5010-d162-43cd-aa41-6f6cfc79616e",
+    "draft_id":  "2814b714-a79a-482e-8f8c-278d41916490",
+    "evaluation_id":  "8b677afb-88c3-4b70-b658-b410bdb0fb33",
+    "initial_evaluation_id":  "8b677afb-88c3-4b70-b658-b410bdb0fb33",
+    "revision_id":  "0ef8f22a-c9ba-4c82-89cf-1bc84260c6b2",
+    "final_evaluation_id":  "b185f03a-c2d1-4a9d-97e0-f6f3498e9a08",
+    "source_cleanup":  {
+                           "original_char_count":  4616,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Ruling on Birthright Citizenship",
+                          "one_line_summary":  "The US Supreme Court\u0027s ruling preserves birthright citizenship, providing relief to Indian immigrants and their families.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                                  "The ruling was a 6-3 decision.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will allow millions of families to look to the future with greater certainty."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à® à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯: à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "subheadline":  "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®ªà¯à®±à¯à®±à®µà®°à¯à®à®³à¯à®à¯à®à¯ à®®à®à®¿à®´à¯à®à¯à®à®¿ à®\u0085à®³à®¿à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à® à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯ à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®ªà®¾à®¤à¯à®à®¾à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯ à®à®°à®¿à®®à¯",
+                                       "à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "safe_to_review",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  90,
+                                     "claim_safety_score":  100,
+                                     "overall_risk":  "low",
+                                     "editorial_readiness":  "safe_to_review"
+                                 },
+    "export_paths":  [
+                         "review_outputs\\c8135167-ee9a-4cf2-a749-c39fd4e46862_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

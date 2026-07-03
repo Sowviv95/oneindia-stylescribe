@@ -1,0 +1,67 @@
+﻿{
+    "workflow_id":  "39e8d460-43bc-40ee-85ca-872b4c21cd72",
+    "workflow_run_id":  "39e8d460-43bc-40ee-85ca-872b4c21cd72",
+    "status":  "completed",
+    "author_id":  "v_vasanthi",
+    "brief_id":  "32b86a52-9e60-49fc-aee9-dae41f293526",
+    "draft_id":  "4804f659-4998-4c04-86be-1ab101cb6b22",
+    "evaluation_id":  "5d81f3fb-8274-41d6-90ee-116b1a5471ee",
+    "initial_evaluation_id":  "5d81f3fb-8274-41d6-90ee-116b1a5471ee",
+    "revision_id":  "0bb3de86-34e0-4f41-9b9c-79d97f1b0ee4",
+    "final_evaluation_id":  "907d2f43-ba7c-4277-a48c-a8b837c5ee18",
+    "source_cleanup":  {
+                           "original_char_count":  4616,
+                           "cleaned_char_count":  4568,
+                           "removed_line_count":  0,
+                           "warnings":  [
+
+                                        ]
+                       },
+    "brief_summary":  {
+                          "topic":  "US Supreme Court Birthright Citizenship Ruling",
+                          "one_line_summary":  "The US Supreme Court ruling affirms birthright citizenship, providing relief to Indian immigrants and their families.",
+                          "confirmed_facts":  [
+                                                  "The US Supreme Court struck down President Donald Trump\u0027s attempt to restrict birthright citizenship.",
+                                                  "The ruling was a 6-3 decision.",
+                                                  "The ruling preserves constitutional protection for all children born on American soil.",
+                                                  "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                                  "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants.",
+                                                  "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas."
+                                              ],
+                          "claims_to_avoid":  [
+                                                  "The ruling will allow millions of families to look to the future with greater certainty."
+                                              ]
+                      },
+    "draft_summary":  {
+                          "headline":  "à®\u0085à®®à¯à®°à®¿à®à¯à® à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®à®±à¯à®¤à®¿à®ªà¯à®ªà®à¯à®¤à¯à®¤à®¿à®¯à®¤à¯",
+                          "subheadline":  "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à¯à®à¯à®à¯ à®®à®à®¿à®´à¯à®à¯à®à®¿ à®\u0085à®³à®¿à®à¯à®à¯à®®à¯ à®¤à¯à®°à¯à®ªà¯à®ªà¯",
+                          "seo_title":  "à®\u0085à®®à¯à®°à®¿à®à¯à® à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯à®¯à¯ à®à®±à¯à®¤à®¿à®ªà¯à®ªà®à¯à®¤à¯à®¤à®¿à®¯à®¤à¯ - à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à¯à®à¯à®à¯ à®®à®à®¿à®´à¯à®à¯à®à®¿",
+                          "tags":  [
+                                       "à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾",
+                                       "à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯",
+                                       "à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯",
+                                       "à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à®¿à®°à¯à®ªà¯à®ªà®¾à®³à®°à¯à®à®³à¯",
+                                       "à®à®à¯à® à®¨à¯à®¤à®¿à®®à®©à¯à®±à®®à¯"
+                                   ]
+                      },
+    "evaluation_summary":  {
+                               "grounding_score":  75,
+                               "claim_safety_score":  0,
+                               "overall_risk":  "medium",
+                               "editorial_readiness":  "revision_required"
+                           },
+    "initial_readiness":  "revision_required",
+    "final_readiness":  "review_required",
+    "final_evaluation_summary":  {
+                                     "grounding_score":  85,
+                                     "claim_safety_score":  0,
+                                     "overall_risk":  "medium",
+                                     "editorial_readiness":  "review_required"
+                                 },
+    "export_paths":  [
+                         "review_outputs\\39e8d460-43bc-40ee-85ca-872b4c21cd72_grounding_revision_review.html"
+                     ],
+    "warnings":  [
+
+                 ]
+}

@@ -1,0 +1,63 @@
+﻿{
+    "evaluation_id":  "1f565874-c137-4fa8-90f7-eab137cc8c0d",
+    "draft_id":  "01b26764-3cd3-4702-8ea5-54fea53ea3ac",
+    "brief_id":  "83ca70cd-b150-4747-a236-12a534c29e82",
+    "author_id":  "v_vasanthi",
+    "model_provider":  "openai",
+    "model_name":  "gpt-4o-mini",
+    "status":  "completed",
+    "evaluation":  {
+                       "grounding_score":  85,
+                       "claim_safety_score":  0,
+                       "fact_preservation_score":  90,
+                       "overall_risk":  "medium",
+                       "editorial_readiness":  "review_required",
+                       "unsupported_claims":  [
+
+                                              ],
+                       "overclaim_phrases":  [
+                                                 {
+                                                     "phrase":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®²à¯ à®à®³à¯à®³ à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯ à®®à®±à¯à®±à¯à®®à¯ à®\u0085à®µà®°à¯à®à®³à®¿à®©à¯ à®à¯à®´à®¨à¯à®¤à¯à®à®³à®¿à®©à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®¤à¯à®à®°à¯à®ªà®¾à®©à®¤à®¾à®à¯à®®à¯.",
+                                                     "reason":  "This phrase implies a broader impact without specific support from the brief.",
+                                                     "suggested_fix":  "Remove or rephrase to focus on the ruling\u0027s direct implications as stated in the brief."
+                                                 }
+                                             ],
+                       "invented_facts":  [
+
+                                          ],
+                       "contradictions":  [
+
+                                          ],
+                       "claims_to_avoid_violations":  [
+                                                          {
+                                                              "claim":  "à®à®¨à¯à®¤ à®¤à¯à®°à¯à®ªà¯à®ªà¯, à®\u0085à®®à¯à®°à®¿à®à¯à®à®¾à®µà®¿à®²à¯ à®à®³à¯à®³ à®à®¨à¯à®¤à®¿à®¯ à®à¯à®à®¿à®¯à¯à®±à®¿à®à®³à¯ à®®à®±à¯à®±à¯à®®à¯ à®\u0085à®µà®°à¯à®à®³à®¿à®©à¯ à®à¯à®´à®¨à¯à®¤à¯à®à®³à®¿à®©à¯ à®ªà®¿à®±à®ªà¯à®ªà¯à®°à®¿à®®à¯ à®à¯à®à®¿à®¯à¯à®°à®¿à®®à¯ à®¤à¯à®à®°à¯à®ªà®¾à®©à®¤à®¾à®à¯à®®à¯.",
+                                                              "reason":  "This claim suggests a broader implication that is not explicitly supported by the brief.",
+                                                              "suggested_fix":  "Rephrase to clarify that the ruling specifically pertains to the constitutional protection of citizenship for children born to Indian immigrants."
+                                                          }
+                                                      ],
+                       "missing_key_facts":  [
+
+                                             ],
+                       "preserved_facts":  [
+                                               "The US Supreme Court ruled 6-3 against President Donald Trump\u0027s executive order to restrict birthright citizenship.",
+                                               "The ruling preserves constitutional protection for all children born on American soil.",
+                                               "Approximately 3.2 million documented Indian immigrants reside in the United States.",
+                                               "Indians are the third-largest undocumented population in the US, with an estimated 725,000 undocumented Indian immigrants.",
+                                               "The ruling ensures US citizenship for children born to Indians on H-1B visas and other temporary visas."
+                                           ],
+                       "number_date_name_checks":  [
+
+                                                   ],
+                       "rewrite_guidance":  [
+                                                "Ensure that all claims about the ruling\u0027s impact are directly supported by the brief.",
+                                                "Avoid language that implies broader benefits or impacts unless explicitly stated in the brief."
+                                            ],
+                       "summary":  "The article draft is mostly grounded but contains phrases that imply broader impacts of the ruling without explicit support from the brief. Minor revisions are needed to ensure clarity and adherence to the grounded brief.",
+                       "evaluated_revision_id":  "88f6d354-d425-4836-a45b-dae6ac5a7b44",
+                       "initial_evaluation_id":  "b742c8e5-12cb-496a-bed3-bb3e286512e5"
+                   },
+    "warnings":  [
+
+                 ],
+    "created_at":  "2026-07-02T05:20:50.414608+00:00"
+}

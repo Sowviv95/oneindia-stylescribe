@@ -34,6 +34,43 @@ Request body:
 }
 ```
 
+## POST /drafts/{draft_id}/revise-grounding
+
+Creates a grounded revision from the selected or latest grounding evaluation.
+
+Request body:
+
+```json
+{
+  "evaluation_id": "optional-evaluation-id",
+  "run_final_evaluation": true,
+  "export_review": true,
+  "export_format": "html"
+}
+```
+
+Response includes the stored revision, initial evaluation summary payload,
+optional final evaluation payload, and optional review export paths.
+
+## GET /drafts/{draft_id}/revision/latest
+
+Returns the latest stored grounded revision for a draft.
+
+## POST /workflows/pasted-text-to-draft
+
+Sprint 10 request fields:
+
+```json
+{
+  "run_auto_revision": true,
+  "run_final_evaluation": true
+}
+```
+
+When `run_auto_revision` is true, the workflow returns `initial_evaluation_id`,
+`revision_id`, optional `final_evaluation_id`, `initial_readiness`,
+`final_readiness`, and `export_paths`.
+
 Validation:
 
 - `author_id` is required.

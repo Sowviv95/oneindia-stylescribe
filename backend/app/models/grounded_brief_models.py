@@ -5,12 +5,14 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 SourceType = Literal["text", "url"]
+SourceInputMode = Literal["plain_text", "pasted_web_text"]
 
 
 class GroundedBriefRequest(BaseModel):
     source_type: SourceType
     source_input: str = Field(..., min_length=1)
     target_language: str = Field(default="ta", min_length=1)
+    source_input_mode: SourceInputMode = "plain_text"
 
 
 class GroundedBriefSummary(BaseModel):
