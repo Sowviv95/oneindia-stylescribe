@@ -113,6 +113,14 @@ class PastedTextWorkflowResponse(BaseModel):
     final_word_count_ratio: float | None = None
     section_generation_trace: list[dict[str, Any]] = Field(default_factory=list)
     max_concurrent_section_calls: int | None = None
+    generation_section_group_size: int | None = None
+    generation_group_call_count: int = 0
+    generation_single_section_fallback_count: int = 0
+    generation_context_pack_tokens: int | None = None
+    generation_context_pack_chars: int | None = None
+    original_generation_context_chars: int | None = None
+    compressed_generation_context_chars: int | None = None
+    generation_context_compression_ratio: float | None = None
     planned_section_count: int = 0
     planned_target_word_count: int | None = None
     planned_min_word_count: int | None = None

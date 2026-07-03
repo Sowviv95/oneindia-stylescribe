@@ -426,42 +426,58 @@ def _generate_dynamic_article_sections(
         return None
 
     prompt = SECTION_PROMPT_PATH.read_text(encoding="utf-8")
-    stable_payload = _dynamic_section_stable_payload(payload, targets)
+    full_stable_payload = _dynamic_section_stable_payload(
+        payload,
+        targets,
+        use_compact_context=False,
+    )
+    stable_payload = _dynamic_section_stable_payload(
+        payload,
+        targets,
+        use_compact_context=True,
+    )
+    context_metrics = _generation_context_metrics(full_stable_payload, stable_payload)
     stable_cache_key = _prompt_cache_key(
         "section",
         json.dumps(stable_payload, ensure_ascii=False),
     )
+    settings = get_settings()
+    group_size = min(max(settings.generation_section_group_size, 1), 3)
+    section_groups = _section_groups(planned_sections, group_size)
     max_workers = min(
-        max(get_settings().max_concurrent_section_calls, 1),
-        len(planned_sections),
+        max(settings.max_concurrent_section_calls, 1),
+        len(section_groups),
     )
-    indexed_results: dict[int, dict[str, dict[str, object]]] = {}
+    indexed_results: dict[int, dict[str, object]] = {}
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {
             executor.submit(
-                _generate_one_dynamic_section,
+                _generate_dynamic_section_group,
                 draft_client,
                 prompt,
                 stable_payload,
-                section,
-                index,
+                group,
+                group_index,
                 targets,
                 stable_cache_key,
-            ): index
-            for index, section in enumerate(planned_sections, start=1)
+                group_size,
+            ): group_index
+            for group_index, group in enumerate(section_groups, start=1)
         }
         for future in as_completed(futures):
-            index = futures[future]
-            indexed_results[index] = future.result()
+            group_index = futures[future]
+            indexed_results[group_index] = future.result()
 
-    generated_sections = [
-        indexed_results[index]["section"]
-        for index in range(1, len(planned_sections) + 1)
-    ]
-    section_trace = [
-        indexed_results[index]["trace"]
-        for index in range(1, len(planned_sections) + 1)
-    ]
+    generated_sections: list[dict[str, object]] = []
+    section_trace: list[dict[str, object]] = []
+    group_call_count = 0
+    fallback_count = 0
+    for group_index in range(1, len(section_groups) + 1):
+        group_result = indexed_results[group_index]
+        generated_sections.extend(_list_of_dicts(group_result.get("sections")))
+        section_trace.extend(_list_of_dicts(group_result.get("traces")))
+        group_call_count += _coerce_int(group_result.get("group_call_count"))
+        fallback_count += _coerce_int(group_result.get("fallback_count"))
 
     section_texts = [
         str(section.get("section_text") or "").strip()
@@ -493,6 +509,10 @@ def _generate_dynamic_article_sections(
     )
     draft["section_generation_trace"] = section_trace
     draft["max_concurrent_section_calls"] = max_workers
+    draft["generation_section_group_size"] = group_size
+    draft["generation_group_call_count"] = group_call_count
+    draft["generation_single_section_fallback_count"] = fallback_count
+    draft.update(context_metrics)
     draft["token_usage"] = _sum_token_usage(
         [_dict_value(base_draft.get("token_usage"))]
         + [
@@ -518,6 +538,125 @@ def _generate_dynamic_article_sections(
         "Article body generated section-by-section and assembled by backend.",
     ]
     return draft
+
+
+def _generate_dynamic_section_group(
+    draft_client: StructuredJsonClient,
+    prompt: str,
+    stable_payload: dict[str, object],
+    group: list[tuple[int, dict[str, object]]],
+    group_index: int,
+    targets: DynamicLengthTargets,
+    prompt_cache_key: str,
+    configured_group_size: int,
+) -> dict[str, object]:
+    if configured_group_size <= 1 or len(group) == 1:
+        generated = [
+            _generate_one_dynamic_section(
+                draft_client,
+                prompt,
+                stable_payload,
+                section,
+                section_index,
+                targets,
+                prompt_cache_key,
+            )
+            for section_index, section in group
+        ]
+        return {
+            "sections": [item["section"] for item in generated],
+            "traces": [item["trace"] for item in generated],
+            "group_call_count": 0,
+            "fallback_count": 0,
+        }
+
+    group_payload = _dynamic_section_group_payload(
+        stable_payload=stable_payload,
+        group=group,
+        group_index=group_index,
+        targets=targets,
+    )
+    group_response = _generate_structured_json(
+        draft_client,
+        prompt,
+        json.dumps(group_payload, ensure_ascii=False),
+        prompt_cache_key=prompt_cache_key,
+    )
+    normalized = _normalize_group_response(group_response, group, targets)
+    if normalized is not None:
+        group_call_count = 1
+        if _group_needs_retry(normalized["traces"], targets):
+            retry_payload = dict(group_payload)
+            retry_payload["section_retry_request"] = {
+                "reason": (
+                    "At least one generated section in this group was below "
+                    "the minimum section length."
+                ),
+                "minimum_section_words": targets.section_min_word_count,
+                "current_sections": [
+                    {
+                        "section_id": section.get("section_id"),
+                        "selected_word_count": trace.get("selected_word_count"),
+                        "section_text": section.get("section_text"),
+                    }
+                    for section, trace in zip(
+                        normalized["sections"],
+                        normalized["traces"],
+                        strict=True,
+                    )
+                ],
+                "instruction": (
+                    "Rewrite the same section_group as fuller grounded Tamil "
+                    "prose. Keep one article_sections item per requested section "
+                    "in the same order. Do not merge sections."
+                ),
+            }
+            retry_response = _generate_structured_json(
+                draft_client,
+                prompt,
+                json.dumps(retry_payload, ensure_ascii=False),
+                prompt_cache_key=prompt_cache_key,
+            )
+            retry_normalized = _normalize_group_response(
+                retry_response,
+                group,
+                targets,
+            )
+            group_call_count += 1
+            if retry_normalized is not None:
+                normalized = _select_group_retry(normalized, retry_normalized)
+        return {
+            "sections": normalized["sections"],
+            "traces": normalized["traces"],
+            "group_call_count": group_call_count,
+            "fallback_count": 0,
+        }
+
+    fallback_generated = [
+        _generate_one_dynamic_section(
+            draft_client,
+            prompt,
+            stable_payload,
+            section,
+            section_index,
+            targets,
+            prompt_cache_key,
+        )
+        for section_index, section in group
+    ]
+    return {
+        "sections": [item["section"] for item in fallback_generated],
+        "traces": [
+            {
+                **item["trace"],
+                "group_fallback_used": True,
+                "group_index": group_index,
+            }
+            for item in fallback_generated
+        ],
+        "group_call_count": 1,
+        "fallback_count": len(group),
+    }
 
 
 def _generate_one_dynamic_section(
@@ -609,6 +748,154 @@ def _generate_one_dynamic_section(
     return {"section": section_record, "trace": trace}
 
 
+def _dynamic_section_group_payload(
+    stable_payload: dict[str, object],
+    group: list[tuple[int, dict[str, object]]],
+    group_index: int,
+    targets: DynamicLengthTargets,
+) -> dict[str, object]:
+    return {
+        **stable_payload,
+        "section_group": [
+            {
+                "section_index": section_index,
+                "section_heading": str(
+                    section.get("heading") or section.get("section_name") or ""
+                ),
+                "section_purpose": str(
+                    section.get("purpose") or section.get("section_purpose") or ""
+                ),
+                "planned_section": section,
+            }
+            for section_index, section in group
+        ],
+        "section_group_index": group_index,
+        "section_instruction": (
+            "Generate the requested adjacent section_group. Return strict JSON "
+            "with article_sections containing one item per requested section, in "
+            "the same order. Each section_text should be publication-ready Tamil "
+            f"near {targets.section_target_word_count} words, minimum "
+            f"{targets.section_min_word_count}, maximum "
+            f"{targets.section_max_word_count}. Do not merge sections and do not "
+            "write the full article."
+        ),
+    }
+
+
+def _normalize_group_response(
+    response: dict[str, object],
+    group: list[tuple[int, dict[str, object]]],
+    targets: DynamicLengthTargets,
+) -> dict[str, list[dict[str, object]]] | None:
+    raw_sections = response.get("article_sections")
+    if not isinstance(raw_sections, list) or len(raw_sections) != len(group):
+        return None
+
+    normalized_sections: list[dict[str, object]] = []
+    traces: list[dict[str, object]] = []
+    for offset, ((section_index, planned_section), raw_section) in enumerate(zip(
+        group,
+        raw_sections,
+        strict=True,
+    )):
+        if not isinstance(raw_section, dict):
+            return None
+        text = str(raw_section.get("section_text") or "").strip()
+        if not text:
+            return None
+        word_count = approximate_tamil_word_count(text)
+        section_id = str(
+            planned_section.get("section_id")
+            or planned_section.get("section_name")
+            or section_index
+        )
+        heading = str(
+            planned_section.get("heading") or planned_section.get("section_name") or ""
+        )
+        normalized_sections.append(
+            {
+                "section_id": section_id,
+                "heading": heading,
+                "target_word_count": targets.section_target_word_count,
+                "min_word_count": targets.section_min_word_count,
+                "max_word_count": targets.section_max_word_count,
+                "section_text": text,
+                "grounded_facts_used": _list_value(
+                    raw_section.get("grounded_facts_used")
+                ),
+            }
+        )
+        traces.append(
+            {
+                "section_id": section_id,
+                "heading": heading,
+                "target_word_count": targets.section_target_word_count,
+                "min_word_count": targets.section_min_word_count,
+                "max_word_count": targets.section_max_word_count,
+                "first_pass_word_count": word_count,
+                "retry_attempted": False,
+                "retry_word_count": None,
+                "selected_word_count": word_count,
+                "selected_reason": "group_first_pass_selected",
+                "group_generation_used": True,
+                "first_pass_token_usage": _dict_value(response.get("token_usage"))
+                if offset == 0
+                else {},
+                "retry_token_usage": {},
+            }
+        )
+    return {"sections": normalized_sections, "traces": traces}
+
+
+def _group_needs_retry(
+    traces: list[dict[str, object]],
+    targets: DynamicLengthTargets,
+) -> bool:
+    return any(
+        _coerce_int(trace.get("selected_word_count")) < targets.section_min_word_count
+        for trace in traces
+    )
+
+
+def _select_group_retry(
+    original: dict[str, list[dict[str, object]]],
+    retry: dict[str, list[dict[str, object]]],
+) -> dict[str, list[dict[str, object]]]:
+    selected_sections: list[dict[str, object]] = []
+    selected_traces: list[dict[str, object]] = []
+    for index, (original_section, retry_section, original_trace, retry_trace) in (
+        enumerate(
+            zip(
+                original["sections"],
+                retry["sections"],
+                original["traces"],
+                retry["traces"],
+                strict=True,
+            )
+        )
+    ):
+        original_words = _coerce_int(original_trace.get("selected_word_count"))
+        retry_words = _coerce_int(retry_trace.get("selected_word_count"))
+        trace = dict(original_trace)
+        trace["retry_attempted"] = True
+        trace["retry_word_count"] = retry_words
+        trace["retry_token_usage"] = (
+            _dict_value(retry_trace.get("first_pass_token_usage"))
+            if index == 0
+            else {}
+        )
+        if retry_words >= original_words:
+            selected_section = retry_section
+            trace["selected_word_count"] = retry_words
+            trace["selected_reason"] = "group_retry_selected_longer_or_equal"
+        else:
+            selected_section = original_section
+            trace["selected_reason"] = "group_first_pass_selected_retry_shorter"
+        selected_sections.append(selected_section)
+        selected_traces.append(trace)
+    return {"sections": selected_sections, "traces": selected_traces}
+
+
 def _dynamic_section_payload(
     stable_payload: dict[str, object],
     section: dict[str, object],
@@ -637,32 +924,165 @@ def _dynamic_section_payload(
 def _dynamic_section_stable_payload(
     base_payload: dict[str, object],
     targets: DynamicLengthTargets,
+    *,
+    use_compact_context: bool,
 ) -> dict[str, object]:
     grounded_article_plan = base_payload.get("grounded_article_plan")
     plan_payload = (
         grounded_article_plan if isinstance(grounded_article_plan, dict) else {}
     )
+    if use_compact_context:
+        context_key = "generation_context_pack"
+        context_value: object = _generation_context_pack(base_payload, plan_payload)
+    else:
+        context_key = "full_generation_context"
+        context_value = {
+            "style_profile_for_voice_only": base_payload.get(
+                "style_profile_for_voice_only"
+            ),
+            "grounded_brief_for_facts_only": base_payload.get(
+                "grounded_brief_for_facts_only"
+            ),
+            "grounded_article_plan": plan_payload,
+        }
     return {
         "target_language": base_payload.get("target_language"),
         "article_type": base_payload.get("article_type"),
         "tone_override": base_payload.get("tone_override"),
         "author_instruction": base_payload.get("author_instruction"),
-        "style_profile_for_voice_only": base_payload.get(
-            "style_profile_for_voice_only"
-        ),
-        "grounded_brief_for_facts_only": base_payload.get(
-            "grounded_brief_for_facts_only"
-        ),
-        "grounded_article_plan": plan_payload,
+        context_key: context_value,
         "grounded_article_plan_summary": plan_payload.get("plan_summary"),
         "claims_to_avoid": plan_payload.get("claims_to_avoid"),
         "dynamic_length_targets": _targets_payload(targets),
         "section_generation_rule": (
             "Write each requested section from the stable style profile, grounded "
-            "brief, and article plan above. Section-specific fields follow after "
-            "this stable context and should control only the current section."
+            "context pack, grounded facts, and article plan above. Section-specific "
+            "fields follow after this stable context and should control only the "
+            "current section or section group."
         ),
     }
+
+
+def _generation_context_pack(
+    base_payload: dict[str, object],
+    plan_payload: dict[str, object],
+) -> dict[str, object]:
+    style_context = _style_context_summary(
+        _dict_value(base_payload.get("style_profile_for_voice_only"))
+    )
+    brief_wrapper = _dict_value(base_payload.get("grounded_brief_for_facts_only"))
+    brief = _dict_value(brief_wrapper.get("brief"))
+    planned_sections = _list_value(plan_payload.get("planned_sections"))
+    return {
+        "style_constraints_summary": style_context,
+        "grounded_facts_pack": {
+            "topic": brief.get("topic"),
+            "one_line_summary": brief.get("one_line_summary"),
+            "confirmed_facts": _limited_list(brief.get("confirmed_facts"), 12),
+            "key_entities": _limited_list(brief.get("key_entities"), 10),
+            "places": _limited_list(brief.get("places"), 8),
+            "dates_or_timeline": _limited_list(brief.get("dates_or_timeline"), 8),
+            "numbers_and_statistics": _limited_list(
+                brief.get("numbers_and_statistics"),
+                10,
+            ),
+            "quotes": _limited_list(brief.get("quotes"), 8),
+            "background_from_source": _limited_list(
+                brief.get("background_from_source"),
+                8,
+            ),
+            "policy_or_legal_context": _limited_list(
+                brief.get("policy_or_legal_context"),
+                8,
+            ),
+            "affected_groups": _limited_list(brief.get("affected_groups"), 8),
+            "claims_to_avoid": _limited_list(
+                brief.get("claims_to_avoid") or plan_payload.get("claims_to_avoid"),
+                12,
+            ),
+            "suggested_tamil_angle": brief.get("suggested_tamil_angle"),
+            "editorial_risk_notes": _limited_list(
+                brief.get("editorial_risk_notes"),
+                8,
+            ),
+        },
+        "article_plan_context": {
+            "plan_summary": plan_payload.get("plan_summary"),
+            "claims_to_avoid": _limited_list(plan_payload.get("claims_to_avoid"), 12),
+            "sections": [
+                _compact_section_plan(section, index)
+                for index, section in enumerate(planned_sections, start=1)
+                if isinstance(section, dict)
+            ],
+        },
+    }
+
+
+def _style_context_summary(style_wrapper: dict[str, object]) -> dict[str, object]:
+    profile = _dict_value(style_wrapper.get("profile"))
+    return {
+        "language": style_wrapper.get("language"),
+        "overall_tone": profile.get("overall_tone"),
+        "intro_style": profile.get("intro_style"),
+        "paragraph_style": profile.get("paragraph_style"),
+        "sentence_style": profile.get("sentence_style"),
+        "vocabulary_style": profile.get("vocabulary_style"),
+        "narrative_flow": profile.get("narrative_flow"),
+        "tamil_register": profile.get("tamil_register"),
+        "dos": _limited_list(profile.get("dos"), 8),
+        "donts": _limited_list(profile.get("donts"), 8),
+        "generation_guidance": profile.get("generation_guidance"),
+    }
+
+
+def _compact_section_plan(section: dict[str, object], index: int) -> dict[str, object]:
+    return {
+        "section_index": index,
+        "section_name": section.get("section_name"),
+        "purpose": section.get("purpose") or section.get("section_purpose"),
+        "target_words": section.get("target_words"),
+        "grounded_facts_to_use": _limited_list(
+            section.get("grounded_facts_to_use"),
+            6,
+        ),
+        "quotes_or_attributions_to_use": _limited_list(
+            section.get("quotes_or_attributions_to_use"),
+            4,
+        ),
+        "claims_to_avoid": _limited_list(section.get("claims_to_avoid"), 6),
+        "must_not_add": _limited_list(section.get("must_not_add"), 6),
+    }
+
+
+def _generation_context_metrics(
+    original_context: dict[str, object],
+    compressed_context: dict[str, object],
+) -> dict[str, object]:
+    original_json = json.dumps(original_context, ensure_ascii=False)
+    compressed_json = json.dumps(compressed_context, ensure_ascii=False)
+    original_chars = len(original_json)
+    compressed_chars = len(compressed_json)
+    return {
+        "generation_context_pack_chars": compressed_chars,
+        "generation_context_pack_tokens": _approx_token_count(compressed_json),
+        "original_generation_context_chars": original_chars,
+        "compressed_generation_context_chars": compressed_chars,
+        "generation_context_compression_ratio": round(
+            compressed_chars / original_chars,
+            4,
+        )
+        if original_chars
+        else None,
+    }
+
+
+def _section_groups(
+    planned_sections: list[dict[str, object]],
+    group_size: int,
+) -> list[list[tuple[int, dict[str, object]]]]:
+    size = max(group_size, 1)
+    indexed = list(enumerate(planned_sections, start=1))
+    return [indexed[index : index + size] for index in range(0, len(indexed), size)]
 
 
 def _dynamic_planned_sections(
@@ -956,6 +1376,12 @@ def _dict_value(value: object) -> dict[str, object]:
     return value if isinstance(value, dict) else {}
 
 
+def _list_of_dicts(value: object) -> list[dict[str, object]]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, dict)]
+
+
 def _sum_token_usage(usages: list[dict[str, object]]) -> dict[str, int]:
     totals = {
         "prompt_tokens": 0,
@@ -973,6 +1399,14 @@ def _sum_token_usage(usages: list[dict[str, object]]) -> dict[str, int]:
 
 def _list_value(value: object) -> list[object]:
     return value if isinstance(value, list) else []
+
+
+def _limited_list(value: object, limit: int) -> list[object]:
+    return _list_value(value)[:limit]
+
+
+def _approx_token_count(text: str) -> int:
+    return max(1, round(len(text) / 4)) if text else 0
 
 
 def _build_warnings(

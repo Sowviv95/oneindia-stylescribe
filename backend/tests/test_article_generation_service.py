@@ -1,7 +1,9 @@
+import json
 from pathlib import Path
 
 import pytest
 
+from backend.app.config import get_settings
 from backend.app.db.repository import (
     ArticlePlanRecord,
     AuthorStyleProfileRecord,
@@ -183,6 +185,71 @@ def test_plan_based_generation_assembles_article_body_from_sections(
     assert response.draft["original_draft_source"] == "section_assembled"
 
 
+def test_section_group_size_one_preserves_single_section_generation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GENERATION_SECTION_GROUP_SIZE", "1")
+    monkeypatch.setenv("MAX_CONCURRENT_SECTION_CALLS", "1")
+    get_settings.cache_clear()
+    repository = _repository_with_profile_and_brief(tmp_path)
+    plan = _save_plan(repository)
+    client = CountingGroupedSectionClient()
+
+    response = generate_article_draft(
+        author_id="v_vasanthi",
+        brief_id="brief-1",
+        desired_word_count=600,
+        plan_id=plan.plan_id,
+        repository=repository,
+        model_client=client,
+    )
+
+    assert response.draft["generation_section_group_size"] == 1
+    assert response.draft["generation_group_call_count"] == 0
+    assert response.draft["generation_single_section_fallback_count"] == 0
+    assert client.group_calls == 0
+    assert client.single_section_calls == len(response.draft["article_sections"])
+    get_settings.cache_clear()
+
+
+def test_section_group_size_two_uses_grouped_generation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GENERATION_SECTION_GROUP_SIZE", "2")
+    monkeypatch.setenv("MAX_CONCURRENT_SECTION_CALLS", "1")
+    get_settings.cache_clear()
+    repository = _repository_with_profile_and_brief(tmp_path)
+    plan = _save_plan(repository)
+    client = CountingGroupedSectionClient()
+
+    response = generate_article_draft(
+        author_id="v_vasanthi",
+        brief_id="brief-1",
+        desired_word_count=600,
+        plan_id=plan.plan_id,
+        repository=repository,
+        model_client=client,
+    )
+
+    section_count = len(response.draft["article_sections"])
+    assert response.draft["generation_section_group_size"] == 2
+    assert response.draft["generation_group_call_count"] == section_count // 2
+    assert response.draft["generation_single_section_fallback_count"] == 0
+    assert response.draft["generation_context_pack_chars"] < response.draft[
+        "original_generation_context_chars"
+    ]
+    assert response.draft["generation_context_compression_ratio"] < 1
+    assert client.group_calls == section_count // 2
+    assert client.single_section_calls == 0
+    assert all(
+        trace.get("group_generation_used")
+        for trace in response.draft["section_generation_trace"]
+    )
+    get_settings.cache_clear()
+
+
 def test_article_generation_prompt_has_tamil_quality_and_length_guidance() -> None:
     prompt = Path("backend/app/prompts/article_generation_prompt.txt").read_text(
         encoding="utf-8"
@@ -276,6 +343,46 @@ class SectionDraftClient(MockDraftClient):
             "fact_usage_notes": [],
             "style_usage_notes": [],
         }
+
+
+class CountingGroupedSectionClient(SectionDraftClient):
+    def __init__(self) -> None:
+        self.group_calls = 0
+        self.single_section_calls = 0
+
+    def generate_structured_json(
+        self,
+        system_prompt: str,
+        user_payload: str,
+        prompt_cache_key: str | None = None,
+    ) -> dict[str, object]:
+        if "one backend-assembled section" not in system_prompt:
+            return super().generate_structured_json(system_prompt, user_payload)
+        payload = json.loads(user_payload)
+        if "section_group" in payload:
+            self.group_calls += 1
+            return {
+                "article_sections": [
+                    {
+                        "section_name": section_request["planned_section"].get(
+                            "section_name",
+                            "section",
+                        ),
+                        "target_words": 100,
+                        "section_text": _section_response()["section_text"],
+                        "grounded_facts_used": ["18 sensors"],
+                    }
+                    for section_request in payload["section_group"]
+                ],
+                "token_usage": {
+                    "prompt_tokens": 100,
+                    "completion_tokens": 20,
+                    "total_tokens": 120,
+                    "cached_prompt_tokens": 50,
+                },
+            }
+        self.single_section_calls += 1
+        return _section_response()
 
 
 def _repository_with_profile_and_brief(tmp_path: Path) -> StyleScribeRepository:

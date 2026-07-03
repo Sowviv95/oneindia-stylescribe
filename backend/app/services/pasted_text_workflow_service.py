@@ -204,10 +204,35 @@ def run_pasted_text_to_draft_workflow(
     section_retry_count = sum(
         1 for trace in section_trace if trace.get("retry_attempted")
     )
-    section_call_count = len(section_trace) + section_retry_count
-    telemetry.record_calls("generation", 1 + section_call_count)
+    single_section_retry_call_count = sum(
+        1
+        for trace in section_trace
+        if trace.get("retry_attempted") and not trace.get("group_generation_used")
+    )
+    generation_group_call_count = _int_from_metadata(
+        draft_generation_metadata,
+        "generation_group_call_count",
+    )
+    section_single_call_count = sum(
+        1 for trace in section_trace if not trace.get("group_generation_used")
+    )
+    generation_call_count = (
+        1
+        + generation_group_call_count
+        + section_single_call_count
+        + single_section_retry_call_count
+    )
+    telemetry.record_calls("generation", generation_call_count)
     telemetry.record_calls("section_generation", len(section_trace))
     telemetry.record_calls("section_retries", section_retry_count)
+    telemetry.record_calls("generation_groups", generation_group_call_count)
+    telemetry.record_calls(
+        "generation_single_section_fallbacks",
+        _int_from_metadata(
+            draft_generation_metadata,
+            "generation_single_section_fallback_count",
+        ),
+    )
     telemetry.record_tokens("generation", _generation_token_usage(draft_response.draft))
 
     evaluation_response = None
@@ -781,9 +806,36 @@ def run_pasted_text_to_draft_workflow(
         max_concurrent_section_calls=_optional_int(
             draft_generation_metadata.get("max_concurrent_section_calls")
         ),
+        generation_section_group_size=_optional_int(
+            draft_generation_metadata.get("generation_section_group_size")
+        ),
+        generation_group_call_count=_int_from_metadata(
+            draft_generation_metadata,
+            "generation_group_call_count",
+        ),
+        generation_single_section_fallback_count=_int_from_metadata(
+            draft_generation_metadata,
+            "generation_single_section_fallback_count",
+        ),
+        generation_context_pack_tokens=_optional_int(
+            draft_generation_metadata.get("generation_context_pack_tokens")
+        ),
+        generation_context_pack_chars=_optional_int(
+            draft_generation_metadata.get("generation_context_pack_chars")
+        ),
+        original_generation_context_chars=_optional_int(
+            draft_generation_metadata.get("original_generation_context_chars")
+        ),
+        compressed_generation_context_chars=_optional_int(
+            draft_generation_metadata.get("compressed_generation_context_chars")
+        ),
+        generation_context_compression_ratio=_optional_float(
+            draft_generation_metadata.get("generation_context_compression_ratio")
+        ),
         planned_section_count=(
-            _int_from_metadata(draft_generation_metadata, "planned_section_count")
-            or (len(plan_response.planned_sections) if plan_response else 0)
+            len(plan_response.planned_sections)
+            if plan_response
+            else _int_from_metadata(draft_generation_metadata, "planned_section_count")
         ),
         planned_target_word_count=(
             plan_response.target_word_count if plan_response else None
@@ -1509,6 +1561,10 @@ def _optional_int(value: object) -> int | None:
     return value if isinstance(value, int) else None
 
 
+def _optional_float(value: object) -> float | None:
+    return float(value) if isinstance(value, int | float) else None
+
+
 def _optional_str(value: object) -> str | None:
     return value if isinstance(value, str) else None
 
@@ -1538,6 +1594,14 @@ def _draft_generation_metadata(draft: dict[str, object]) -> dict[str, object]:
         "original_draft_word_count_after_assignment",
         "original_draft_matches_section_assembly",
         "max_concurrent_section_calls",
+        "generation_section_group_size",
+        "generation_group_call_count",
+        "generation_single_section_fallback_count",
+        "generation_context_pack_tokens",
+        "generation_context_pack_chars",
+        "original_generation_context_chars",
+        "compressed_generation_context_chars",
+        "generation_context_compression_ratio",
     )
     return {key: draft.get(key) for key in keys if key in draft}
 

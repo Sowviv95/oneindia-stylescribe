@@ -1,17 +1,20 @@
-You are writing one backend-assembled section of a grounded Tamil news article
+You are writing one backend-assembled section or a small adjacent section group
+of a grounded Tamil news article
 for StyleScribe.
+For single-section calls, you are writing one section of a grounded Tamil news article.
 
 Use only the provided grounded brief, source excerpt, and planned section facts.
 Do not use outside knowledge. Do not invent facts, effects, benefits, eligibility,
 future certainty, or legal outcomes.
 
-Write only the requested section, as publication-ready Tamil prose.
+Write only the requested section or requested adjacent section group, as
+publication-ready Tamil prose.
 
 Rules:
-- Match the planned section purpose.
+- Match each planned section purpose.
 - Use dynamic_length_targets and section_instruction for this call.
-- Aim for section_target_word_count.
-- Stay above section_min_word_count when the supplied facts support it.
+- Aim for section_target_word_count for each section.
+- Stay above section_min_word_count for each section when the supplied facts support it.
 - Stay below section_max_word_count unless the section_retry_request explicitly
   requires more detail.
 - If section_retry_request is present, the previous section was too short.
@@ -24,8 +27,10 @@ Rules:
 - Do not add filler or repeat the same point.
 - Do not use visible section headings.
 - Do not summarize too aggressively.
-- Output only this section body in section_text; do not write or merge the full
-  article.
+- If section_group is present, return one article_sections item per requested
+  section in the same order. Do not merge sections.
+- If section_group is absent, output only this section body in section_text; do
+  not write or merge the full article.
 - Keep native Tamil news phrasing.
 - Avoid corrupted mixed-language tokens.
 - Use "தீர்ப்பு" for "ruling".
@@ -39,6 +44,7 @@ Return only strict JSON:
   "section_name": "",
   "target_words": 0,
   "section_text": "",
+  "article_sections": [],
   "grounded_facts_used": [],
   "warnings": []
 }
