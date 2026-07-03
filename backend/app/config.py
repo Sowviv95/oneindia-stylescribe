@@ -35,6 +35,7 @@ class Settings(BaseModel):
     stylescribe_db_path: str = Field(default="data/stylescribe.db")
     openai_timeout_seconds: float = Field(default=90.0)
     openai_max_retries: int = Field(default=2)
+    max_concurrent_section_calls: int = Field(default=3, ge=1, le=8)
 
 
 @lru_cache
@@ -62,4 +63,7 @@ def get_settings() -> Settings:
         stylescribe_db_path=os.getenv("STYLESCRIBE_DB_PATH", "data/stylescribe.db"),
         openai_timeout_seconds=float(os.getenv("OPENAI_TIMEOUT_SECONDS", "90")),
         openai_max_retries=int(os.getenv("OPENAI_MAX_RETRIES", "2")),
+        max_concurrent_section_calls=int(
+            os.getenv("MAX_CONCURRENT_SECTION_CALLS", "3")
+        ),
     )

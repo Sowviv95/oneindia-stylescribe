@@ -1,7 +1,9 @@
 """OpenAI client wrapper for structured JSON generation."""
 
+import inspect
 import json
 from collections.abc import Sequence
+from typing import Any, cast
 
 from openai import APITimeoutError, OpenAI
 
@@ -29,16 +31,19 @@ class OpenAIStyleClient:
             timeout=settings.openai_timeout_seconds,
             max_retries=settings.openai_max_retries,
         )
+        self._supports_prompt_cache_key = _supports_prompt_cache_key(self._client)
 
     def generate_structured_json(
         self,
         system_prompt: str,
         user_payload: str,
+        prompt_cache_key: str | None = None,
     ) -> dict[str, object]:
         """Generate and parse a JSON object from OpenAI."""
 
         try:
-            response = self._client.chat.completions.create(
+            response = _create_completion(
+                self._client,
                 model=self.model_name,
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -46,6 +51,8 @@ class OpenAIStyleClient:
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.2,
+                prompt_cache_key=prompt_cache_key,
+                supports_prompt_cache_key=self._supports_prompt_cache_key,
             )
         except APITimeoutError as exc:
             raise OpenAIClientError(
@@ -78,14 +85,17 @@ class OpenAIJsonClient(OpenAIStyleClient):
             timeout=settings.openai_timeout_seconds,
             max_retries=settings.openai_max_retries,
         )
+        self._supports_prompt_cache_key = _supports_prompt_cache_key(self._client)
 
     def generate_structured_json(
         self,
         system_prompt: str,
         user_payload: str,
+        prompt_cache_key: str | None = None,
     ) -> dict[str, object]:
         try:
-            response = self._client.chat.completions.create(
+            response = _create_completion(
+                self._client,
                 model=self.model_name,
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -93,6 +103,8 @@ class OpenAIJsonClient(OpenAIStyleClient):
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.1,
+                prompt_cache_key=prompt_cache_key,
+                supports_prompt_cache_key=self._supports_prompt_cache_key,
             )
         except APITimeoutError as exc:
             raise OpenAIClientError(
@@ -107,11 +119,59 @@ class OpenAIJsonClient(OpenAIStyleClient):
 
 
 def _token_usage(usage: object) -> dict[str, int | None]:
+    prompt_details = getattr(usage, "prompt_tokens_details", None)
     return {
         "prompt_tokens": getattr(usage, "prompt_tokens", None),
         "completion_tokens": getattr(usage, "completion_tokens", None),
         "total_tokens": getattr(usage, "total_tokens", None),
+        "cached_prompt_tokens": _cached_prompt_tokens(prompt_details),
     }
+
+
+def _supports_prompt_cache_key(client: OpenAI) -> bool:
+    try:
+        signature = inspect.signature(client.chat.completions.create)
+    except (AttributeError, TypeError, ValueError):
+        return False
+    return "prompt_cache_key" in signature.parameters or any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in signature.parameters.values()
+    )
+
+
+def _create_completion(
+    client: OpenAI,
+    *,
+    model: str,
+    messages: list[dict[str, str]],
+    response_format: dict[str, str],
+    temperature: float,
+    prompt_cache_key: str | None,
+    supports_prompt_cache_key: bool,
+) -> Any:
+    create = cast(Any, client.chat.completions.create)
+    if prompt_cache_key and supports_prompt_cache_key:
+        return create(
+            model=model,
+            messages=messages,
+            response_format=response_format,
+            temperature=temperature,
+            prompt_cache_key=prompt_cache_key,
+        )
+    return create(
+        model=model,
+        messages=messages,
+        response_format=response_format,
+        temperature=temperature,
+    )
+
+
+def _cached_prompt_tokens(prompt_details: object) -> int | None:
+    if isinstance(prompt_details, dict):
+        value = prompt_details.get("cached_tokens")
+    else:
+        value = getattr(prompt_details, "cached_tokens", None)
+    return value if isinstance(value, int) else None
 
 
 def _parse_json_object(content: str) -> dict[str, object]:

@@ -35,6 +35,7 @@ def test_token_usage_and_cost_aggregation() -> None:
             "prompt_tokens": 1_000,
             "completion_tokens": 500,
             "total_tokens": 1_500,
+            "cached_prompt_tokens": 250,
         },
     )
 
@@ -43,6 +44,11 @@ def test_token_usage_and_cost_aggregation() -> None:
     assert summary["total_prompt_tokens"] == 1_000
     assert summary["total_completion_tokens"] == 500
     assert summary["total_tokens"] == 1_500
+    assert summary["cached_prompt_tokens_total"] == 250
+    assert summary["uncached_prompt_tokens_total"] == 750
+    assert summary["prompt_cache_hit_ratio"] == 0.25
+    assert summary["cached_prompt_tokens_by_stage"]["generation"] == 250
+    assert summary["prompt_cache_hit_ratio_by_stage"]["generation"] == 0.25
     assert summary["estimated_cost_by_stage_usd"]["generation"] == 0.0125
     assert summary["estimated_cost_total_usd"] == 0.0125
     assert summary["highest_cost_stage"] == "generation"

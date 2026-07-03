@@ -112,6 +112,7 @@ class PastedTextWorkflowResponse(BaseModel):
     final_article_source_stage: str | None = None
     final_word_count_ratio: float | None = None
     section_generation_trace: list[dict[str, Any]] = Field(default_factory=list)
+    max_concurrent_section_calls: int | None = None
     planned_section_count: int = 0
     planned_target_word_count: int | None = None
     planned_min_word_count: int | None = None
@@ -162,9 +163,15 @@ class PastedTextWorkflowResponse(BaseModel):
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
     total_tokens: int = 0
+    cached_prompt_tokens_total: int = 0
+    uncached_prompt_tokens_total: int = 0
+    prompt_cache_hit_ratio: float | None = None
     token_usage_by_stage: dict[str, Any] = Field(default_factory=dict)
     prompt_tokens_by_stage: dict[str, Any] = Field(default_factory=dict)
     completion_tokens_by_stage: dict[str, Any] = Field(default_factory=dict)
+    cached_prompt_tokens_by_stage: dict[str, Any] = Field(default_factory=dict)
+    uncached_prompt_tokens_by_stage: dict[str, Any] = Field(default_factory=dict)
+    prompt_cache_hit_ratio_by_stage: dict[str, Any] = Field(default_factory=dict)
     estimated_cost_total_usd: float | None = None
     estimated_cost_by_stage_usd: dict[str, Any] = Field(default_factory=dict)
     estimated_cost_model_breakdown: dict[str, Any] = Field(default_factory=dict)

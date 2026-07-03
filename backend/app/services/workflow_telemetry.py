@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -21,7 +22,7 @@ class WorkflowTelemetry:
     started_at: float
     runtime_by_stage: dict[str, float] = field(default_factory=dict)
     llm_call_count_by_stage: dict[str, int] = field(default_factory=dict)
-    token_usage_by_stage: dict[str, dict[str, int | None]] = field(
+    token_usage_by_stage: dict[str, dict[str, int | float | None]] = field(
         default_factory=dict
     )
     model_used_by_stage: dict[str, str] = field(default_factory=dict)
@@ -43,12 +44,26 @@ class WorkflowTelemetry:
                 "prompt_tokens": None,
                 "completion_tokens": None,
                 "total_tokens": None,
+                "cached_prompt_tokens": None,
+                "uncached_prompt_tokens": None,
+                "prompt_cache_hit_ratio": None,
             }
             return
+        prompt_tokens = _optional_int(usage.get("prompt_tokens"))
+        cached_prompt_tokens = _optional_int(usage.get("cached_prompt_tokens"))
         self.token_usage_by_stage[stage] = {
-            "prompt_tokens": _optional_int(usage.get("prompt_tokens")),
+            "prompt_tokens": prompt_tokens,
             "completion_tokens": _optional_int(usage.get("completion_tokens")),
             "total_tokens": _optional_int(usage.get("total_tokens")),
+            "cached_prompt_tokens": cached_prompt_tokens,
+            "uncached_prompt_tokens": _uncached_prompt_tokens(
+                prompt_tokens,
+                cached_prompt_tokens,
+            ),
+            "prompt_cache_hit_ratio": _prompt_cache_hit_ratio(
+                prompt_tokens,
+                cached_prompt_tokens,
+            ),
         }
 
     def summary(self, total_runtime_seconds: float) -> dict[str, Any]:
@@ -64,8 +79,22 @@ class WorkflowTelemetry:
             stage: usage.get("completion_tokens")
             for stage, usage in self.token_usage_by_stage.items()
         }
-        total_prompt = sum(value or 0 for value in prompt_by_stage.values())
-        total_completion = sum(value or 0 for value in completion_by_stage.values())
+        cached_by_stage = {
+            stage: usage.get("cached_prompt_tokens")
+            for stage, usage in self.token_usage_by_stage.items()
+        }
+        uncached_by_stage = {
+            stage: usage.get("uncached_prompt_tokens")
+            for stage, usage in self.token_usage_by_stage.items()
+        }
+        cache_ratio_by_stage = {
+            stage: usage.get("prompt_cache_hit_ratio")
+            for stage, usage in self.token_usage_by_stage.items()
+        }
+        total_prompt = _sum_int_values(prompt_by_stage)
+        total_completion = _sum_int_values(completion_by_stage)
+        total_cached = _sum_int_values(cached_by_stage)
+        total_uncached = _sum_int_values(uncached_by_stage)
         return {
             "total_runtime_seconds": round(total_runtime_seconds, 3),
             "llm_call_count_total": sum(self.llm_call_count_by_stage.values()),
@@ -76,9 +105,18 @@ class WorkflowTelemetry:
             "token_usage_by_stage": self.token_usage_by_stage,
             "prompt_tokens_by_stage": prompt_by_stage,
             "completion_tokens_by_stage": completion_by_stage,
+            "cached_prompt_tokens_by_stage": cached_by_stage,
+            "uncached_prompt_tokens_by_stage": uncached_by_stage,
+            "prompt_cache_hit_ratio_by_stage": cache_ratio_by_stage,
             "total_prompt_tokens": total_prompt,
             "total_completion_tokens": total_completion,
             "total_tokens": total_prompt + total_completion,
+            "cached_prompt_tokens_total": total_cached,
+            "uncached_prompt_tokens_total": total_uncached,
+            "prompt_cache_hit_ratio": _prompt_cache_hit_ratio(
+                total_prompt,
+                total_cached,
+            ),
             **cost,
         }
 
@@ -101,7 +139,7 @@ def resolve_stage_model(stage: str) -> str | None:
 
 
 def estimate_workflow_cost(
-    token_usage_by_stage: dict[str, dict[str, int | None]],
+    token_usage_by_stage: dict[str, dict[str, int | float | None]],
     model_used_by_stage: dict[str, str],
 ) -> dict[str, Any]:
     cost_by_stage: dict[str, float | None] = {}
@@ -163,6 +201,30 @@ def _model_alias(model: str) -> str:
 
 def _optional_int(value: object) -> int | None:
     return value if isinstance(value, int) else None
+
+
+def _sum_int_values(values: Mapping[str, object]) -> int:
+    return sum(value for value in values.values() if isinstance(value, int))
+
+
+def _uncached_prompt_tokens(
+    prompt_tokens: int | None,
+    cached_prompt_tokens: int | None,
+) -> int | None:
+    if prompt_tokens is None:
+        return None
+    if cached_prompt_tokens is None:
+        return prompt_tokens
+    return max(prompt_tokens - cached_prompt_tokens, 0)
+
+
+def _prompt_cache_hit_ratio(
+    prompt_tokens: int | None,
+    cached_prompt_tokens: int | None,
+) -> float | None:
+    if prompt_tokens is None or prompt_tokens <= 0 or cached_prompt_tokens is None:
+        return None
+    return round(cached_prompt_tokens / prompt_tokens, 4)
 
 
 def _max_key(values: dict[str, float]) -> str | None:

@@ -70,6 +70,7 @@ class StructuredJsonClient(Protocol):
         self,
         system_prompt: str,
         user_payload: str,
+        prompt_cache_key: str | None = None,
     ) -> dict[str, object]:
         """Generate a structured JSON object."""
 
@@ -777,6 +778,9 @@ def run_pasted_text_to_draft_workflow(
         final_article_source_stage=final_article_source_stage,
         final_word_count_ratio=quality_result.final_article_word_count_ratio,
         section_generation_trace=_section_generation_trace(draft_response.draft),
+        max_concurrent_section_calls=_optional_int(
+            draft_generation_metadata.get("max_concurrent_section_calls")
+        ),
         planned_section_count=(
             _int_from_metadata(draft_generation_metadata, "planned_section_count")
             or (len(plan_response.planned_sections) if plan_response else 0)
@@ -1533,6 +1537,7 @@ def _draft_generation_metadata(draft: dict[str, object]) -> dict[str, object]:
         "original_draft_source",
         "original_draft_word_count_after_assignment",
         "original_draft_matches_section_assembly",
+        "max_concurrent_section_calls",
     )
     return {key: draft.get(key) for key in keys if key in draft}
 

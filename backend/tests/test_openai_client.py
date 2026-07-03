@@ -8,6 +8,7 @@ from backend.app.services.model_clients.openai_client import (
     OpenAIJsonClient,
     OpenAIStyleClient,
     _parse_json_object,
+    _token_usage,
 )
 
 
@@ -74,3 +75,68 @@ def test_openai_json_client_reports_timeout(
 
     with pytest.raises(OpenAIClientError, match="timed out after 3 seconds"):
         client.generate_structured_json("system", "payload")
+
+
+def test_openai_json_client_passes_prompt_cache_key_when_supported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeMessage:
+        content = '{"ok": true}'
+
+    class FakeChoice:
+        message = FakeMessage()
+
+    class FakeUsage:
+        prompt_tokens = 10
+        completion_tokens = 5
+        total_tokens = 15
+        prompt_tokens_details = {"cached_tokens": 4}
+
+    class FakeResponse:
+        choices = [FakeChoice()]
+        usage = FakeUsage()
+
+    class FakeCompletions:
+        def create(self, **kwargs: object) -> object:
+            captured.update(kwargs)
+            return FakeResponse()
+
+    class FakeChat:
+        completions = FakeCompletions()
+
+    class FakeOpenAI:
+        def __init__(self, **kwargs: object) -> None:
+            self.chat = FakeChat()
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(
+        "backend.app.services.model_clients.openai_client.OpenAI",
+        FakeOpenAI,
+    )
+    get_settings.cache_clear()
+    client = OpenAIJsonClient()
+
+    result = client.generate_structured_json(
+        "system",
+        "payload",
+        prompt_cache_key="stylescribe-test",
+    )
+
+    assert captured["prompt_cache_key"] == "stylescribe-test"
+    assert result["token_usage"]["cached_prompt_tokens"] == 4
+
+
+def test_token_usage_handles_missing_cached_details() -> None:
+    class FakeUsage:
+        prompt_tokens = 10
+        completion_tokens = 5
+        total_tokens = 15
+
+    assert _token_usage(FakeUsage()) == {
+        "prompt_tokens": 10,
+        "completion_tokens": 5,
+        "total_tokens": 15,
+        "cached_prompt_tokens": None,
+    }

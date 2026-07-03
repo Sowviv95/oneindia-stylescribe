@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from hashlib import sha256
 from pathlib import Path
 from typing import Protocol
 from uuid import uuid4
 
+from backend.app.config import get_settings
 from backend.app.db.repository import (
     ArticleDraftRecord,
     ArticlePlanRecord,
@@ -49,6 +52,7 @@ class StructuredJsonClient(Protocol):
         self,
         system_prompt: str,
         user_payload: str,
+        prompt_cache_key: str | None = None,
     ) -> dict[str, object]:
         """Generate a structured JSON object."""
 
@@ -114,7 +118,12 @@ def generate_article_draft(
     dynamic_targets = derive_dynamic_length_targets(resolved_word_count)
 
     try:
-        base_draft = draft_client.generate_structured_json(prompt, user_payload)
+        base_draft = _generate_structured_json(
+            draft_client,
+            prompt,
+            user_payload,
+            prompt_cache_key=_prompt_cache_key("article", user_payload),
+        )
         section_draft = _generate_dynamic_article_sections(
             draft_client=draft_client,
             base_draft=base_draft,
@@ -417,19 +426,42 @@ def _generate_dynamic_article_sections(
         return None
 
     prompt = SECTION_PROMPT_PATH.read_text(encoding="utf-8")
-    generated_sections: list[dict[str, object]] = []
-    section_trace: list[dict[str, object]] = []
-    for index, section in enumerate(planned_sections, start=1):
-        generated = _generate_one_dynamic_section(
-            draft_client=draft_client,
-            prompt=prompt,
-            base_payload=payload,
-            section=section,
-            section_index=index,
-            targets=targets,
-        )
-        generated_sections.append(generated["section"])
-        section_trace.append(generated["trace"])
+    stable_payload = _dynamic_section_stable_payload(payload, targets)
+    stable_cache_key = _prompt_cache_key(
+        "section",
+        json.dumps(stable_payload, ensure_ascii=False),
+    )
+    max_workers = min(
+        max(get_settings().max_concurrent_section_calls, 1),
+        len(planned_sections),
+    )
+    indexed_results: dict[int, dict[str, dict[str, object]]] = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(
+                _generate_one_dynamic_section,
+                draft_client,
+                prompt,
+                stable_payload,
+                section,
+                index,
+                targets,
+                stable_cache_key,
+            ): index
+            for index, section in enumerate(planned_sections, start=1)
+        }
+        for future in as_completed(futures):
+            index = futures[future]
+            indexed_results[index] = future.result()
+
+    generated_sections = [
+        indexed_results[index]["section"]
+        for index in range(1, len(planned_sections) + 1)
+    ]
+    section_trace = [
+        indexed_results[index]["trace"]
+        for index in range(1, len(planned_sections) + 1)
+    ]
 
     section_texts = [
         str(section.get("section_text") or "").strip()
@@ -460,6 +492,7 @@ def _generate_dynamic_article_sections(
         str(draft.get("article_body") or "") == assembled_body
     )
     draft["section_generation_trace"] = section_trace
+    draft["max_concurrent_section_calls"] = max_workers
     draft["token_usage"] = _sum_token_usage(
         [_dict_value(base_draft.get("token_usage"))]
         + [
@@ -490,20 +523,23 @@ def _generate_dynamic_article_sections(
 def _generate_one_dynamic_section(
     draft_client: StructuredJsonClient,
     prompt: str,
-    base_payload: dict[str, object],
+    stable_payload: dict[str, object],
     section: dict[str, object],
     section_index: int,
     targets: DynamicLengthTargets,
+    prompt_cache_key: str,
 ) -> dict[str, dict[str, object]]:
     section_payload = _dynamic_section_payload(
-        base_payload=base_payload,
+        stable_payload=stable_payload,
         section=section,
         section_index=section_index,
         targets=targets,
     )
-    first_pass = draft_client.generate_structured_json(
+    first_pass = _generate_structured_json(
+        draft_client,
         prompt,
         json.dumps(section_payload, ensure_ascii=False),
+        prompt_cache_key=prompt_cache_key,
     )
     first_text = str(first_pass.get("section_text") or "").strip()
     first_word_count = approximate_tamil_word_count(first_text)
@@ -527,9 +563,11 @@ def _generate_one_dynamic_section(
                 "restart. Preserve the same section focus."
             ),
         }
-        retried = draft_client.generate_structured_json(
+        retried = _generate_structured_json(
+            draft_client,
             prompt,
             json.dumps(retry_payload, ensure_ascii=False),
+            prompt_cache_key=prompt_cache_key,
         )
         retried_text = str(retried.get("section_text") or "").strip()
         retry_word_count = approximate_tamil_word_count(retried_text)
@@ -572,13 +610,34 @@ def _generate_one_dynamic_section(
 
 
 def _dynamic_section_payload(
-    base_payload: dict[str, object],
+    stable_payload: dict[str, object],
     section: dict[str, object],
     section_index: int,
     targets: DynamicLengthTargets,
 ) -> dict[str, object]:
     heading = str(section.get("heading") or section.get("section_name") or "")
     purpose = str(section.get("purpose") or section.get("section_purpose") or "")
+    return {
+        **stable_payload,
+        "section_heading": heading,
+        "section_purpose": purpose,
+        "planned_section": section,
+        "section_index": section_index,
+        "section_instruction": (
+            "Generate only this section body. Output strict JSON. The section "
+            f"target is {targets.section_target_word_count} Tamil words, minimum "
+            f"{targets.section_min_word_count}, maximum "
+            f"{targets.section_max_word_count}. Use only grounded facts from the "
+            "brief. Neutral connective context is allowed only if it does not "
+            "introduce new factual claims. Do not summarize too aggressively."
+        ),
+    }
+
+
+def _dynamic_section_stable_payload(
+    base_payload: dict[str, object],
+    targets: DynamicLengthTargets,
+) -> dict[str, object]:
     grounded_article_plan = base_payload.get("grounded_article_plan")
     plan_payload = (
         grounded_article_plan if isinstance(grounded_article_plan, dict) else {}
@@ -594,20 +653,14 @@ def _dynamic_section_payload(
         "grounded_brief_for_facts_only": base_payload.get(
             "grounded_brief_for_facts_only"
         ),
+        "grounded_article_plan": plan_payload,
         "grounded_article_plan_summary": plan_payload.get("plan_summary"),
-        "planned_section": section,
-        "section_index": section_index,
-        "dynamic_length_targets": _targets_payload(targets),
-        "section_heading": heading,
-        "section_purpose": purpose,
         "claims_to_avoid": plan_payload.get("claims_to_avoid"),
-        "section_instruction": (
-            "Generate only this section body. Output strict JSON. The section "
-            f"target is {targets.section_target_word_count} Tamil words, minimum "
-            f"{targets.section_min_word_count}, maximum "
-            f"{targets.section_max_word_count}. Use only grounded facts from the "
-            "brief. Neutral connective context is allowed only if it does not "
-            "introduce new factual claims. Do not summarize too aggressively."
+        "dynamic_length_targets": _targets_payload(targets),
+        "section_generation_rule": (
+            "Write each requested section from the stable style profile, grounded "
+            "brief, and article plan above. Section-specific fields follow after "
+            "this stable context and should control only the current section."
         ),
     }
 
@@ -875,12 +928,41 @@ def _coerce_int(value: object) -> int:
     return 0
 
 
+def _generate_structured_json(
+    client: StructuredJsonClient,
+    system_prompt: str,
+    user_payload: str,
+    *,
+    prompt_cache_key: str | None = None,
+) -> dict[str, object]:
+    try:
+        return client.generate_structured_json(
+            system_prompt,
+            user_payload,
+            prompt_cache_key=prompt_cache_key,
+        )
+    except TypeError:
+        if prompt_cache_key is None:
+            raise
+        return client.generate_structured_json(system_prompt, user_payload)
+
+
+def _prompt_cache_key(namespace: str, stable_payload: str) -> str:
+    digest = sha256(stable_payload.encode("utf-8")).hexdigest()[:32]
+    return f"stylescribe-{namespace}-{digest}"
+
+
 def _dict_value(value: object) -> dict[str, object]:
     return value if isinstance(value, dict) else {}
 
 
 def _sum_token_usage(usages: list[dict[str, object]]) -> dict[str, int]:
-    totals = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    totals = {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_prompt_tokens": 0,
+    }
     for usage in usages:
         for key in totals:
             value = usage.get(key)
