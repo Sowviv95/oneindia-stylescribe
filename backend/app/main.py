@@ -24,6 +24,10 @@ from backend.app.models.ingestion_models import (
     AuthorIngestionRequest,
     IngestionSummary,
 )
+from backend.app.models.multi_author_comparison_models import (
+    MultiAuthorComparisonRequest,
+    MultiAuthorComparisonResponse,
+)
 from backend.app.models.pasted_text_workflow_models import (
     PastedTextWorkflowRequest,
     PastedTextWorkflowResponse,
@@ -65,6 +69,10 @@ from backend.app.services.grounded_brief_service import (
     get_grounded_brief,
 )
 from backend.app.services.model_clients.openai_client import OpenAIClientError
+from backend.app.services.multi_author_comparison_service import (
+    MultiAuthorComparisonError,
+    run_multi_author_comparison_workflow,
+)
 from backend.app.services.pasted_text_workflow_service import (
     PastedTextWorkflowError,
     run_pasted_text_to_draft_workflow,
@@ -396,6 +404,35 @@ def create_pasted_text_to_draft_workflow(
     except PastedTextWorkflowError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except (ArticleGenerationError, ArticleRevisionError) as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OpenAIClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post(
+    "/workflows/multi-author-comparison",
+    response_model=MultiAuthorComparisonResponse,
+)
+def create_multi_author_comparison_workflow(
+    request: MultiAuthorComparisonRequest,
+) -> MultiAuthorComparisonResponse:
+    """Run one shared source brief through two author-specific draft branches."""
+
+    try:
+        return run_multi_author_comparison_workflow(
+            source_text=request.source_text,
+            author_id_a=request.author_id_a,
+            author_id_b=request.author_id_b,
+            author_instruction=request.author_instruction,
+            target_language=request.target_language,
+            article_type=request.article_type,
+            desired_word_count=request.desired_word_count,
+            tone_override=request.tone_override,
+            workflow_mode=request.workflow_mode,
+        )
+    except SourceProcessingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except MultiAuthorComparisonError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except OpenAIClientError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc

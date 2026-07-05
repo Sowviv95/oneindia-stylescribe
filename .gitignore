@@ -12,3 +12,10 @@ data/*.db
 review_outputs/
 sample_data/raw/
 sample_data/extracted/
+
+# Local manual validation outputs
+manual_tests_11d/
+
+# Local author source/context files
+sample_data/authors/
+sample_data/author_context/
