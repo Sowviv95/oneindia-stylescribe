@@ -16,6 +16,13 @@ RecommendationValue = Literal[
     "author_b",
     "no_clear_recommendation",
 ]
+EditorAttentionCategory = Literal[
+    "unsupported_claim",
+    "claims_to_avoid_violation",
+    "overclaim_phrase",
+    "grounding_issue",
+]
+EditorAttentionSeverity = Literal["blocker", "warning", "info"]
 
 
 class MultiAuthorComparisonRequest(BaseModel):
@@ -29,6 +36,17 @@ class MultiAuthorComparisonRequest(BaseModel):
     tone_override: str | None = Field(default=None)
     workflow_mode: WorkflowMode = "standard"
     generation_model: str | None = Field(default=None)
+
+
+class EditorAttentionItem(BaseModel):
+    category: EditorAttentionCategory
+    severity: EditorAttentionSeverity
+    label: str
+    claim_text: str | None = None
+    matched_article_text: str | None = None
+    avoid_rule: str | None = None
+    reason: str | None = None
+    editor_action: str | None = None
 
 
 class AuthorComparisonOutput(BaseModel):
@@ -46,6 +64,7 @@ class AuthorComparisonOutput(BaseModel):
     final_readiness: str | None = None
     blockers: list[Any] = Field(default_factory=list)
     warnings: list[Any] = Field(default_factory=list)
+    editor_attention_items: list[EditorAttentionItem] = Field(default_factory=list)
     evaluation_summary: WorkflowEvaluationSummary | None = None
     telemetry: dict[str, Any] = Field(default_factory=dict)
 

@@ -39,6 +39,22 @@ def test_multi_author_comparison_reuses_brief_and_separates_author_branches(
     assert plan_client.author_ids == ["v_vasanthi", "hema_vandhana"]
     assert response.author_a.grounding_score == 86
     assert response.author_b.grounding_score == 86
+    assert response.author_a.editor_attention_items
+    unsupported_item = response.author_a.editor_attention_items[0]
+    assert unsupported_item.category == "unsupported_claim"
+    assert unsupported_item.severity == "blocker"
+    assert unsupported_item.claim_text == "This pilot will prevent flooding."
+    assert unsupported_item.matched_article_text is None
+    assert any(
+        item.category == "claims_to_avoid_violation"
+        and item.avoid_rule == "Do not claim effectiveness."
+        for item in response.author_a.editor_attention_items
+    )
+    assert any(
+        item.category == "overclaim_phrase"
+        and item.severity == "warning"
+        for item in response.author_a.editor_attention_items
+    )
     assert response.comparison_summary.recommended_draft in {
         "author_a",
         "author_b",
@@ -200,11 +216,29 @@ class MockEvaluationClient:
             "fact_preservation_score": 90,
             "overall_risk": "medium",
             "editorial_readiness": "review_required",
-            "unsupported_claims": [],
-            "overclaim_phrases": [],
+            "unsupported_claims": [
+                {
+                    "claim": "This pilot will prevent flooding.",
+                    "reason": "The brief does not support effectiveness.",
+                    "suggested_fix": "Say only that officials announced a pilot.",
+                }
+            ],
+            "overclaim_phrases": [
+                {
+                    "phrase": "protect residents",
+                    "reason": "The brief does not support a protection benefit.",
+                    "suggested_fix": "Use neutral wording.",
+                }
+            ],
             "invented_facts": [],
             "contradictions": [],
-            "claims_to_avoid_violations": [],
+            "claims_to_avoid_violations": [
+                {
+                    "claim": "This pilot will prevent flooding.",
+                    "avoid_rule": "Do not claim effectiveness.",
+                    "reason": "Effectiveness is explicitly unavailable.",
+                }
+            ],
             "missing_key_facts": [],
             "preserved_facts": ["18 sensors"],
             "number_date_name_checks": [],

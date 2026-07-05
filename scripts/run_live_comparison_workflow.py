@@ -162,11 +162,6 @@ def _render_html(payload: dict[str, Any], request: dict[str, Any]) -> str:
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
     }}
-    .columns {{
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-      gap: 16px;
-    }}
     .metric {{
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -192,9 +187,94 @@ def _render_html(payload: dict[str, Any], request: dict[str, Any]) -> str:
       vertical-align: top;
     }}
     th {{ background: #eef2f8; }}
-    .article {{
-      white-space: pre-wrap;
+    .article-comparison {{
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }}
+    .article-comparison th,
+    .article-comparison td {{
+      width: 50%;
+      vertical-align: top;
+      border: 1px solid var(--border);
+      padding: 16px;
+      overflow-wrap: anywhere;
+    }}
+    .article-comparison th {{
+      background: #eef2f8;
+    }}
+    .article-comparison h2 {{
+      font-size: 21px;
+      margin-bottom: 10px;
+    }}
+    .article-comparison h3 {{
+      color: var(--muted);
       font-size: 17px;
+      font-weight: 650;
+      margin-bottom: 14px;
+    }}
+    .article-body {{
+      white-space: pre-wrap;
+      line-height: 1.65;
+      font-size: 16px;
+      overflow-wrap: anywhere;
+    }}
+    .attention-comparison {{
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }}
+    .attention-comparison th,
+    .attention-comparison td {{
+      width: 50%;
+      vertical-align: top;
+      border: 1px solid var(--border);
+      padding: 14px;
+      overflow-wrap: anywhere;
+    }}
+    .attention-list {{
+      display: grid;
+      gap: 10px;
+    }}
+    .attention-item {{
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #f5f7fb;
+    }}
+    .attention-item.blocker {{
+      background: var(--blocker);
+      border-color: #f2b8b5;
+    }}
+    .attention-item.warning {{
+      background: var(--warning);
+      border-color: #edd48d;
+    }}
+    .attention-item.info {{
+      background: #eef5ff;
+      border-color: #bdd7ff;
+    }}
+    .attention-title {{
+      font-weight: 700;
+      margin-bottom: 6px;
+    }}
+    .attention-field {{
+      margin-top: 6px;
+      font-size: 14px;
+    }}
+    .attention-text {{
+      white-space: pre-wrap;
+    }}
+    .attention-highlight {{
+      border-radius: 4px;
+      padding: 1px 3px;
+    }}
+    .attention-highlight.blocker {{ background: #ffd7d4; }}
+    .attention-highlight.warning {{ background: #ffeaa3; }}
+    .attention-legend {{
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 12px;
     }}
     .source {{
       white-space: pre-wrap;
@@ -211,10 +291,8 @@ def _render_html(payload: dict[str, Any], request: dict[str, Any]) -> str:
   {_source_section(payload, request)}
   {_metrics_table(author_a, author_b)}
   {_comparison_section(summary)}
-  <section class="columns">
-    {_author_section("Author A", author_a)}
-    {_author_section("Author B", author_b)}
-  </section>
+  {_editor_attention_section(author_a, author_b)}
+  {_article_comparison_section(author_a, author_b)}
   {_telemetry_section(payload)}
 </main>
 </body>
@@ -276,8 +354,16 @@ def _metrics_table(author_a: dict[str, Any], author_b: dict[str, Any]) -> str:
             author_a.get("final_readiness"),
             author_b.get("final_readiness"),
         ),
-        ("Blockers", author_a.get("blockers"), author_b.get("blockers")),
-        ("Warnings", author_a.get("warnings"), author_b.get("warnings")),
+        (
+            "Blocker count",
+            _count_items(author_a.get("blockers")),
+            _count_items(author_b.get("blockers")),
+        ),
+        (
+            "Warning count",
+            _count_items(author_a.get("warnings")),
+            _count_items(author_b.get("warnings")),
+        ),
     ]
     body = "".join(
         f"<tr><th>{_safe(label)}</th><td>{_safe(_display(a))}</td><td>{_safe(_display(b))}</td></tr>"
@@ -292,6 +378,108 @@ def _metrics_table(author_a: dict[str, Any], author_b: dict[str, Any]) -> str:
 </section>"""
 
 
+def _article_comparison_section(
+    author_a: dict[str, Any],
+    author_b: dict[str, Any],
+) -> str:
+    legend = (
+        "Inline highlights appear only for exact matched article text. "
+        "Red: blocker attention item. Yellow: warning attention item."
+    )
+    return f"""<section class="card">
+  <h2>Generated Articles</h2>
+  <p class="attention-legend">{_safe(legend)}</p>
+  <table class="article-comparison">
+    <thead>
+      <tr>
+        <th>Author A: {_safe(_display(author_a.get("author_id")))}</th>
+        <th>Author B: {_safe(_display(author_b.get("author_id")))}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        {_author_article_cell(author_a)}
+        {_author_article_cell(author_b)}
+      </tr>
+    </tbody>
+  </table>
+</section>"""
+
+
+def _author_article_cell(author: dict[str, Any]) -> str:
+    return f"""<td>
+  <h2>{_safe(_display(author.get("generated_headline")))}</h2>
+  <h3>{_safe(_display(author.get("generated_subheadline")))}</h3>
+  {_list_block("Blockers", author.get("blockers"), "blocker")}
+  {_list_block("Warnings", author.get("warnings"), "warning")}
+  <div class="article-body">{_highlighted_article_body(author)}</div>
+</td>"""
+
+
+def _editor_attention_section(
+    author_a: dict[str, Any],
+    author_b: dict[str, Any],
+) -> str:
+    return f"""<section class="card">
+  <h2>Editor Attention Items</h2>
+  <table class="attention-comparison">
+    <thead>
+      <tr>
+        <th>Author A: {_safe(_display(author_a.get("author_id")))}</th>
+        <th>Author B: {_safe(_display(author_b.get("author_id")))}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{_attention_list(author_a.get("editor_attention_items"))}</td>
+        <td>{_attention_list(author_b.get("editor_attention_items"))}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>"""
+
+
+def _attention_list(values: Any) -> str:
+    items = values if isinstance(values, list) else []
+    if not items:
+        return '<p class="attention-field">No editor attention items.</p>'
+    rendered = "".join(_attention_item(item) for item in items)
+    return f'<div class="attention-list">{rendered}</div>'
+
+
+def _attention_item(value: Any) -> str:
+    item = _dict_value(value)
+    severity = _attention_severity(item.get("severity"))
+    title = (
+        f"{_display(item.get('category'))} · "
+        f"{_display(item.get('severity'))} · "
+        f"{_display(item.get('label'))}"
+    )
+    fields = [
+        ("Claim text", item.get("claim_text")),
+        ("Matched article text", item.get("matched_article_text")),
+        ("Avoid rule", item.get("avoid_rule")),
+        ("Reason", item.get("reason")),
+        ("Editor action", item.get("editor_action")),
+    ]
+    details = "".join(
+        _attention_field(label, field_value)
+        for label, field_value in fields
+        if field_value
+    )
+    return f"""<div class="attention-item {severity}">
+  <div class="attention-title">{_safe(title)}</div>
+  {details}
+</div>"""
+
+
+def _attention_field(label: str, value: Any) -> str:
+    return f"""<div class="attention-field">
+  <strong>{_safe(label)}:</strong>
+  <div class="attention-text">{_safe(_display(value))}</div>
+</div>"""
+
+
 def _comparison_section(summary: dict[str, Any]) -> str:
     factual = summary.get("factual_faithfulness_comparison")
     return f"""<section class="card">
@@ -302,17 +490,6 @@ def _comparison_section(summary: dict[str, Any]) -> str:
   <p><strong>Recommendation:</strong> {_safe(summary.get("recommended_draft"))}</p>
   <p>{_safe(summary.get("recommendation_rationale"))}</p>
 </section>"""
-
-
-def _author_section(title: str, author: dict[str, Any]) -> str:
-    return f"""<article class="card">
-  <h2>{_safe(title)}: {_safe(author.get("author_id"))}</h2>
-  <h3>{_safe(author.get("generated_headline"))}</h3>
-  <p><strong>{_safe(author.get("generated_subheadline"))}</strong></p>
-  {_list_block("Blockers", author.get("blockers"), "blocker")}
-  {_list_block("Warnings", author.get("warnings"), "warning")}
-  <div class="article">{_safe(author.get("article_body"))}</div>
-</article>"""
 
 
 def _telemetry_section(payload: dict[str, Any]) -> str:
@@ -363,6 +540,53 @@ def _list_block(title: str, values: Any, class_name: str) -> str:
   <h3>{_safe(title)}</h3>
   <ul>{list_items}</ul>
 </div>"""
+
+
+def _count_items(value: Any) -> int:
+    return len(value) if isinstance(value, list) else 0
+
+
+def _highlighted_article_body(author: dict[str, Any]) -> str:
+    article_body = _display(author.get("article_body"))
+    attention_items = author.get("editor_attention_items")
+    if not isinstance(attention_items, list):
+        return _safe(article_body)
+
+    matches: list[tuple[int, int, str]] = []
+    cursor = 0
+    for value in attention_items:
+        item = _dict_value(value)
+        matched = item.get("matched_article_text")
+        if not isinstance(matched, str) or not matched:
+            continue
+        start = article_body.find(matched, cursor)
+        if start < 0:
+            continue
+        end = start + len(matched)
+        matches.append((start, end, _attention_severity(item.get("severity"))))
+        cursor = end
+
+    if not matches:
+        return _safe(article_body)
+
+    parts: list[str] = []
+    cursor = 0
+    for start, end, severity in matches:
+        parts.append(_safe(article_body[cursor:start]))
+        parts.append(
+            f'<mark class="attention-highlight {severity}">'
+            f"{_safe(article_body[start:end])}</mark>"
+        )
+        cursor = end
+    parts.append(_safe(article_body[cursor:]))
+    return "".join(parts)
+
+
+def _attention_severity(value: Any) -> str:
+    severity = str(value or "info")
+    if severity in {"blocker", "warning", "info"}:
+        return severity
+    return "info"
 
 
 def _dict_value(value: Any) -> dict[str, Any]:

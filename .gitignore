@@ -19,3 +19,7 @@ manual_tests_11d/
 # Local author source/context files
 sample_data/authors/
 sample_data/author_context/
+
+# Local manual test inputs and outputs
+manual_tests/
+manual_tests_11d_manual/

@@ -9,6 +9,7 @@ from uuid import uuid4
 from backend.app.db.repository import StyleScribeRepository
 from backend.app.models.multi_author_comparison_models import (
     AuthorComparisonOutput,
+    EditorAttentionItem,
     MultiAuthorComparisonResponse,
     MultiAuthorComparisonSummary,
     RecommendationValue,
@@ -31,6 +32,8 @@ from backend.app.services.pasted_text_workflow_service import (
     _evaluation_summary,
     _final_readiness_decision,
     _int_from_metadata,
+    _list_value,
+    _optional_int,
     _response_telemetry_fields,
     _run_stage,
     _section_coverage,
@@ -406,6 +409,13 @@ def _run_author_branch(
             *section_coverage_warnings,
             *readiness.warnings,
         ],
+        editor_attention_items=_editor_attention_items(
+            evaluation=evaluation_response.evaluation,
+            blockers=readiness.blockers,
+            warnings=readiness.warnings,
+            article_body=draft_response.draft.get("article_body"),
+            claims_to_avoid=brief.get("claims_to_avoid"),
+        ),
         evaluation_summary=evaluation_summary,
         telemetry=branch_telemetry,
     )
@@ -549,6 +559,243 @@ def _generation_call_count(draft: dict[str, object]) -> int:
         + section_single_call_count
         + single_section_retry_count
     )
+
+
+def _editor_attention_items(
+    *,
+    evaluation: dict[str, object],
+    blockers: list[str],
+    warnings: list[str],
+    article_body: object,
+    claims_to_avoid: object,
+) -> list[EditorAttentionItem]:
+    article_text = str(article_body or "")
+    avoid_rules = [str(rule) for rule in _list_value(claims_to_avoid) if str(rule)]
+    items: list[EditorAttentionItem] = []
+
+    unsupported_count = _add_evaluation_items(
+        items,
+        category="unsupported_claim",
+        severity="blocker",
+        label="Unsupported claim",
+        values=_list_value(evaluation.get("unsupported_claims")),
+        text_keys=("claim", "text"),
+        article_text=article_text,
+        editor_action=(
+            "Verify this claim against the grounded brief, then remove it or rewrite "
+            "it using only supported facts."
+        ),
+    )
+    claims_to_avoid_count = _add_evaluation_items(
+        items,
+        category="claims_to_avoid_violation",
+        severity="blocker",
+        label="Claims-to-avoid violation",
+        values=_list_value(evaluation.get("claims_to_avoid_violations")),
+        text_keys=("claim", "text", "phrase"),
+        article_text=article_text,
+        editor_action=(
+            "Remove or neutralize this article text so it does not make a claim the "
+            "grounded brief marked as unsafe or unavailable."
+        ),
+        avoid_rules=avoid_rules,
+    )
+    overclaim_count = _add_evaluation_items(
+        items,
+        category="overclaim_phrase",
+        severity="warning",
+        label="Overclaim phrase",
+        values=_list_value(evaluation.get("overclaim_phrases")),
+        text_keys=("phrase", "claim", "text"),
+        article_text=article_text,
+        editor_action=(
+            "Tone down this wording unless the grounded brief explicitly supports "
+            "the implied impact or benefit."
+        ),
+    )
+
+    if "unsupported_claims_remaining" in blockers and unsupported_count == 0:
+        items.append(
+            _fallback_attention_item(
+                category="unsupported_claim",
+                severity="blocker",
+                label="Unsupported claims remain",
+                reason=(
+                    "The grounding evaluation reported unsupported claims, but exact "
+                    "claim text was not available in the comparison response."
+                ),
+                editor_action=(
+                    "Review the generated article against the grounded brief before "
+                    "publication."
+                ),
+            )
+        )
+    if (
+        "claims_to_avoid_violations_remaining" in blockers
+        and claims_to_avoid_count == 0
+    ):
+        items.append(
+            _fallback_attention_item(
+                category="claims_to_avoid_violation",
+                severity="blocker",
+                label="Claims-to-avoid violations remain",
+                avoid_rule=_single_or_joined_value(avoid_rules),
+                reason=(
+                    "The grounding evaluation reported a claims-to-avoid violation, "
+                    "but exact matched article text was not available."
+                ),
+                editor_action=(
+                    "Compare the article against the listed claims-to-avoid and "
+                    "remove unsupported specificity."
+                ),
+            )
+        )
+    if "overclaim_phrases_remaining" in warnings and overclaim_count == 0:
+        items.append(
+            _fallback_attention_item(
+                category="overclaim_phrase",
+                severity="warning",
+                label="Overclaim phrases remain",
+                reason=(
+                    "The grounding evaluation reported overclaim wording, but exact "
+                    "phrase text was not available."
+                ),
+                editor_action=(
+                    "Review impact, benefit, assurance, and certainty language for "
+                    "unsupported emphasis."
+                ),
+            )
+        )
+
+    for code in (*blockers, *warnings):
+        grounding_item = _grounding_code_attention_item(code, evaluation)
+        if grounding_item is not None:
+            items.append(grounding_item)
+
+    return items
+
+
+def _add_evaluation_items(
+    items: list[EditorAttentionItem],
+    *,
+    category: str,
+    severity: str,
+    label: str,
+    values: list[object],
+    text_keys: tuple[str, ...],
+    article_text: str,
+    editor_action: str,
+    avoid_rules: list[str] | None = None,
+) -> int:
+    added = 0
+    for value in values:
+        text = _attention_text(value, text_keys)
+        reason = _attention_text(value, ("reason", "explanation"))
+        suggested_action = _attention_text(
+            value,
+            ("suggested_fix", "suggested_action", "editor_action"),
+        )
+        avoid_rule = _avoid_rule(value, avoid_rules or [])
+        if not text and not reason and not avoid_rule:
+            continue
+        items.append(
+            EditorAttentionItem(
+                category=category,
+                severity=severity,
+                label=label,
+                claim_text=text,
+                matched_article_text=text if text and text in article_text else None,
+                avoid_rule=avoid_rule,
+                reason=reason,
+                editor_action=suggested_action or editor_action,
+            )
+        )
+        added += 1
+    return added
+
+
+def _fallback_attention_item(
+    *,
+    category: str,
+    severity: str,
+    label: str,
+    reason: str,
+    editor_action: str,
+    avoid_rule: str | None = None,
+) -> EditorAttentionItem:
+    return EditorAttentionItem(
+        category=category,
+        severity=severity,
+        label=label,
+        avoid_rule=avoid_rule,
+        reason=reason,
+        editor_action=editor_action,
+    )
+
+
+def _grounding_code_attention_item(
+    code: str,
+    evaluation: dict[str, object],
+) -> EditorAttentionItem | None:
+    score = _optional_int(evaluation.get("grounding_score"))
+    if code == "grounding_score_below_threshold":
+        return EditorAttentionItem(
+            category="grounding_issue",
+            severity="blocker",
+            label="Grounding score below threshold",
+            reason=f"Grounding score is {score}." if score is not None else None,
+            editor_action=(
+                "Treat this draft as requiring editor revision before publication."
+            ),
+        )
+    if code == "grounding_score_review_band":
+        return EditorAttentionItem(
+            category="grounding_issue",
+            severity="warning",
+            label="Grounding score in review band",
+            reason=f"Grounding score is {score}." if score is not None else None,
+            editor_action="Review factual support before publication.",
+        )
+    if code == "grounding_score_missing":
+        return EditorAttentionItem(
+            category="grounding_issue",
+            severity="warning",
+            label="Grounding score missing",
+            reason="No grounding score was available from the evaluation result.",
+            editor_action="Run or inspect grounding evaluation before publication.",
+        )
+    return None
+
+
+def _attention_text(value: object, keys: tuple[str, ...]) -> str | None:
+    if isinstance(value, dict):
+        for key in keys:
+            text = value.get(key)
+            if text:
+                return str(text)
+        return None
+    if isinstance(value, str) and value:
+        return value
+    return None
+
+
+def _avoid_rule(value: object, avoid_rules: list[str]) -> str | None:
+    if isinstance(value, dict):
+        for key in ("avoid_rule", "violated_rule", "rule", "claim_to_avoid"):
+            rule = value.get(key)
+            if rule:
+                return str(rule)
+    if len(avoid_rules) == 1:
+        return avoid_rules[0]
+    return None
+
+
+def _single_or_joined_value(values: list[str]) -> str | None:
+    if not values:
+        return None
+    if len(values) == 1:
+        return values[0]
+    return "; ".join(values)
 
 
 def _validate_latest_profile(repo: StyleScribeRepository, author_id: str) -> None:
