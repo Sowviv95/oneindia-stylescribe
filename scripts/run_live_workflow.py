@@ -96,6 +96,12 @@ def main() -> None:
         "final_article_word_count",
         "final_word_count_ratio",
         "final_grounding_score",
+        "google_signals_available",
+        "google_signals_score",
+        "google_signals_version",
+        "google_signals_risk_flags",
+        "google_signals_recommendations",
+        "google_signals_error",
         "tamil_quality_warnings",
         "publication_ready_completeness_passed",
         "length_status",
@@ -287,6 +293,7 @@ def _render_html_output(
   <h1>StyleScribe Manual Validation Output</h1>
   {_summary_section(payload)}
   {_article_section(article_text, article_source, headline, headline_source, payload)}
+  {_google_signals_section(payload)}
   {_source_section(source_text)}
   {_telemetry_section(payload)}
 </main>
@@ -355,6 +362,64 @@ def _source_section(source_text: str) -> str:
   <h2>Source Input</h2>
   <div class="source">{_safe(source_text)}</div>
 </section>"""
+
+
+def _google_signals_section(payload: dict[str, Any]) -> str:
+    google_signals = payload.get("google_signals")
+    if isinstance(google_signals, dict):
+        score = google_signals.get("score")
+        version = google_signals.get("version")
+        components = google_signals.get("components")
+        risk_flags = google_signals.get("risk_flags")
+        recommendations = google_signals.get("recommendations")
+        metadata = google_signals.get("metadata")
+        error = payload.get("google_signals_error")
+    else:
+        score = payload.get("google_signals_score")
+        version = payload.get("google_signals_version")
+        components = payload.get("google_signals_components")
+        risk_flags = payload.get("google_signals_risk_flags")
+        recommendations = payload.get("google_signals_recommendations")
+        metadata = payload.get("google_signals_metadata")
+        error = payload.get("google_signals_error")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    component_rows = ""
+    if isinstance(components, list):
+        component_rows = "".join(
+            _google_signal_component_row(component) for component in components
+        )
+    if not component_rows:
+        component_rows = "<p>Component scores are not available.</p>"
+    return f"""<section class="card">
+  <h2>Google Signals</h2>
+  <div class="grid">
+    {_metric("google_signals_score", score)}
+    {_metric("google_signals_version", version)}
+    {_metric("primary_search_intent", metadata.get("primary_search_intent"))}
+    {_metric("suggested_slug", metadata.get("suggested_slug"))}
+  </div>
+  {_list_card("Google Signals risk flags", risk_flags, class_name="warnings")}
+  {_list_card("Google Signals recommendations", recommendations)}
+  <div class="card">
+    <h3>Component Scores</h3>
+    {component_rows}
+  </div>
+  {_metric("google_signals_error", error)}
+</section>"""
+
+
+def _google_signal_component_row(component: Any) -> str:
+    if not isinstance(component, dict):
+        return ""
+    label = (
+        f"{component.get('name')}: {component.get('score')}/100 "
+        f"(weight {component.get('weight')}, risk {component.get('risk_level')})"
+    )
+    rationale = component.get("rationale")
+    return f"""<div class="metric">
+  <span class="label">{_safe(label)}</span>
+  <span class="value">{_safe(_display_value(rationale))}</span>
+</div>"""
 
 
 def _telemetry_section(payload: dict[str, Any]) -> str:

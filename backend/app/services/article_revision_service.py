@@ -823,6 +823,7 @@ def export_revision_review(
     section_coverage_status: str | None = None,
     section_coverage_warnings: list[str] | None = None,
     readiness_metadata: dict[str, object] | None = None,
+    google_signals: dict[str, object] | None = None,
 ) -> list[str]:
     """Export a before/after grounded revision review."""
 
@@ -860,6 +861,7 @@ def export_revision_review(
         section_coverage_status=section_coverage_status,
         section_coverage_warnings=section_coverage_warnings,
         readiness_metadata=readiness_metadata,
+        google_signals=google_signals,
     )
     content = (
         render_revision_review_html(markdown)
@@ -899,6 +901,7 @@ def render_revision_review_markdown(
     section_coverage_status: str | None = None,
     section_coverage_warnings: list[str] | None = None,
     readiness_metadata: dict[str, object] | None = None,
+    google_signals: dict[str, object] | None = None,
 ) -> str:
     lines = [
         "# Grounded Revision Review",
@@ -1099,6 +1102,8 @@ def render_revision_review_markdown(
                 f"{readiness_metadata.get('skipped_patch_impact')}",
             ]
         )
+    if google_signals:
+        lines.extend(_google_signals_markdown_lines(google_signals))
     if generation_metadata:
         lines.extend(
             [
@@ -1335,6 +1340,45 @@ def _evaluation_markdown_lines(evaluation: dict[str, object]) -> list[str]:
     lines.extend(
         f"  - {item}" for item in _list_value(evaluation.get("rewrite_guidance"))
     )
+    return lines
+
+
+def _google_signals_markdown_lines(
+    google_signals: dict[str, object],
+) -> list[str]:
+    metadata = _dict_value(google_signals.get("metadata"))
+    lines = [
+        "",
+        "## Google Signals",
+        "",
+        f"- Score: {google_signals.get('score')}/100",
+        f"- Version: {google_signals.get('version')}",
+        f"- Primary search intent: {metadata.get('primary_search_intent')}",
+        f"- Suggested meta description: {metadata.get('suggested_meta_description')}",
+        f"- Suggested slug: {metadata.get('suggested_slug')}",
+        f"- Schema type: {metadata.get('schema_type')}",
+        "- Components:",
+    ]
+    for component in _list_value(google_signals.get("components")):
+        if not isinstance(component, dict):
+            continue
+        lines.append(
+            "  - "
+            f"{component.get('name')}: {component.get('score')}/100 "
+            f"(weight {component.get('weight')}, "
+            f"risk {component.get('risk_level')}) - "
+            f"{component.get('rationale')}"
+        )
+    lines.extend(["- Risk flags:"])
+    lines.extend(
+        f"  - {item}" for item in _list_value(google_signals.get("risk_flags"))
+    )
+    lines.extend(["- Recommendations:"])
+    lines.extend(
+        f"  - {item}" for item in _list_value(google_signals.get("recommendations"))
+    )
+    if google_signals.get("overall_rationale"):
+        lines.append(f"- Overall rationale: {google_signals.get('overall_rationale')}")
     return lines
 
 

@@ -4,11 +4,31 @@ from pathlib import Path
 import pytest
 
 from backend.app.db.repository import AuthorStyleProfileRecord, StyleScribeRepository
+from backend.app.models.google_signals_models import GoogleSignalsEvaluationResult
+from backend.app.services.google_signals_service import evaluate_google_signals
 from backend.app.services.model_clients.openai_client import OpenAIClientError
 from backend.app.services.pasted_text_workflow_service import (
     _final_readiness_decision,
     run_pasted_text_to_draft_workflow,
 )
+
+
+@pytest.fixture(autouse=True)
+def avoid_live_google_signals(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_evaluator(**kwargs: object) -> GoogleSignalsEvaluationResult:
+        if kwargs.get("model_client") is None:
+            return GoogleSignalsEvaluationResult(
+                available=False,
+                error="Google Signals model client not provided in unit test.",
+            )
+        return evaluate_google_signals(**kwargs)
+
+    monkeypatch.setattr(
+        "backend.app.services.pasted_text_workflow_service.evaluate_google_signals",
+        fake_evaluator,
+    )
 
 
 def test_pasted_text_workflow_success_with_mocked_models(tmp_path: Path) -> None:
@@ -113,6 +133,33 @@ def test_pasted_text_workflow_exports_utf8_html_and_markdown(
     assert "Grounding Evaluation" in markdown
 
 
+def test_pasted_text_workflow_exposes_google_signals(tmp_path: Path) -> None:
+    repository = _repository_with_profile(tmp_path)
+
+    response = run_pasted_text_to_draft_workflow(
+        author_id="v_vasanthi",
+        source_text=_source_text(),
+        repository=repository,
+        brief_model_client=MockBriefClient(),
+        plan_model_client=MockPlanClient(),
+        draft_model_client=MockDraftClient(),
+        evaluation_model_client=MockEvaluationClient(),
+        google_signals_model_client=MockGoogleSignalsClient(),
+    )
+
+    assert response.google_signals_available is True
+    assert response.google_signals_score == 78
+    assert response.google_signals_version == "google_signals_v1"
+    assert response.google_signals_components[0].name == "search_intent_clarity"
+    assert response.google_signals_risk_flags == ["Headline could be sharper."]
+    assert response.google_signals_recommendations == [
+        "Make the headline more entity-specific."
+    ]
+    assert response.google_signals_metadata is not None
+    assert response.google_signals_metadata["schema_type"] == "NewsArticle"
+    assert response.google_signals is not None
+
+
 def test_pasted_text_workflow_with_auto_revision(tmp_path: Path) -> None:
     repository = _repository_with_profile(tmp_path)
 
@@ -182,6 +229,7 @@ def test_pasted_text_workflow_revision_export_contains_before_and_after(
         draft_model_client=MockDraftClient(),
         evaluation_model_client=CountingEvaluationClient(),
         revision_model_client=RulingWorkflowRevisionClient(),
+        google_signals_model_client=MockGoogleSignalsClient(),
     )
 
     html = Path(response.export_paths[0]).read_text(encoding="utf-8")
@@ -207,6 +255,8 @@ def test_pasted_text_workflow_revision_export_contains_before_and_after(
     assert "Allowed English terms block readiness" in html
     assert "Workflow Runtime Summary" in html
     assert "Estimated cost total USD" in html
+    assert "Google Signals" in html
+    assert "Primary search intent" in html
     assert "This is an editor-assisted draft" in html
     assert "ruling" not in html
     assert "H-1B" in html
@@ -752,6 +802,43 @@ class TimeoutEvaluationClient(MockEvaluationClient):
         user_payload: str,
     ) -> dict[str, object]:
         raise OpenAIClientError("OpenAI request timed out after 3 seconds.")
+
+
+class MockGoogleSignalsClient:
+    provider = "openai"
+    model_name = "gpt-4o-mini"
+
+    def generate_structured_json(
+        self,
+        system_prompt: str,
+        user_payload: str,
+        prompt_cache_key: str | None = None,
+    ) -> dict[str, object]:
+        assert "Google Search readiness" in system_prompt
+        assert "grounded_brief_only_factual_source" in user_payload
+        assert prompt_cache_key == "stylescribe:google_signals_v1"
+        return {
+            "components": [
+                {"name": "search_intent_clarity", "score": 80},
+                {"name": "headline_search_clarity", "score": 75},
+                {"name": "freshness_timeliness", "score": 80},
+                {"name": "originality_angle", "score": 70},
+                {"name": "eeat_trust", "score": 85},
+                {"name": "snippet_meta_readiness", "score": 75},
+                {"name": "structured_data_readiness", "score": 80},
+            ],
+            "risk_flags": ["Headline could be sharper."],
+            "recommendations": ["Make the headline more entity-specific."],
+            "metadata": {
+                "primary_search_intent": "Chennai flood warning pilot",
+                "suggested_meta_description": "Chennai flood warning pilot details.",
+                "suggested_slug": "chennai-flood-warning-pilot",
+                "primary_entities": ["Chennai"],
+                "secondary_entities": ["Flood warning"],
+                "schema_type": "NewsArticle",
+            },
+            "overall_rationale": "The article is clear but the headline can improve.",
+        }
 
 
 class CountingEvaluationClient(MockEvaluationClient):

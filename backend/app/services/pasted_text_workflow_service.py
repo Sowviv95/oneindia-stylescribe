@@ -38,6 +38,7 @@ from backend.app.services.draft_grounding_evaluation_service import (
     evaluate_draft_grounding,
     evaluate_revision_grounding,
 )
+from backend.app.services.google_signals_service import evaluate_google_signals
 from backend.app.services.grounded_brief_service import generate_grounded_brief
 from backend.app.services.model_clients.openai_client import (
     OpenAIClientError,
@@ -110,6 +111,7 @@ def run_pasted_text_to_draft_workflow(
     evaluation_model_client: StructuredJsonClient | None = None,
     revision_model_client: StructuredJsonClient | None = None,
     length_recovery_model_client: StructuredJsonClient | None = None,
+    google_signals_model_client: StructuredJsonClient | None = None,
 ) -> PastedTextWorkflowResponse:
     """Run the pasted website text cleanup, brief, draft, and evaluation flow."""
 
@@ -542,6 +544,27 @@ def run_pasted_text_to_draft_workflow(
             unsupported_claim_patch_skipped_reasons
         ),
     )
+    google_signals_result = evaluate_google_signals(
+        final_article=final_article,
+        grounded_brief=brief_response.brief,
+        author_id=author_id,
+        article_type=article_type,
+        target_language=target_language,
+        desired_word_count=desired_word_count,
+        workflow_metadata={
+            "workflow_id": workflow_id,
+            "final_article_source_stage": final_article_source_stage,
+            "final_article_word_count": quality_result.final_article_word_count,
+            "final_readiness": readiness_decision.readiness,
+            "final_publication_blockers": readiness_decision.blockers,
+            "final_publication_warnings": readiness_decision.warnings,
+        },
+        model_client=google_signals_model_client,
+    )
+    google_signals = google_signals_result.google_signals
+    if google_signals is not None:
+        telemetry.record_model("google_signals", "google_signals_v1")
+        telemetry.record_calls("google_signals", 1)
     warnings = _merge_warnings(
         cleanup_summary.warnings,
         brief_response.warnings,
@@ -697,6 +720,9 @@ def run_pasted_text_to_draft_workflow(
                         readiness_decision
                     ),
                 },
+                google_signals=(
+                    google_signals.model_dump() if google_signals is not None else None
+                ),
             ),
             telemetry=telemetry,
             telemetry_stage="export",
@@ -743,6 +769,21 @@ def run_pasted_text_to_draft_workflow(
             readiness_decision.publication_ready_completeness_passed
         ),
         final_evaluation_summary=final_evaluation_summary,
+        google_signals_available=google_signals_result.available,
+        google_signals_score=google_signals.score if google_signals else None,
+        google_signals_version=google_signals.version if google_signals else None,
+        google_signals_components=google_signals.components if google_signals else [],
+        google_signals_risk_flags=(
+            google_signals.risk_flags if google_signals else []
+        ),
+        google_signals_recommendations=(
+            google_signals.recommendations if google_signals else []
+        ),
+        google_signals_metadata=google_signals.metadata if google_signals else None,
+        google_signals_error=google_signals_result.error,
+        google_signals=(
+            google_signals.model_dump() if google_signals is not None else None
+        ),
         article_plan_used=plan_response is not None,
         plan_id=plan_response.plan_id if plan_response else None,
         desired_word_count=desired_word_count,
@@ -1323,6 +1364,11 @@ def _save_workflow_run(
         "publication_ready_completeness_passed": (
             response.publication_ready_completeness_passed
         ),
+        "google_signals_available": response.google_signals_available,
+        "google_signals_score": response.google_signals_score,
+        "google_signals_version": response.google_signals_version,
+        "google_signals": response.google_signals,
+        "google_signals_error": response.google_signals_error,
         "unsupported_claim_findings_count": response.unsupported_claim_findings_count,
         "unsupported_claim_patch_count": response.unsupported_claim_patch_count,
         "unsupported_claim_patches_applied_count": (

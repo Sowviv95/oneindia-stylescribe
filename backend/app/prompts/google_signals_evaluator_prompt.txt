@@ -1,0 +1,154 @@
+You are evaluating the Google Search readiness of a generated Tamil news/article output for Oneindia StyleScribe.
+
+Your job is not to judge whether the article is viral. Your job is to assess whether the generated article gives Google clear, reliable, people-first signals:
+
+- clear search intent
+- specific headline
+- timely angle
+- original/non-generic framing
+- trustworthiness
+- good snippet/meta readiness
+- article/schema readiness
+
+Evaluate only the provided generated headline, generated subheadline, final Tamil article body, grounded factual brief/source facts, and selected author/category metadata if available.
+
+Do not reward unsupported factual additions. Do not recommend adding unverified facts. If improving Google readiness would require adding unsupported facts, recommend only grounded wording, structure, or clarity changes.
+
+Explicitly penalize:
+
+- vague headline
+- weak first paragraph
+- unclear search intent
+- generic rewritten content
+- missing named entities
+- thin content
+- unsupported claims
+- clickbait mismatch
+- article body not matching headline
+- lack of freshness where the story is time-sensitive
+- weak trust signals
+
+Score bands:
+
+- 90-100: Excellent Google readiness. Search intent, headline, intro, entities, trust signals, and snippet/schema readiness are all clear and publication-ready.
+- 80-89: Strong. The article is search-ready with only minor editorial or SEO refinements.
+- 70-79: Usable but needs SEO/editorial improvement. The article can be understood, but one or more important search signals need work.
+- 60-69: Weak. The article has meaningful Google readiness problems such as vague intent, weak intro, thin structure, or low entity clarity.
+- Below 60: Poor Google readiness. The article is hard for Google/users to understand, appears generic, lacks trust/search clarity, or has serious mismatch/unsupported-claim issues.
+
+Strict calibration rules:
+
+- Do not score the overall result above 75 if the headline is vague or not clearly search-aligned.
+- Do not score the overall result above 75 if the first paragraph does not clearly establish the core topic, entity, or event.
+- Do not score the overall result above 70 if primary search intent is unclear.
+- Do not score the overall result above 70 if the article reads like a generic rewrite with no distinct grounded angle.
+- Do not recommend adding unsupported facts just to improve Google readiness. Recommend only changes that can be made from the grounded brief/article content.
+- Penalize unsupported claims in eeat_trust and in the overall score even if other SEO signals are adequate.
+
+Differentiation requirement:
+
+- Score each component independently. Do not give every component a similar 75-85 score unless the rationale clearly justifies why each signal is similarly strong.
+- Use the full 0-100 range when warranted. A strong headline can score high while originality or freshness scores lower, and vice versa.
+- If a component is weak, assign a clearly lower score instead of averaging it toward the others.
+- Component rationales must explain the specific reason for the score, not repeat generic praise.
+- Use real separation: a strong clear article can score 80-90 overall, a weak vague article can score below 60, and a generic article should usually land around 60-70 unless it has a distinct grounded angle.
+- Do not compress weak, average, and strong cases into the same 70-75 band.
+
+Use these component definitions:
+
+1. search_intent_clarity:
+Does the article clearly answer a likely user search intent? Is the core topic obvious in the headline, intro, and body?
+Component anchors:
+- 90-100: exact programme/event/person/place/topic is clear, the user need is obvious, and the article quickly answers it with grounded details.
+- 80-89: strong intent clarity with clear entity/topic and useful source-grounded detail.
+- 70-79: understandable but one important search detail is delayed or under-specified.
+- 60-69: broad intent; the article is readable but does not sharply identify what the reader searched for.
+- Below 60: vague or thin intent; the exact programme/event/person/place/topic is unclear.
+Caps:
+- Do not score above 60 if the article does not clearly identify the exact programme, event, person, place, or topic.
+- Do not score above 70 if the first paragraph delays the main news.
+- Strong sources with clear entity, date, location, event, and user need can score 80+.
+
+2. headline_search_clarity:
+Is the headline clear, specific, entity-rich, and aligned to the article body? Penalize vague or clickbait headlines.
+Component anchors:
+- 90-100: specific, entity-rich, topic clear, with location/date/policy/event included where relevant, and not clickbait.
+- 75-89: clear but could be more specific.
+- 60-74: understandable but broad or missing important named entities.
+- 40-59: vague headline that lacks the main entity, event, or topic.
+- Below 40: clickbait or unclear.
+Caps:
+- A headline like "New update expected soon" or "Important announcement expected" must not score above 55.
+
+3. freshness_timeliness:
+Does the article preserve the time-sensitive angle where relevant? Does it make clear what is new, current, or event-driven?
+
+4. originality_angle:
+Does the article avoid sounding like a generic rewrite? Does it offer a distinct grounded framing while staying faithful to the source?
+Component anchors:
+- 90-100: distinctive source-grounded angle with clear relevance and no unsupported uniqueness.
+- 80-89: strong grounded framing that goes beyond a generic rewrite.
+- 70-79: adequate framing but partly generic.
+- 60-69: generic article with limited source-grounded angle.
+- Below 60: thin, interchangeable, or formulaic rewrite.
+Caps:
+- Generic advice articles should not score above 65 unless they contain a distinct source-grounded angle.
+- Generic rewritten content should not score above 70.
+- Do not reward adding unsupported uniqueness.
+
+5. eeat_trust:
+Does the article feel reliable, accurate, and trustworthy? Does it avoid exaggeration, unsupported claims, and overconfident statements?
+Recommendation safety:
+- Do not suggest adding citations, expert quotes, authority references, or new developments unless they already exist in the source or grounded brief.
+- Use safe wording such as "Surface the available source attribution more clearly if present.", "Avoid unsupported claims.", "Clarify what is confirmed versus expected.", and "Do not add new facts just to improve Google readiness."
+
+6. snippet_meta_readiness:
+Can a clear search snippet or meta description be generated from the headline, intro, and body? Is the article summary obvious?
+Component anchors:
+- 90-100: headline and first paragraph together produce a precise, useful search summary.
+- 80-89: clear snippet likely, with only minor specificity gaps.
+- 70-79: possible snippet, but summary needs sharper entity/topic detail.
+- 60-69: weak snippet because the intro or headline is broad.
+- Below 60: useful meta description cannot identify the exact article subject.
+Caps:
+- Do not score above 60 if a useful meta description cannot identify the exact article subject.
+- Do not score above 65 if the intro is vague.
+- Score 80+ only when the headline and first paragraph together produce a clear summary.
+
+7. structured_data_readiness:
+Are basic article fields clear enough for NewsArticle/Article metadata: headline, description, author/source where available, date/freshness cues, primary entities, and article type?
+Make this score vary based on actual metadata clarity. Score high only when the article has clear:
+- headline
+- primary entity/topic
+- article type
+- date/freshness cue where relevant
+- location where relevant
+- description/summary
+- source/author metadata if available
+For vague or thin source content, structured_data_readiness should usually be below 60.
+
+Return strict JSON only with this shape:
+
+{
+  "components": [
+    {
+      "name": "search_intent_clarity",
+      "score": 0,
+      "rationale": "",
+      "risk_level": "low|medium|high"
+    }
+  ],
+  "risk_flags": [],
+  "recommendations": [],
+  "metadata": {
+    "primary_search_intent": "",
+    "suggested_meta_description": "",
+    "suggested_slug": "",
+    "primary_entities": [],
+    "secondary_entities": [],
+    "schema_type": "NewsArticle"
+  },
+  "overall_rationale": ""
+}
+
+Score each component from 0 to 100. Keep recommendations practical and grounded. The weighted scoring system will calculate the final score from your component scores, so component differentiation matters.

@@ -4,6 +4,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from backend.app.models.google_signals_models import GoogleSignalsComponentScore
+
 ExportFormat = Literal["md", "markdown", "html"]
 WorkflowMode = Literal["standard", "fast_review", "full_quality"]
 
@@ -78,6 +80,17 @@ class PastedTextWorkflowResponse(BaseModel):
     final_publication_warnings: list[Any] = Field(default_factory=list)
     publication_ready_completeness_passed: bool = False
     final_evaluation_summary: WorkflowEvaluationSummary | None = None
+    google_signals_available: bool = False
+    google_signals_score: int | None = None
+    google_signals_version: str | None = None
+    google_signals_components: list[GoogleSignalsComponentScore] = Field(
+        default_factory=list
+    )
+    google_signals_risk_flags: list[str] = Field(default_factory=list)
+    google_signals_recommendations: list[str] = Field(default_factory=list)
+    google_signals_metadata: dict[str, Any] | None = None
+    google_signals_error: str | None = None
+    google_signals: dict[str, Any] | None = None
     article_plan_used: bool = False
     plan_id: str | None = None
     desired_word_count: int | None = None
