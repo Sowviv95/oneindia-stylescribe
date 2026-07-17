@@ -2,12 +2,25 @@
 
 import inspect
 import json
+import time
 from collections.abc import Sequence
 from typing import Any, cast
 
-from openai import APITimeoutError, OpenAI
+from openai import (
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    InternalServerError,
+    OpenAI,
+)
 
 from backend.app.config import get_settings
+
+OPENAI_MODELS_WITH_DEFAULT_ONLY_TEMPERATURE = {"gpt-5.5"}
+OPENAI_MODELS_WITH_EXTENDED_TIMEOUT = {"gpt-5.5"}
+OPENAI_EXTENDED_TIMEOUT_SECONDS = 240.0
+OPENAI_EXTENDED_TIMEOUT_MAX_ATTEMPTS = 2
+OPENAI_EXTENDED_TIMEOUT_BACKOFF_SECONDS = 2.0
 
 
 class OpenAIClientError(RuntimeError):
@@ -25,11 +38,20 @@ class OpenAIStyleClient:
             raise OpenAIClientError("OPENAI_API_KEY is required for style profiles.")
 
         self.model_name = model_name or settings.openai_model or "gpt-4o-mini"
-        self.timeout_seconds = settings.openai_timeout_seconds
+        self.timeout_seconds = _timeout_seconds_for_model(
+            self.model_name,
+            settings.openai_timeout_seconds,
+        )
+        self.max_retries = _sdk_max_retries_for_model(
+            self.model_name,
+            settings.openai_max_retries,
+        )
+        self.last_attempt_count = 0
+        self.last_retry_count = 0
         self._client = OpenAI(
             api_key=settings.openai_api_key.get_secret_value(),
-            timeout=settings.openai_timeout_seconds,
-            max_retries=settings.openai_max_retries,
+            timeout=self.timeout_seconds,
+            max_retries=self.max_retries,
         )
         self._supports_prompt_cache_key = _supports_prompt_cache_key(self._client)
 
@@ -79,11 +101,20 @@ class OpenAIJsonClient(OpenAIStyleClient):
             raise OpenAIClientError(missing_key_message)
 
         self.model_name = model_name or settings.openai_model or "gpt-4o-mini"
-        self.timeout_seconds = settings.openai_timeout_seconds
+        self.timeout_seconds = _timeout_seconds_for_model(
+            self.model_name,
+            settings.openai_timeout_seconds,
+        )
+        self.max_retries = _sdk_max_retries_for_model(
+            self.model_name,
+            settings.openai_max_retries,
+        )
+        self.last_attempt_count = 0
+        self.last_retry_count = 0
         self._client = OpenAI(
             api_key=settings.openai_api_key.get_secret_value(),
-            timeout=settings.openai_timeout_seconds,
-            max_retries=settings.openai_max_retries,
+            timeout=self.timeout_seconds,
+            max_retries=self.max_retries,
         )
         self._supports_prompt_cache_key = _supports_prompt_cache_key(self._client)
 
@@ -93,29 +124,58 @@ class OpenAIJsonClient(OpenAIStyleClient):
         user_payload: str,
         prompt_cache_key: str | None = None,
     ) -> dict[str, object]:
-        try:
-            response = _create_completion(
-                self._client,
-                model=self.model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_payload},
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.1,
-                prompt_cache_key=prompt_cache_key,
-                supports_prompt_cache_key=self._supports_prompt_cache_key,
-            )
-        except APITimeoutError as exc:
-            raise OpenAIClientError(
-                f"OpenAI request timed out after {self.timeout_seconds:g} seconds."
-            ) from exc
+        response = self._create_completion_with_retries(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_payload},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.1,
+            prompt_cache_key=prompt_cache_key,
+        )
         content = response.choices[0].message.content
         if content is None:
             raise OpenAIClientError("OpenAI returned an empty response.")
         parsed = _parse_raw_json_object(content)
         parsed["token_usage"] = _token_usage(response.usage)
         return parsed
+
+    def _create_completion_with_retries(
+        self,
+        *,
+        messages: list[dict[str, str]],
+        response_format: dict[str, str],
+        temperature: float,
+        prompt_cache_key: str | None,
+    ) -> Any:
+        max_attempts = _max_attempts_for_model(self.model_name)
+        self.last_attempt_count = 0
+        self.last_retry_count = 0
+        while True:
+            self.last_attempt_count += 1
+            try:
+                return _create_completion(
+                    self._client,
+                    model=self.model_name,
+                    messages=messages,
+                    response_format=response_format,
+                    temperature=temperature,
+                    prompt_cache_key=prompt_cache_key,
+                    supports_prompt_cache_key=self._supports_prompt_cache_key,
+                )
+            except Exception as exc:
+                if (
+                    self.last_attempt_count >= max_attempts
+                    or not _is_transient_openai_error(exc)
+                ):
+                    if isinstance(exc, APITimeoutError):
+                        raise OpenAIClientError(
+                            "OpenAI request timed out after "
+                            f"{self.timeout_seconds:g} seconds."
+                        ) from exc
+                    raise
+                self.last_retry_count += 1
+                time.sleep(OPENAI_EXTENDED_TIMEOUT_BACKOFF_SECONDS)
 
 
 def _token_usage(usage: object) -> dict[str, int | None]:
@@ -150,20 +210,72 @@ def _create_completion(
     supports_prompt_cache_key: bool,
 ) -> Any:
     create = cast(Any, client.chat.completions.create)
+    request: dict[str, object] = {
+        "model": model,
+        "messages": messages,
+        "response_format": response_format,
+    }
+    if _should_send_temperature(model):
+        request["temperature"] = temperature
     if prompt_cache_key and supports_prompt_cache_key:
-        return create(
-            model=model,
-            messages=messages,
-            response_format=response_format,
-            temperature=temperature,
-            prompt_cache_key=prompt_cache_key,
-        )
-    return create(
-        model=model,
-        messages=messages,
-        response_format=response_format,
-        temperature=temperature,
-    )
+        request["prompt_cache_key"] = prompt_cache_key
+    return create(**request)
+
+
+def _should_send_temperature(model: str) -> bool:
+    return model not in OPENAI_MODELS_WITH_DEFAULT_ONLY_TEMPERATURE
+
+
+def _timeout_seconds_for_model(model: str, default_timeout: float) -> float:
+    if model in OPENAI_MODELS_WITH_EXTENDED_TIMEOUT:
+        return OPENAI_EXTENDED_TIMEOUT_SECONDS
+    return default_timeout
+
+
+def _sdk_max_retries_for_model(model: str, default_max_retries: int) -> int:
+    if model in OPENAI_MODELS_WITH_EXTENDED_TIMEOUT:
+        return 0
+    return default_max_retries
+
+
+def _max_attempts_for_model(model: str) -> int:
+    if model in OPENAI_MODELS_WITH_EXTENDED_TIMEOUT:
+        return OPENAI_EXTENDED_TIMEOUT_MAX_ATTEMPTS
+    return 1
+
+
+def _is_transient_openai_error(exc: Exception) -> bool:
+    if isinstance(exc, APITimeoutError | APIConnectionError | InternalServerError):
+        return True
+    if isinstance(exc, APIStatusError):
+        return exc.status_code >= 500
+    return False
+
+
+def temperature_metadata(
+    model: str,
+    configured_temperature: float,
+) -> dict[str, object]:
+    if _should_send_temperature(model):
+        return {
+            "temperature_mode": "explicit",
+            "temperature_requested": configured_temperature,
+        }
+    return {
+        "temperature_mode": "model_default",
+        "temperature_requested": None,
+    }
+
+
+def request_runtime_metadata(
+    model: str,
+    configured_temperature: float,
+    default_timeout: float,
+) -> dict[str, object]:
+    return {
+        **temperature_metadata(model, configured_temperature),
+        "timeout_seconds": _timeout_seconds_for_model(model, default_timeout),
+    }
 
 
 def _cached_prompt_tokens(prompt_details: object) -> int | None:

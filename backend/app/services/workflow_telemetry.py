@@ -130,11 +130,12 @@ def resolve_stage_model(stage: str) -> str | None:
         "evaluation": settings.openai_model_evaluation,
         "length_recovery": settings.openai_model_length_recovery,
     }
+    fallback_model = "gpt-5.5" if stage == "generation" else "gpt-4o-mini"
     return (
         stage_models.get(stage)
         or settings.openai_model
         or settings.openai_model_default
-        or "gpt-4o-mini"
+        or fallback_model
     )
 
 

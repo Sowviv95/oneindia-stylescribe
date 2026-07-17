@@ -1,0 +1,62 @@
+{
+  "version": "benchmark_pricing_2026_07_16",
+  "models": [
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash",
+      "input_usd_per_million": 1.50,
+      "cached_input_usd_per_million": 0.15,
+      "output_usd_per_million": 9.00,
+      "output_includes_thinking_tokens": true,
+      "pricing_mode": "standard",
+      "currency": "USD",
+      "effective_date": "2026-07-16",
+      "source": "Google Gemini Developer API pricing"
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "input_usd_per_million": 0.25,
+      "cached_input_usd_per_million": 0.025,
+      "output_usd_per_million": 1.50,
+      "output_includes_thinking_tokens": true,
+      "pricing_mode": "standard",
+      "currency": "USD",
+      "effective_date": "2026-07-16",
+      "source": "Google Gemini Developer API pricing"
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "input_usd_per_million": 5.00,
+      "cached_input_usd_per_million": 0.50,
+      "output_usd_per_million": 30.00,
+      "pricing_mode": "standard",
+      "currency": "USD",
+      "effective_date": "2026-07-16",
+      "source": "OpenAI API model pricing"
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-4o-mini",
+      "input_usd_per_million": 0.15,
+      "cached_input_usd_per_million": 0.075,
+      "output_usd_per_million": 0.60,
+      "pricing_mode": "standard",
+      "currency": "USD",
+      "effective_date": "2026-07-16",
+      "source": "OpenAI API model pricing"
+    },
+    {
+      "provider": "grok",
+      "model": "grok-4.20-0309-non-reasoning",
+      "input_usd_per_million": 1.25,
+      "cached_input_usd_per_million": 0.20,
+      "output_usd_per_million": 2.50,
+      "pricing_mode": "standard",
+      "currency": "USD",
+      "effective_date": "2026-07-16",
+      "source": "xAI API model pricing"
+    }
+  ]
+}

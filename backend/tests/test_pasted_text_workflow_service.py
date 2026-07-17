@@ -3,14 +3,23 @@ from pathlib import Path
 
 import pytest
 
+from backend.app.config import get_settings
 from backend.app.db.repository import AuthorStyleProfileRecord, StyleScribeRepository
 from backend.app.models.google_signals_models import GoogleSignalsEvaluationResult
 from backend.app.services.google_signals_service import evaluate_google_signals
 from backend.app.services.model_clients.openai_client import OpenAIClientError
 from backend.app.services.pasted_text_workflow_service import (
     _final_readiness_decision,
+    _stage_client,
     run_pasted_text_to_draft_workflow,
 )
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache() -> None:
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest.fixture(autouse=True)
@@ -72,9 +81,136 @@ def test_pasted_text_workflow_success_with_mocked_models(tmp_path: Path) -> None
     assert response.total_runtime_seconds is not None
     assert "generation" in response.runtime_by_stage
     assert response.llm_call_count_total >= 1
-    assert response.generation_model_used == "gpt-4o-mini"
+    assert response.generation_provider_used == "OpenAI"
+    assert response.generation_model_used == "gpt-5.5"
     assert "generation" in response.token_usage_by_stage
     assert response.cost_estimation_available is False
+
+
+def test_stage_client_uses_openai_for_generation_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.delenv("ARTICLE_GENERATION_MODEL_PROVIDER", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL_DEFAULT", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL_GENERATION", raising=False)
+    get_settings.cache_clear()
+
+    captured: dict[str, object] = {}
+
+    class FakeOpenAIClient:
+        provider = "openai"
+        model_name = "fake-openai"
+
+        def __init__(self, **kwargs: object) -> None:
+            captured.update(kwargs)
+
+        def generate_structured_json(
+            self,
+            system_prompt: str,
+            user_payload: str,
+            prompt_cache_key: str | None = None,
+        ) -> dict[str, object]:
+            return {}
+
+    monkeypatch.setattr(
+        "backend.app.services.pasted_text_workflow_service.OpenAIJsonClient",
+        FakeOpenAIClient,
+    )
+
+    client = _stage_client("generation", "missing")
+
+    assert client.provider == "openai"
+    assert captured["model_name"] == "gpt-5.5"
+
+
+def test_stage_client_uses_gemini_for_generation_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini-key")
+    monkeypatch.setenv("ARTICLE_GENERATION_MODEL_PROVIDER", "gemini")
+    get_settings.cache_clear()
+
+    created: list[str] = []
+
+    class FakeOpenAIClient:
+        provider = "openai"
+        model_name = "fake-openai"
+
+        def __init__(self, **kwargs: object) -> None:
+            created.append("openai")
+
+        def generate_structured_json(
+            self,
+            system_prompt: str,
+            user_payload: str,
+            prompt_cache_key: str | None = None,
+        ) -> dict[str, object]:
+            return {}
+
+    class FakeGeminiClient:
+        provider = "gemini"
+        model_name = "gemini-3.5-flash"
+
+        def __init__(self, **kwargs: object) -> None:
+            created.append("gemini")
+
+        def generate_structured_json(
+            self,
+            system_prompt: str,
+            user_payload: str,
+            prompt_cache_key: str | None = None,
+        ) -> dict[str, object]:
+            return {}
+
+    monkeypatch.setattr(
+        "backend.app.services.pasted_text_workflow_service.OpenAIJsonClient",
+        FakeOpenAIClient,
+    )
+    monkeypatch.setattr(
+        "backend.app.services.pasted_text_workflow_service.GeminiJsonClient",
+        FakeGeminiClient,
+    )
+
+    generation_client = _stage_client("generation", "missing")
+    evaluation_client = _stage_client("evaluation", "missing")
+
+    assert generation_client.provider == "gemini"
+    assert evaluation_client.provider == "openai"
+    assert created == ["gemini", "openai"]
+
+
+def test_stage_client_rejects_unknown_generation_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ARTICLE_GENERATION_MODEL_PROVIDER", "other")
+    get_settings.cache_clear()
+
+    with pytest.raises(OpenAIClientError, match="ARTICLE_GENERATION_MODEL_PROVIDER"):
+        _stage_client("generation", "missing")
+
+
+def test_pasted_text_workflow_records_gemini_generation_metadata(
+    tmp_path: Path,
+) -> None:
+    repository = _repository_with_profile(tmp_path)
+
+    response = run_pasted_text_to_draft_workflow(
+        author_id="v_vasanthi",
+        source_text=_source_text(),
+        repository=repository,
+        brief_model_client=MockBriefClient(),
+        plan_model_client=MockPlanClient(),
+        draft_model_client=MockGeminiDraftClient(),
+        evaluation_model_client=MockEvaluationClient(),
+    )
+
+    assert response.generation_provider_used == "Gemini"
+    assert response.generation_model_used == "gemini-3.5-flash"
+    assert response.model_dump()["generation_provider_used"] == "Gemini"
+    assert response.model_dump()["generation_model_used"] == "gemini-3.5-flash"
 
 
 def test_pasted_text_workflow_without_grounding_evaluation(tmp_path: Path) -> None:
@@ -158,6 +294,17 @@ def test_pasted_text_workflow_exposes_google_signals(tmp_path: Path) -> None:
     assert response.google_signals_metadata is not None
     assert response.google_signals_metadata["schema_type"] == "NewsArticle"
     assert response.google_signals is not None
+    assert response.customer_challenge_mapping is not None
+    assert response.model_dump()["customer_challenge_mapping"] is not None
+    assert response.claim_integrity is not None
+    assert response.claim_integrity_status in {"pass", "review", "block"}
+    assert response.model_dump()["claim_integrity"] is not None
+    challenge_names = {
+        challenge.challenge_name
+        for challenge in response.customer_challenge_mapping.challenges
+    }
+    assert "Unsupported claims" in challenge_names
+    assert "Weak Google/search readiness" in challenge_names
 
 
 def test_pasted_text_workflow_with_auto_revision(tmp_path: Path) -> None:
@@ -255,7 +402,13 @@ def test_pasted_text_workflow_revision_export_contains_before_and_after(
     assert "Allowed English terms block readiness" in html
     assert "Workflow Runtime Summary" in html
     assert "Estimated cost total USD" in html
+    assert "Generation provider" in html
+    assert "Generation model" in html
     assert "Google Signals" in html
+    assert "Customer Challenge Mapping" in html
+    assert "These are customer-observed content generation risk areas" in html
+    assert "Claim Integrity Check" in html
+    assert "final claim_integrity_status" in html
     assert "Primary search intent" in html
     assert "This is an editor-assisted draft" in html
     assert "ruling" not in html
@@ -734,7 +887,7 @@ class RichBriefClient(MockBriefClient):
 
 class MockDraftClient:
     provider = "openai"
-    model_name = "gpt-4o-mini"
+    model_name = "gpt-5.5"
 
     def generate_structured_json(
         self,
@@ -764,6 +917,11 @@ class MockDraftClient:
             "fact_usage_notes": [],
             "style_usage_notes": [],
         }
+
+
+class MockGeminiDraftClient(MockDraftClient):
+    provider = "gemini"
+    model_name = "gemini-3.5-flash"
 
 
 class MockEvaluationClient:
