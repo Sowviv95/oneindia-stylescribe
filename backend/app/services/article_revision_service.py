@@ -20,6 +20,10 @@ from backend.app.db.repository import (
 )
 from backend.app.models.article_revision_models import ArticleRevisionResponse
 from backend.app.scripts.review_article_draft import TAMIL_FONT_STACK
+from backend.app.services.claim_integrity_service import claim_integrity_markdown_lines
+from backend.app.services.customer_challenge_mapping_service import (
+    customer_challenge_mapping_markdown_lines,
+)
 from backend.app.services.model_clients.openai_client import (
     OpenAIClientError,
     OpenAIJsonClient,
@@ -824,6 +828,8 @@ def export_revision_review(
     section_coverage_warnings: list[str] | None = None,
     readiness_metadata: dict[str, object] | None = None,
     google_signals: dict[str, object] | None = None,
+    customer_challenge_mapping: dict[str, object] | None = None,
+    claim_integrity: dict[str, object] | None = None,
 ) -> list[str]:
     """Export a before/after grounded revision review."""
 
@@ -862,6 +868,8 @@ def export_revision_review(
         section_coverage_warnings=section_coverage_warnings,
         readiness_metadata=readiness_metadata,
         google_signals=google_signals,
+        customer_challenge_mapping=customer_challenge_mapping,
+        claim_integrity=claim_integrity,
     )
     content = (
         render_revision_review_html(markdown)
@@ -902,6 +910,8 @@ def render_revision_review_markdown(
     section_coverage_warnings: list[str] | None = None,
     readiness_metadata: dict[str, object] | None = None,
     google_signals: dict[str, object] | None = None,
+    customer_challenge_mapping: dict[str, object] | None = None,
+    claim_integrity: dict[str, object] | None = None,
 ) -> str:
     lines = [
         "# Grounded Revision Review",
@@ -982,6 +992,10 @@ def render_revision_review_markdown(
                 f"{generation_metadata.get('slowest_stage')}",
                 "- Highest-cost stage: "
                 f"{generation_metadata.get('highest_cost_stage')}",
+                "- Generation provider: "
+                f"{generation_metadata.get('generation_provider_used')}",
+                "- Generation model: "
+                f"{generation_metadata.get('generation_model_used')}",
                 "",
                 "This is an editor-assisted draft. Blockers require human review "
                 "before publication.",
@@ -1104,6 +1118,12 @@ def render_revision_review_markdown(
         )
     if google_signals:
         lines.extend(_google_signals_markdown_lines(google_signals))
+    if customer_challenge_mapping:
+        lines.extend(
+            customer_challenge_mapping_markdown_lines(customer_challenge_mapping)
+        )
+    if claim_integrity:
+        lines.extend(claim_integrity_markdown_lines(claim_integrity))
     if generation_metadata:
         lines.extend(
             [

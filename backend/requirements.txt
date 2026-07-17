@@ -9,5 +9,6 @@ httpx
 python-docx
 openpyxl
 openai
+google-genai
 requests
 beautifulsoup4

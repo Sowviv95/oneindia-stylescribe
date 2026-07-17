@@ -12,6 +12,7 @@ from time import perf_counter
 from typing import Protocol, TypeVar
 from uuid import uuid4
 
+from backend.app.config import get_settings
 from backend.app.db.repository import StyleScribeRepository, WorkflowRunRecord
 from backend.app.models.article_revision_models import ArticleRevisionResponse
 from backend.app.models.pasted_text_workflow_models import (
@@ -34,12 +35,21 @@ from backend.app.services.article_revision_service import (
     get_latest_article_revision,
     revise_article_grounding,
 )
+from backend.app.services.claim_integrity_service import (
+    assess_claim_integrity,
+    claim_integrity_markdown_lines,
+)
+from backend.app.services.customer_challenge_mapping_service import (
+    build_customer_challenge_mapping,
+    customer_challenge_mapping_markdown_lines,
+)
 from backend.app.services.draft_grounding_evaluation_service import (
     evaluate_draft_grounding,
     evaluate_revision_grounding,
 )
 from backend.app.services.google_signals_service import evaluate_google_signals
 from backend.app.services.grounded_brief_service import generate_grounded_brief
+from backend.app.services.model_clients.gemini_client import GeminiJsonClient
 from backend.app.services.model_clients.openai_client import (
     OpenAIClientError,
     OpenAIJsonClient,
@@ -565,6 +575,32 @@ def run_pasted_text_to_draft_workflow(
     if google_signals is not None:
         telemetry.record_model("google_signals", "google_signals_v1")
         telemetry.record_calls("google_signals", 1)
+    claim_integrity = assess_claim_integrity(
+        final_article=final_article,
+        grounded_brief=brief_response.brief,
+        source_text=processed.cleaned_text,
+    )
+    customer_challenge_mapping = build_customer_challenge_mapping(
+        initial_evaluation=(
+            evaluation_response.evaluation if evaluation_response else None
+        ),
+        final_evaluation=(
+            final_evaluation_response.evaluation
+            if final_evaluation_response
+            else None
+        ),
+        google_signals=(
+            google_signals.model_dump() if google_signals is not None else None
+        ),
+        length_status=quality_result.length_status,
+        length_recovery_attempted=length_recovery_attempted,
+        length_recovery_succeeded=length_recovery_succeeded,
+        section_coverage_status=section_coverage_status,
+        tamil_quality_status=quality_result.tamil_quality_status,
+        unsupported_claim_findings_count=unsupported_claim_findings_count,
+        unsupported_claims_unresolved_count=unsupported_claims_unresolved_count,
+        final_article_word_count=quality_result.final_article_word_count,
+    )
     warnings = _merge_warnings(
         cleanup_summary.warnings,
         brief_response.warnings,
@@ -624,6 +660,10 @@ def run_pasted_text_to_draft_workflow(
                 article_plan=(plan_response.__dict__ if plan_response else None),
                 generation_metadata={
                     **draft_generation_metadata,
+                    "generation_provider_used": _display_provider(
+                        draft_response.model_provider
+                    ),
+                    "generation_model_used": draft_response.model_name,
                     "desired_word_count": desired_word_count,
                     "target_min_word_count": _target_min(desired_word_count),
                     "target_max_word_count": _target_max(desired_word_count),
@@ -723,6 +763,8 @@ def run_pasted_text_to_draft_workflow(
                 google_signals=(
                     google_signals.model_dump() if google_signals is not None else None
                 ),
+                customer_challenge_mapping=customer_challenge_mapping.model_dump(),
+                claim_integrity=claim_integrity.model_dump(),
             ),
             telemetry=telemetry,
             telemetry_stage="export",
@@ -784,6 +826,9 @@ def run_pasted_text_to_draft_workflow(
         google_signals=(
             google_signals.model_dump() if google_signals is not None else None
         ),
+        customer_challenge_mapping=customer_challenge_mapping,
+        claim_integrity=claim_integrity,
+        claim_integrity_status=claim_integrity.claim_integrity_status,
         article_plan_used=plan_response is not None,
         plan_id=plan_response.plan_id if plan_response else None,
         desired_word_count=desired_word_count,
@@ -913,6 +958,7 @@ def run_pasted_text_to_draft_workflow(
         export_paths=export_paths,
         warnings=warnings,
         workflow_mode=workflow_mode,
+        generation_provider_used=_display_provider(draft_response.model_provider),
         **_response_telemetry_fields(telemetry, perf_counter() - workflow_started),
     )
     _save_workflow_run(repo, response, source_text, article_type, desired_word_count)
@@ -964,7 +1010,19 @@ def _run_stage(
     return result
 
 
-def _stage_client(stage: str, missing_key_message: str) -> OpenAIJsonClient:
+def _stage_client(stage: str, missing_key_message: str) -> StructuredJsonClient:
+    if stage == "generation":
+        provider = get_settings().article_generation_model_provider.lower()
+        if provider == "gemini":
+            return GeminiJsonClient(
+                missing_key_message=(
+                    "GEMINI_API_KEY is required for article draft generation."
+                )
+            )
+        if provider != "openai":
+            raise OpenAIClientError(
+                "ARTICLE_GENERATION_MODEL_PROVIDER must be 'openai' or 'gemini'."
+            )
     return OpenAIJsonClient(
         model_name=resolve_stage_model(stage),
         missing_key_message=missing_key_message,
@@ -1345,6 +1403,8 @@ def _save_workflow_run(
         "export_paths": response.export_paths,
         "plan_id": response.plan_id,
         "generation_mode_used": response.generation_mode_used,
+        "generation_provider_used": response.generation_provider_used,
+        "generation_model_used": response.generation_model_used,
         "original_draft_source": response.original_draft_source,
         "section_assembled_article_word_count": (
             response.section_assembled_article_word_count
@@ -1369,6 +1429,15 @@ def _save_workflow_run(
         "google_signals_version": response.google_signals_version,
         "google_signals": response.google_signals,
         "google_signals_error": response.google_signals_error,
+        "customer_challenge_mapping": (
+            response.customer_challenge_mapping.model_dump()
+            if response.customer_challenge_mapping
+            else None
+        ),
+        "claim_integrity": (
+            response.claim_integrity.model_dump() if response.claim_integrity else None
+        ),
+        "claim_integrity_status": response.claim_integrity_status,
         "unsupported_claim_findings_count": response.unsupported_claim_findings_count,
         "unsupported_claim_patch_count": response.unsupported_claim_patch_count,
         "unsupported_claim_patches_applied_count": (
@@ -1405,11 +1474,20 @@ def _export_review(
     brief: dict[str, object],
     draft: dict[str, object],
     evaluation: dict[str, object] | None,
+    customer_challenge_mapping: dict[str, object] | None = None,
+    claim_integrity: dict[str, object] | None = None,
 ) -> list[str]:
     REVIEW_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     suffix = "html" if export_format == "html" else "md"
     output_path = REVIEW_OUTPUT_DIR / f"{workflow_id}_pasted_text_review.{suffix}"
-    markdown = _render_markdown(cleaned_source_excerpt, brief, draft, evaluation)
+    markdown = _render_markdown(
+        cleaned_source_excerpt,
+        brief,
+        draft,
+        evaluation,
+        customer_challenge_mapping=customer_challenge_mapping,
+        claim_integrity=claim_integrity,
+    )
     content = _render_html(markdown) if export_format == "html" else markdown
     output_path.write_text(content, encoding="utf-8")
     return [str(output_path)]
@@ -1420,6 +1498,8 @@ def _render_markdown(
     brief: dict[str, object],
     draft: dict[str, object],
     evaluation: dict[str, object] | None,
+    customer_challenge_mapping: dict[str, object] | None = None,
+    claim_integrity: dict[str, object] | None = None,
 ) -> str:
     lines = [
         "# Pasted Text Workflow Review",
@@ -1475,6 +1555,12 @@ def _render_markdown(
         lines.extend(
             f"  - {item}" for item in _list_value(evaluation.get("rewrite_guidance"))
         )
+    if customer_challenge_mapping:
+        lines.extend(
+            customer_challenge_mapping_markdown_lines(customer_challenge_mapping)
+        )
+    if claim_integrity:
+        lines.extend(claim_integrity_markdown_lines(claim_integrity))
     return "\n".join(lines) + "\n"
 
 
@@ -1582,6 +1668,17 @@ def _list_value(value: object) -> list[object]:
 
 def _dict_value(value: object) -> dict[str, object]:
     return value if isinstance(value, dict) else {}
+
+
+def _display_provider(provider: str | None) -> str | None:
+    if provider is None:
+        return None
+    normalized = provider.strip().lower()
+    if normalized == "openai":
+        return "OpenAI"
+    if normalized == "gemini":
+        return "Gemini"
+    return provider
 
 
 def _dict_number(values: object, key: str) -> float | None:

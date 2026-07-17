@@ -60,6 +60,8 @@ class AuthorComparisonOutput(BaseModel):
     generated_subheadline: str | None = None
     article_body: str
     word_count: int
+    generation_provider_used: str | None = None
+    generation_model_used: str | None = None
     grounding_score: int | None = None
     final_readiness: str | None = None
     blockers: list[Any] = Field(default_factory=list)

@@ -72,9 +72,33 @@ and a Tamil-friendly font stack.
 
 ## Current Limitations
 
-- OpenAI is the only model provider used.
+- The main application workflow still uses OpenAI for non-generation stages.
+- The standalone benchmark runner can use OpenAI, Gemini, or Grok for article
+  generation only.
 - The MVP is Tamil-focused.
-- Sprint 7 improves OpenAI prompt quality before Qwen/Gemma comparison.
-- QC scoring, Qwen/Gemma comparison, and multi-model selection are planned for a
-  later sprint.
+- Multi-model benchmark comparison is saved-output based and does not add a new
+  subjective LLM judge.
+- Automated multi-model selection is still planned for a later sprint.
 - No UI is included.
+
+## Benchmark 10 Trace
+
+Date: 2026-07-17
+
+The generation benchmark uses one provider/model per run and reuses the same
+source input, grounded brief, article plan, author profile, prompts, desired
+word count, tone, article type, and workflow controls for each input.
+
+Supported benchmark generation models:
+
+- OpenAI: `gpt-5.5`
+- Gemini: `gemini-3.5-flash`
+- Grok: `grok-4.20-0309-non-reasoning`
+
+Benchmark root:
+
+- `comparison/benchmark_10`
+
+Current three-model comparison HTML:
+
+- `comparison/benchmark_10/comparisons/index.html`

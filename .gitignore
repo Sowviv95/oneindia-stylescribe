@@ -23,3 +23,7 @@ sample_data/author_context/
 # Local manual test inputs and outputs
 manual_tests/
 manual_tests_11d_manual/
+
+comparison/
+gemini_smoke_test.py
+scripts/smoke_test_grok.py

@@ -278,8 +278,28 @@ curl -X POST http://127.0.0.1:8000/workflows/pasted-text-to-draft `
 For direct grounded brief generation from pasted website text, use
 `source_input_mode: "pasted_web_text"` with `POST /briefs/grounded`.
 
-See [docs/pasted_text_workflow.md](docs/pasted_text_workflow.md). Qwen/Gemma
-comparison is planned after this workflow is stable.
+See [docs/pasted_text_workflow.md](docs/pasted_text_workflow.md).
+
+## Benchmark 10 Multi-Model Comparison
+
+The standalone benchmark runner supports saved-output raw generation comparison
+for:
+
+- Gemini: `gemini-3.5-flash`
+- OpenAI: `gpt-5.5`
+- Grok: `grok-4.20-0309-non-reasoning`
+
+Benchmark artifacts are under `comparison/benchmark_10`. The current
+three-model HTML comparison report is:
+
+- `comparison/benchmark_10/comparisons/index.html`
+
+Trace notes are maintained in:
+
+- `comparison/comparison_change_log.md`
+- `comparison/benchmark_10/README.md`
+- `docs/article_drafts.md`
+- `docs/architecture.md`
 
 Manual Sprint 10 request file:
 

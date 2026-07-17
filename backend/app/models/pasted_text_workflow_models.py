@@ -4,6 +4,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from backend.app.models.claim_integrity_models import ClaimIntegrityReport
+from backend.app.models.customer_challenge_mapping_models import (
+    CustomerChallengeMappingReport,
+)
 from backend.app.models.google_signals_models import GoogleSignalsComponentScore
 
 ExportFormat = Literal["md", "markdown", "html"]
@@ -91,6 +95,9 @@ class PastedTextWorkflowResponse(BaseModel):
     google_signals_metadata: dict[str, Any] | None = None
     google_signals_error: str | None = None
     google_signals: dict[str, Any] | None = None
+    customer_challenge_mapping: CustomerChallengeMappingReport | None = None
+    claim_integrity: ClaimIntegrityReport | None = None
+    claim_integrity_status: str | None = None
     article_plan_used: bool = False
     plan_id: str | None = None
     desired_word_count: int | None = None
@@ -179,6 +186,7 @@ class PastedTextWorkflowResponse(BaseModel):
     export_runtime_seconds: float | None = None
     model_used_by_stage: dict[str, Any] = Field(default_factory=dict)
     planning_model_used: str | None = None
+    generation_provider_used: str | None = None
     generation_model_used: str | None = None
     revision_model_used: str | None = None
     evaluation_model_used: str | None = None

@@ -27,6 +27,7 @@ from backend.app.services.pasted_text_workflow_service import (
     _brief_summary,
     _cleanup_summary,
     _dict_value,
+    _display_provider,
     _draft_generation_metadata,
     _evaluation_readiness_reasons,
     _evaluation_summary,
@@ -340,6 +341,7 @@ def _run_author_branch(
     evaluation_summary = _evaluation_summary(evaluation_response.evaluation)
     branch_telemetry = {
         "plan_model": plan_response.model_name,
+        "generation_provider": _display_provider(draft_response.model_provider),
         "generation_model": draft_response.model_name,
         "evaluation_model": evaluation_response.model_name,
         "plan_token_usage": plan_response.token_usage,
@@ -399,6 +401,8 @@ def _run_author_branch(
         ),
         article_body=str(draft_response.draft.get("article_body") or ""),
         word_count=quality.final_article_word_count,
+        generation_provider_used=_display_provider(draft_response.model_provider),
+        generation_model_used=draft_response.model_name,
         grounding_score=evaluation_summary.grounding_score,
         final_readiness=readiness.readiness,
         blockers=readiness.blockers,
