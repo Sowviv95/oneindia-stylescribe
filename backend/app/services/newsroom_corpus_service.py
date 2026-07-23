@@ -55,6 +55,11 @@ class ArticleRecord:
     subheadline: str | None
     body_text: str
     paragraph_sequence: list[str]
+    paragraph_metadata: list[dict[str, object]]
+    headline_status: str
+    subheadline_status: str
+    structure_confidence: str
+    headline_candidate: str | None
     total_word_count: int
     char_count: int
 
@@ -292,6 +297,11 @@ def _article_record(
         subheadline=extracted.subheadline,
         body_text=extracted.body_text,
         paragraph_sequence=extracted.paragraphs,
+        paragraph_metadata=extracted.paragraph_metadata,
+        headline_status=extracted.headline_status,
+        subheadline_status=extracted.subheadline_status,
+        structure_confidence=extracted.structure_confidence,
+        headline_candidate=extracted.headline_candidate,
         total_word_count=extracted.word_count,
         char_count=extracted.char_count,
     )
