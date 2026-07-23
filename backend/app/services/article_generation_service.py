@@ -30,6 +30,25 @@ PROMPT_PATH = Path(__file__).parents[1] / "prompts" / "article_generation_prompt
 SECTION_PROMPT_PATH = (
     Path(__file__).parents[1] / "prompts" / "article_section_generation_prompt.txt"
 )
+NEWSROOM_V1_PROMPT_DIR = Path(__file__).parents[1] / "prompts" / "newsroom_v1"
+NEWSROOM_V1_PROMPT_PATH = NEWSROOM_V1_PROMPT_DIR / "runtime_prompt.txt"
+NEWSROOM_V1_METADATA_PATH = NEWSROOM_V1_PROMPT_DIR / "prompt_metadata.json"
+NEWSROOM_PROMPT_VERSION_PATHS = {
+    "oneindia_newsroom_v1.0": (
+        NEWSROOM_V1_PROMPT_PATH,
+        NEWSROOM_V1_METADATA_PATH,
+    ),
+    "oneindia_newsroom_v1.1_length_calibrated": (
+        Path(__file__).parents[1]
+        / "prompts"
+        / "newsroom_v1_1_length_calibrated"
+        / "runtime_prompt.txt",
+        Path(__file__).parents[1]
+        / "prompts"
+        / "newsroom_v1_1_length_calibrated"
+        / "prompt_metadata.json",
+    ),
+}
 MIN_EXPECTED_SECTION_OUTPUT_WORDS = 45
 
 
@@ -174,6 +193,105 @@ def generate_article_draft(
     return _draft_response(record, draft, warnings)
 
 
+def generate_newsroom_article_draft(
+    author_id: str,
+    brief_id: str,
+    author_instruction: str | None = None,
+    target_language: str = "ta",
+    article_type: str | None = None,
+    desired_word_count: int | None = None,
+    tone_override: str | None = None,
+    include_seo: bool = True,
+    plan_id: str | None = None,
+    repository: StyleScribeRepository | None = None,
+    model_client: StructuredJsonClient | None = None,
+    input_identifier: str | None = None,
+    git_commit: str | None = None,
+    newsroom_prompt_version: str = "oneindia_newsroom_v1.0",
+) -> ArticleDraftResponse:
+    """Generate a generic newsroom draft without loading an author profile."""
+
+    repo = repository or StyleScribeRepository()
+    repo.initialize_schema()
+    brief_record = repo.fetch_grounded_brief(brief_id)
+    if brief_record is None:
+        message = f"No grounded brief found for brief_id: {brief_id}"
+        raise ArticleGenerationError(message)
+    plan_record = repo.fetch_article_plan(plan_id) if plan_id else None
+    if plan_id and plan_record is None:
+        raise ArticleGenerationError(f"No article plan found for plan_id: {plan_id}")
+
+    resolved_article_type = article_type or "news"
+    resolved_word_count = desired_word_count or 600
+    warnings = _build_newsroom_warnings(
+        brief_record=brief_record,
+        target_language=target_language,
+        desired_word_count=resolved_word_count,
+    )
+    draft_client = model_client or OpenAIJsonClient(
+        missing_key_message="OPENAI_API_KEY is required for article draft generation."
+    )
+    prompt_path, _metadata_path = _newsroom_prompt_paths(newsroom_prompt_version)
+    prompt = prompt_path.read_text(encoding="utf-8")
+    metadata = _newsroom_prompt_metadata(newsroom_prompt_version)
+    user_payload = build_newsroom_generation_input(
+        brief_record=brief_record,
+        author_instruction=author_instruction,
+        target_language=target_language,
+        article_type=resolved_article_type,
+        desired_word_count=resolved_word_count,
+        tone_override=tone_override,
+        include_seo=include_seo,
+        plan_record=plan_record,
+        prompt_metadata=metadata,
+    )
+
+    try:
+        draft = _generate_structured_json(
+            draft_client,
+            prompt,
+            user_payload,
+            prompt_cache_key=_prompt_cache_key("newsroom-v1", user_payload),
+        )
+        draft = _normalize_plan_based_draft(draft, plan_record)
+        draft = _annotate_newsroom_generation_metadata(
+            draft,
+            prompt_metadata=metadata,
+            provider=draft_client.provider,
+            model=draft_client.model_name,
+            input_identifier=input_identifier,
+            git_commit=git_commit,
+        )
+    except OpenAIClientError:
+        raise
+    except Exception as exc:
+        raise ArticleGenerationError(
+            "Newsroom article draft generation failed."
+        ) from exc
+
+    created_at = datetime.now(UTC).isoformat()
+    record = ArticleDraftRecord(
+        draft_id=str(uuid4()),
+        author_id=author_id,
+        profile_id=str(metadata["newsroom_profile_version"]),
+        brief_id=brief_id,
+        target_language=target_language,
+        model_provider=draft_client.provider,
+        model_name=draft_client.model_name,
+        status="completed",
+        author_instruction=author_instruction,
+        article_type=resolved_article_type,
+        desired_word_count=resolved_word_count,
+        tone_override=tone_override,
+        include_seo=include_seo,
+        draft_json=StyleScribeRepository.encode_json(draft),
+        warnings_json=StyleScribeRepository.encode_warnings(warnings),
+        created_at=created_at,
+    )
+    repo.save_article_draft(record)
+    return _draft_response(record, draft, warnings)
+
+
 def get_article_draft(
     draft_id: str,
     repository: StyleScribeRepository | None = None,
@@ -279,6 +397,132 @@ def build_article_generation_input(
             "content must meet the target range when the brief supports it."
         )
     return json.dumps(payload, ensure_ascii=False)
+
+
+def build_newsroom_generation_input(
+    brief_record: GroundedBriefRecord,
+    author_instruction: str | None,
+    target_language: str,
+    article_type: str = "news",
+    desired_word_count: int = 600,
+    tone_override: str | None = None,
+    include_seo: bool = True,
+    plan_record: ArticlePlanRecord | None = None,
+    prompt_metadata: dict[str, object] | None = None,
+) -> str:
+    """Build separated fact/editorial input for generic newsroom generation."""
+
+    metadata = prompt_metadata or _newsroom_prompt_metadata()
+    payload: dict[str, object] = {
+        "target_language": target_language,
+        "article_type": article_type,
+        "desired_word_count": desired_word_count,
+        "article_body_target_word_count_range": {
+            "minimum_75_percent": int(desired_word_count * 0.75),
+            "target": desired_word_count,
+            "maximum_115_percent": int(desired_word_count * 1.15),
+        },
+        "tone_override": tone_override,
+        "include_seo": include_seo,
+        "author_instruction": author_instruction,
+        "prompt_version": metadata["prompt_version"],
+        "newsroom_profile_version": metadata["newsroom_profile_version"],
+        "factual_source_brief": {
+            "brief_id": brief_record.brief_id,
+            "source_language": brief_record.source_language,
+            "target_language": brief_record.target_language,
+            "brief": StyleScribeRepository.decode_json_object(
+                brief_record.brief_json
+            ),
+        },
+        "generic_newsroom_editorial_rules": {
+            "voice": (
+                "Natural Oneindia Tamil newsroom voice; no individual author imitation."
+            ),
+            "opening": (
+                "Use a fact-dense opening lede when supported. Do not treat "
+                "source headline candidates as confirmed editorial headlines."
+            ),
+            "sequencing": (
+                "Order the main fact first, then supporting details, attribution, "
+                "context/background and reader relevance when supported."
+            ),
+            "paragraphs": "Use compact paragraphs; avoid one-paragraph summaries.",
+            "attribution": (
+                "Use reported speech and direct quotations only when present in "
+                "the factual source brief."
+            ),
+            "caution": (
+                "Use cautious phrasing only for source-supported uncertainty, "
+                "expectation or prediction."
+            ),
+            "phrase_bank_policy": (
+                "Frequent newsroom constructions are optional, not required. "
+                "Do not force phrase-bank wording into the article."
+            ),
+        },
+        "length_control": {
+            "requested_target_words": desired_word_count,
+            "target_range": {
+                "minimum": int(desired_word_count * 0.75),
+                "target": desired_word_count,
+                "maximum": int(desired_word_count * 1.15),
+            },
+            "rule": (
+                "Use the target range when source-supported facts, attribution, "
+                "timeline, affected groups, context or plan sections provide "
+                "enough material. Never add filler or unsupported context."
+            ),
+        },
+        "optional_topic_guidance": {
+            "rule": (
+                "Use topic guidance only when source facts clearly support the "
+                "topic; otherwise write as general news."
+            )
+        },
+        "output_schema": {
+            "required_fields": [
+                "headline",
+                "subheadline",
+                "article_body",
+                "article_sections",
+                "seo_title",
+                "meta_description",
+                "suggested_tags",
+                "fact_usage_notes",
+                "style_usage_notes",
+            ]
+        },
+        "prohibited_behaviours": [
+            "Do not invent facts, dates, numbers, quotes, names or context.",
+            "Do not imitate any individual corpus author.",
+            "Do not add retrieval, external references or unsupported background.",
+            "Do not force place-led openings, quotations or stock phrases.",
+            "Do not write literal English-to-Tamil translation prose.",
+            "Do not use fact-bearing phrase-bank terms unless present in the brief.",
+        ],
+        "separation_rule": (
+            "factual_source_brief is the only factual layer. Editorial rules "
+            "control structure and tone only."
+        ),
+    }
+    if plan_record is not None:
+        payload["grounded_article_plan"] = {
+            "plan_id": plan_record.plan_id,
+            "target_min_word_count": plan_record.target_min_word_count,
+            "target_max_word_count": plan_record.target_max_word_count,
+            "planned_sections": StyleScribeRepository.decode_json_list(
+                plan_record.planned_sections_json
+            ),
+            "expansion_items_used": StyleScribeRepository.decode_json_list(
+                plan_record.expansion_items_used_json
+            ),
+            "claims_to_avoid": StyleScribeRepository.decode_json_list(
+                plan_record.claims_to_avoid_json
+            ),
+            "plan_summary": plan_record.plan_summary,
+        }
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
 def build_article_generation_length_recovery_input(
@@ -1434,6 +1678,84 @@ def _build_warnings(
             "Grounded brief may be too thin to support a long article without padding."
         )
     return warnings
+
+
+def _build_newsroom_warnings(
+    brief_record: GroundedBriefRecord,
+    target_language: str,
+    desired_word_count: int,
+) -> list[str]:
+    warnings: list[str] = []
+    brief_warnings = StyleScribeRepository.decode_json_list(brief_record.warnings_json)
+    warnings.extend(f"Grounded brief warning: {warning}" for warning in brief_warnings)
+    if target_language != "ta":
+        warnings.append(
+            "Newsroom v1 article draft generation is Tamil-focused; "
+            "target_language is not ta."
+        )
+    brief = StyleScribeRepository.decode_json_object(brief_record.brief_json)
+    confirmed_facts = brief.get("confirmed_facts")
+    fact_count = len(confirmed_facts) if isinstance(confirmed_facts, list) else 0
+    if desired_word_count >= 800 and fact_count < 5:
+        warnings.append(
+            "Grounded brief may be too thin to support a long article without padding."
+        )
+    return warnings
+
+
+def _newsroom_prompt_metadata(
+    newsroom_prompt_version: str = "oneindia_newsroom_v1.0",
+) -> dict[str, object]:
+    _prompt_path, metadata_path = _newsroom_prompt_paths(newsroom_prompt_version)
+    return StyleScribeRepository.decode_json_object(
+        metadata_path.read_text(encoding="utf-8")
+    )
+
+
+def _newsroom_prompt_paths(newsroom_prompt_version: str) -> tuple[Path, Path]:
+    paths = NEWSROOM_PROMPT_VERSION_PATHS.get(newsroom_prompt_version)
+    if paths is None:
+        raise ArticleGenerationError(
+            f"Unsupported newsroom prompt version: {newsroom_prompt_version}"
+        )
+    return paths
+
+
+def _annotate_newsroom_generation_metadata(
+    draft: dict[str, object],
+    *,
+    prompt_metadata: dict[str, object],
+    provider: str,
+    model: str,
+    input_identifier: str | None,
+    git_commit: str | None,
+) -> dict[str, object]:
+    annotated = dict(draft)
+    annotated["generation_mode"] = "newsroom_v1"
+    annotated["generation_prompt_version"] = prompt_metadata["prompt_version"]
+    annotated["newsroom_profile_version"] = prompt_metadata[
+        "newsroom_profile_version"
+    ]
+    annotated["generation_metadata"] = {
+        "generation_mode": "newsroom_v1",
+        "prompt_version": prompt_metadata["prompt_version"],
+        "provider": provider,
+        "model": model,
+        "git_commit": git_commit,
+        "newsroom_profile_version": prompt_metadata["newsroom_profile_version"],
+        "input_identifier": input_identifier,
+    }
+    notes = annotated.get("style_usage_notes")
+    if isinstance(notes, list):
+        annotated["style_usage_notes"] = [
+            *notes,
+            "Used generic Oneindia Tamil newsroom v1 guidance; no author profile.",
+        ]
+    else:
+        annotated["style_usage_notes"] = [
+            "Used generic Oneindia Tamil newsroom v1 guidance; no author profile."
+        ]
+    return annotated
 
 
 def _draft_response(

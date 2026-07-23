@@ -1,0 +1,13 @@
+{
+  "prompt_version": "oneindia_newsroom_v1.0",
+  "newsroom_profile_version": "oneindia_tamil_generic_newsroom_sprint2",
+  "generation_mode": "newsroom_v1",
+  "profile_artifacts": [
+    "data/newsroom_corpus/reports/oneindia_tamil_newsroom_style_guide.md",
+    "data/newsroom_corpus/reports/oneindia_tamil_newsroom_profile.json",
+    "data/newsroom_corpus/reports/preferred_phrase_bank.csv",
+    "data/newsroom_corpus/reports/phrase_review_list.csv",
+    "data/newsroom_corpus/reports/structural_pattern_report.csv",
+    "data/newsroom_corpus/reports/author_commonality_report.csv"
+  ]
+}

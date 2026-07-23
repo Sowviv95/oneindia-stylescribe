@@ -381,6 +381,223 @@ def test_same_canonical_article_is_persisted_to_response_and_html(monkeypatch, t
     assert response["generated_tamil_article"] in html
 
 
+def test_legacy_generation_mode_is_default_and_uses_legacy_directory(tmp_path: Path) -> None:
+    manifest_path = _prepared_manifest(tmp_path)
+
+    dry_run = runner.generate_command(
+        SimpleNamespace(
+            provider="gemini",
+            model="gemini-3.5-flash",
+            manifest=str(manifest_path),
+            output_dir=str(tmp_path / "bench"),
+            input_id="input_01",
+            start_from=None,
+            max_inputs=None,
+            resume=False,
+            overwrite=False,
+            dry_run=True,
+        )
+    )
+
+    response_path = dry_run["output_paths"]["input_01"]["response"]
+    assert dry_run["generation_mode"] == "legacy"
+    assert dry_run["prompt_version"] == runner.LEGACY_PROMPT_VERSION
+    assert "newsroom_v1" not in response_path
+    assert response_path.endswith("gemini_3_5_flash\\input_01\\response.json")
+
+
+def test_newsroom_v1_uses_separate_prompt_and_directory(tmp_path: Path) -> None:
+    manifest_path = _prepared_manifest(tmp_path)
+
+    dry_run = runner.generate_command(
+        SimpleNamespace(
+            provider="gemini",
+            model="gemini-3.5-flash",
+            generation_mode="newsroom_v1",
+            manifest=str(manifest_path),
+            output_dir=str(tmp_path / "bench"),
+            input_id="input_01",
+            start_from=None,
+            max_inputs=None,
+            resume=False,
+            overwrite=False,
+            dry_run=True,
+        )
+    )
+
+    response_path = dry_run["output_paths"]["input_01"]["response"]
+    assert dry_run["generation_mode"] == "newsroom_v1"
+    assert dry_run["prompt_version"] == "oneindia_newsroom_v1.0"
+    assert dry_run["newsroom_profile_version"] == (
+        "oneindia_tamil_generic_newsroom_sprint2"
+    )
+    assert "newsroom_v1_gemini_gemini_3_5_flash" in response_path
+
+
+def test_newsroom_v1_length_calibrated_uses_version_specific_directory(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _prepared_manifest(tmp_path)
+
+    dry_run = runner.generate_command(
+        SimpleNamespace(
+            provider="gemini",
+            model="gemini-3.5-flash",
+            generation_mode="newsroom_v1",
+            newsroom_prompt_version="oneindia_newsroom_v1.1_length_calibrated",
+            manifest=str(manifest_path),
+            output_dir=str(tmp_path / "bench"),
+            input_id="input_01",
+            start_from=None,
+            max_inputs=None,
+            resume=False,
+            overwrite=False,
+            dry_run=True,
+        )
+    )
+
+    response_path = dry_run["output_paths"]["input_01"]["response"]
+    assert dry_run["prompt_version"] == "oneindia_newsroom_v1.1_length_calibrated"
+    assert "oneindia_newsroom_v1_1_length_calibrated_gemini" in response_path
+
+
+def test_newsroom_v1_calls_newsroom_generator_not_legacy_generator(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manifest_path = _prepared_manifest(tmp_path)
+    calls = {"newsroom": 0, "legacy": 0}
+    monkeypatch.setattr(
+        runner,
+        "make_generation_client",
+        lambda provider, model: _Client("gemini", model),
+    )
+    monkeypatch.setattr(
+        runner,
+        "OpenAIJsonClient",
+        lambda *args, **kwargs: _Client("openai", "eval"),
+    )
+
+    def legacy_generation(**kwargs):
+        calls["legacy"] += 1
+        raise AssertionError("legacy generator should not be used")
+
+    def newsroom_generation(**kwargs):
+        calls["newsroom"] += 1
+        assert kwargs["input_identifier"] == "input_01"
+        return _draft_response("newsroom-draft", article_field="article_body")
+
+    monkeypatch.setattr(runner, "generate_article_draft", legacy_generation)
+    monkeypatch.setattr(runner, "generate_newsroom_article_draft", newsroom_generation)
+    monkeypatch.setattr(
+        runner,
+        "evaluate_draft_grounding",
+        lambda draft_id, **kwargs: _evaluation_response(),
+    )
+    monkeypatch.setattr(runner, "_current_git_commit", lambda: "abc123")
+
+    runner.generate_command(
+        SimpleNamespace(
+            provider="gemini",
+            model="gemini-3.5-flash",
+            generation_mode="newsroom_v1",
+            manifest=str(manifest_path),
+            output_dir=str(tmp_path / "bench"),
+            input_id="input_01",
+            start_from=None,
+            max_inputs=None,
+            resume=False,
+            overwrite=False,
+            dry_run=False,
+        )
+    )
+
+    response = runner._read_json(
+        tmp_path
+        / "bench"
+        / "newsroom_v1_gemini_gemini_3_5_flash"
+        / "input_01"
+        / "response.json"
+    )
+    assert calls == {"newsroom": 1, "legacy": 0}
+    assert response["generation_mode"] == "newsroom_v1"
+    assert response["prompt_version"] == "oneindia_newsroom_v1.0"
+    assert response["git_commit"] == "abc123"
+
+
+def test_prompt_comparison_manifest_is_deterministic_for_modes(tmp_path: Path) -> None:
+    manifest_path = _prepared_manifest(tmp_path)
+    bench = manifest_path.parents[1]
+    entry = runner._read_json(manifest_path)["inputs"][0]
+    _write_saved_model_output(
+        bench,
+        entry,
+        provider="gemini",
+        model="gemini-3.5-flash",
+        headline="Legacy headline",
+        subheadline="Legacy subheadline",
+        article="legacy article",
+        runtime=8,
+        generation_cost=0.0001,
+        grounding_score=80,
+        readiness="safe_to_review",
+    )
+    _write_saved_model_output(
+        bench,
+        entry,
+        provider="gemini",
+        model="gemini-3.5-flash",
+        headline="Newsroom headline",
+        subheadline="Newsroom subheadline",
+        article="newsroom article",
+        runtime=7,
+        generation_cost=0.0002,
+        grounding_score=84,
+        readiness="safe_to_review",
+        generation_mode="newsroom_v1",
+    )
+
+    runner.build_comparison_command(
+        SimpleNamespace(
+            output_dir=str(bench),
+            left_provider="gemini",
+            left_model="gemini-3.5-flash",
+            left_generation_mode="legacy",
+            right_provider="gemini",
+            right_model="gemini-3.5-flash",
+            right_generation_mode="newsroom_v1",
+            third_provider=None,
+            third_model=None,
+        )
+    )
+    first_manifest = runner._read_json(
+        bench / "comparisons" / "benchmark_manifest.json"
+    )
+    runner.build_comparison_command(
+        SimpleNamespace(
+            output_dir=str(bench),
+            left_provider="gemini",
+            left_model="gemini-3.5-flash",
+            left_generation_mode="legacy",
+            right_provider="gemini",
+            right_model="gemini-3.5-flash",
+            right_generation_mode="newsroom_v1",
+            third_provider=None,
+            third_model=None,
+        )
+    )
+    second_manifest = runner._read_json(
+        bench / "comparisons" / "benchmark_manifest.json"
+    )
+
+    assert first_manifest["models"][0]["generation_mode"] == "legacy"
+    assert first_manifest["models"][1]["generation_mode"] == "newsroom_v1"
+    assert first_manifest["input_ids"] == second_manifest["input_ids"]
+    assert first_manifest["models"] == second_manifest["models"]
+    assert (bench / "comparisons" / "aggregate_metrics.json").exists()
+    assert (bench / "comparisons" / "sprint2_benchmark_report.md").exists()
+
+
 def test_word_count_is_calculated_from_article_text() -> None:
     draft = _draft_response("draft", article_field="article_body")
 
@@ -1340,8 +1557,9 @@ def _write_saved_model_output(
     readiness: str | None,
     status: str = "completed",
     error_message: str | None = None,
+    generation_mode: str = "legacy",
 ) -> None:
-    model_dir = bench / runner.safe_model_dir(model)
+    model_dir = runner._generation_model_dir(bench, provider, model, generation_mode)
     input_dir = model_dir / entry["input_id"]
     input_dir.mkdir(parents=True, exist_ok=True)
     response = {
@@ -1353,6 +1571,18 @@ def _write_saved_model_output(
         "plan_id": entry["plan_id"],
         "provider": provider,
         "generation_model": model,
+        "generation_mode": generation_mode,
+        "prompt_version": (
+            "oneindia_newsroom_v1.0"
+            if generation_mode == "newsroom_v1"
+            else runner.LEGACY_PROMPT_VERSION
+        ),
+        "newsroom_profile_version": (
+            "oneindia_tamil_generic_newsroom_sprint2"
+            if generation_mode == "newsroom_v1"
+            else None
+        ),
+        "git_commit": "abc123",
         "generated_headline": headline,
         "generated_subheadline": subheadline,
         "generated_tamil_article": article,
@@ -1383,6 +1613,18 @@ def _write_saved_model_output(
         "input_id": entry["input_id"],
         "provider": provider,
         "model": model,
+        "generation_mode": generation_mode,
+        "prompt_version": (
+            "oneindia_newsroom_v1.0"
+            if generation_mode == "newsroom_v1"
+            else runner.LEGACY_PROMPT_VERSION
+        ),
+        "newsroom_profile_version": (
+            "oneindia_tamil_generic_newsroom_sprint2"
+            if generation_mode == "newsroom_v1"
+            else None
+        ),
+        "git_commit": "abc123",
         "completion_status": status,
         "generation_runtime_seconds": runtime,
         "grounding_evaluation_runtime_seconds": 2,

@@ -102,3 +102,73 @@ Benchmark root:
 Current three-model comparison HTML:
 
 - `comparison/benchmark_10/comparisons/index.html`
+
+## Sprint 2 Newsroom V1 Benchmark Mode
+
+The standalone benchmark runner now has explicit generation modes:
+
+- `legacy`: default behavior; keeps the existing prompt and author-profile path.
+- `newsroom_v1`: generic Oneindia Tamil newsroom prompt version
+  `oneindia_newsroom_v1.0`; does not load an author style profile.
+
+Legacy Gemini remains independently runnable with the existing command shape:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_generation_benchmark.py generate `
+  --provider gemini `
+  --model gemini-3.5-flash `
+  --manifest comparison\newsroom_v1_prompt_comparison\shared\manifest.json `
+  --output-dir comparison\newsroom_v1_prompt_comparison
+```
+
+Run the separate newsroom prompt path explicitly:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_generation_benchmark.py generate `
+  --provider gemini `
+  --model gemini-3.5-flash `
+  --generation-mode newsroom_v1 `
+  --manifest comparison\newsroom_v1_prompt_comparison\shared\manifest.json `
+  --output-dir comparison\newsroom_v1_prompt_comparison
+```
+
+Run the optional length-calibrated newsroom prompt variant:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_generation_benchmark.py generate `
+  --provider gemini `
+  --model gemini-3.5-flash `
+  --generation-mode newsroom_v1 `
+  --newsroom-prompt-version oneindia_newsroom_v1.1_length_calibrated `
+  --manifest comparison\newsroom_v1_prompt_comparison\shared\manifest.json `
+  --output-dir comparison\newsroom_v1_prompt_comparison
+```
+
+Build the same-model prompt comparison:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_generation_benchmark.py build-comparison `
+  --output-dir comparison\newsroom_v1_prompt_comparison `
+  --left-provider gemini `
+  --left-model gemini-3.5-flash `
+  --left-generation-mode legacy `
+  --right-provider gemini `
+  --right-model gemini-3.5-flash `
+  --right-generation-mode newsroom_v1
+```
+
+Build the editorial review pack:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_newsroom_editorial_review_pack.py `
+  --comparison-root comparison\newsroom_v1_prompt_comparison
+```
+
+Mode-specific outputs are isolated under the benchmark root:
+
+- `gemini_3_5_flash/` for legacy Gemini
+- `newsroom_v1_gemini_gemini_3_5_flash/` for newsroom v1 Gemini
+- `oneindia_newsroom_v1_1_length_calibrated_gemini_gemini_3_5_flash/` for
+  the optional v1.1 length-calibrated subset
+- `comparisons/` for side-by-side HTML and aggregate prompt-comparison data
+- `editorial_review_pack/` for source-coverage and editor-review artifacts
