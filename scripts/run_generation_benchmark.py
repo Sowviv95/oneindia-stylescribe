@@ -9,6 +9,7 @@ import json
 import sys
 import threading
 import traceback
+from subprocess import DEVNULL, check_output
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal, ROUND_HALF_UP
@@ -26,7 +27,11 @@ from backend.app.services.docx_extractor import (  # noqa: E402
     DocxExtractionError,
     extract_docx_text,
 )
-from backend.app.services.article_generation_service import generate_article_draft  # noqa: E402
+from backend.app.services.article_generation_service import (  # noqa: E402
+    NEWSROOM_PROMPT_VERSION_PATHS,
+    generate_article_draft,
+    generate_newsroom_article_draft,
+)
 from backend.app.services.article_plan_service import generate_article_plan  # noqa: E402
 from backend.app.services.draft_grounding_evaluation_service import evaluate_draft_grounding  # noqa: E402
 from backend.app.services.grounded_brief_service import generate_grounded_brief  # noqa: E402
@@ -53,6 +58,9 @@ COST_ASSUMPTIONS = [
     "No tool-call charges included",
     "Gemini thinking tokens priced as output where included in provider usage",
 ]
+GENERATION_MODES = {"legacy", "newsroom_v1"}
+LEGACY_PROMPT_VERSION = "legacy_article_generation_prompt"
+DEFAULT_NEWSROOM_PROMPT_VERSION = "oneindia_newsroom_v1.0"
 
 SUPPORTED_MODELS: dict[str, set[str]] = {
     "gemini": {"gemini-3.5-flash", "gemini-3.5-flash-lite"},
@@ -65,6 +73,10 @@ SUMMARY_FIELDS = [
     "input_id",
     "provider",
     "model",
+    "generation_mode",
+    "prompt_version",
+    "newsroom_profile_version",
+    "git_commit",
     "status",
     "source_title",
     "source_language",
@@ -197,6 +209,16 @@ def _build_parser() -> argparse.ArgumentParser:
     generate = subparsers.add_parser("generate")
     generate.add_argument("--provider", required=True)
     generate.add_argument("--model", required=True)
+    generate.add_argument(
+        "--generation-mode",
+        choices=sorted(GENERATION_MODES),
+        default="legacy",
+    )
+    generate.add_argument(
+        "--newsroom-prompt-version",
+        choices=sorted(NEWSROOM_PROMPT_VERSION_PATHS),
+        default=DEFAULT_NEWSROOM_PROMPT_VERSION,
+    )
     generate.add_argument("--manifest", required=True)
     generate.add_argument("--output-dir", required=True)
     generate.add_argument("--input-id")
@@ -212,12 +234,28 @@ def _build_parser() -> argparse.ArgumentParser:
     recalculate.add_argument("--output-dir", required=True)
     comparison = subparsers.add_parser("build-comparison")
     comparison.add_argument("--output-dir", required=True)
+    comparison.add_argument("--comparisons-dir-name", default="comparisons")
     comparison.add_argument("--left-provider", required=True)
     comparison.add_argument("--left-model", required=True)
+    comparison.add_argument("--left-generation-mode", default="legacy")
+    comparison.add_argument(
+        "--left-newsroom-prompt-version",
+        default=DEFAULT_NEWSROOM_PROMPT_VERSION,
+    )
     comparison.add_argument("--right-provider", required=True)
     comparison.add_argument("--right-model", required=True)
+    comparison.add_argument("--right-generation-mode", default="legacy")
+    comparison.add_argument(
+        "--right-newsroom-prompt-version",
+        default=DEFAULT_NEWSROOM_PROMPT_VERSION,
+    )
     comparison.add_argument("--third-provider")
     comparison.add_argument("--third-model")
+    comparison.add_argument("--third-generation-mode", default="legacy")
+    comparison.add_argument(
+        "--third-newsroom-prompt-version",
+        default=DEFAULT_NEWSROOM_PROMPT_VERSION,
+    )
     return parser
 
 
@@ -299,6 +337,12 @@ def _prepare_input_manifest(
 def generate_command(args: argparse.Namespace) -> dict[str, Any]:
     provider = args.provider.strip().lower()
     model = args.model.strip()
+    generation_mode = _validate_generation_mode(
+        getattr(args, "generation_mode", "legacy")
+    )
+    newsroom_prompt_version = _validate_newsroom_prompt_version(
+        getattr(args, "newsroom_prompt_version", DEFAULT_NEWSROOM_PROMPT_VERSION)
+    )
     validate_provider_model(provider, model)
     manifest = load_prepared_manifest(Path(args.manifest))
     output_dir = Path(args.output_dir)
@@ -308,11 +352,24 @@ def generate_command(args: argparse.Namespace) -> dict[str, Any]:
         start_from=args.start_from,
         max_inputs=args.max_inputs,
     )
-    model_dir = output_dir / safe_model_dir(model)
+    model_dir = _generation_model_dir(
+        output_dir,
+        provider,
+        model,
+        generation_mode,
+        newsroom_prompt_version=newsroom_prompt_version,
+    )
+    prompt_metadata = _generation_prompt_metadata(
+        generation_mode,
+        newsroom_prompt_version=newsroom_prompt_version,
+    )
     dry_run = {
         "mode": "generate",
         "provider": provider,
         "model": model,
+        "generation_mode": generation_mode,
+        "prompt_version": prompt_metadata["prompt_version"],
+        "newsroom_profile_version": prompt_metadata.get("newsroom_profile_version"),
         "selected_input_ids": selection.input_ids,
         "output_paths": {
             entry["input_id"]: _model_output_paths(model_dir, entry["input_id"])
@@ -346,6 +403,7 @@ def generate_command(args: argparse.Namespace) -> dict[str, Any]:
                 entry,
                 provider,
                 model,
+                generation_mode,
             )
         ):
             print(
@@ -380,14 +438,16 @@ def generate_command(args: argparse.Namespace) -> dict[str, Any]:
             stage=stage,
             operation=(
                 lambda current_entry=entry, current_stage=stage: _generate_one(
-                    current_entry,
-                    provider,
-                    model,
-                    output_dir,
-                    client,
-                    eval_client,
-                    progress_stage=current_stage,
-                )
+                        current_entry,
+                        provider,
+                        model,
+                        output_dir,
+                        client,
+                        eval_client,
+                        generation_mode=generation_mode,
+                        newsroom_prompt_version=newsroom_prompt_version,
+                        progress_stage=current_stage,
+                    )
             ),
         )
         console_records.append(
@@ -913,11 +973,78 @@ def safe_model_dir(model: str) -> str:
     return "".join(char.lower() if char.isalnum() else "_" for char in model).strip("_")
 
 
+def _validate_generation_mode(mode: str) -> str:
+    normalized = str(mode or "legacy").strip().lower()
+    if normalized not in GENERATION_MODES:
+        raise BenchmarkError(f"Unsupported generation mode: {mode}")
+    return normalized
+
+
+def _validate_newsroom_prompt_version(version: str) -> str:
+    normalized = str(version or DEFAULT_NEWSROOM_PROMPT_VERSION).strip()
+    if normalized not in NEWSROOM_PROMPT_VERSION_PATHS:
+        raise BenchmarkError(f"Unsupported newsroom prompt version: {version}")
+    return normalized
+
+
+def _generation_model_dir(
+    output_dir: Path,
+    provider: str,
+    model: str,
+    generation_mode: str,
+    *,
+    newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
+) -> Path:
+    if generation_mode == "legacy":
+        return output_dir / safe_model_dir(model)
+    if newsroom_prompt_version != DEFAULT_NEWSROOM_PROMPT_VERSION:
+        version_slug = safe_model_dir(newsroom_prompt_version)
+        return output_dir / f"{version_slug}_{provider}_{safe_model_dir(model)}"
+    return output_dir / f"{generation_mode}_{provider}_{safe_model_dir(model)}"
+
+
+def _generation_prompt_metadata(
+    generation_mode: str,
+    *,
+    newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
+) -> dict[str, Any]:
+    if generation_mode == "legacy":
+        return {
+            "generation_mode": "legacy",
+            "prompt_version": LEGACY_PROMPT_VERSION,
+            "newsroom_profile_version": None,
+        }
+    if generation_mode == "newsroom_v1":
+        _prompt_path, metadata_path = NEWSROOM_PROMPT_VERSION_PATHS[
+            newsroom_prompt_version
+        ]
+        payload = _read_json(metadata_path)
+        return {
+            "generation_mode": "newsroom_v1",
+            "prompt_version": payload["prompt_version"],
+            "newsroom_profile_version": payload["newsroom_profile_version"],
+        }
+    raise BenchmarkError(f"Unsupported generation mode: {generation_mode}")
+
+
+def _current_git_commit() -> str | None:
+    try:
+        return check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            stderr=DEVNULL,
+            text=True,
+        ).strip()
+    except Exception:
+        return None
+
+
 def is_valid_completed_output(
     response_path: Path,
     entry: dict[str, Any],
     provider: str,
     model: str,
+    generation_mode: str = "legacy",
 ) -> bool:
     if not response_path.exists():
         return False
@@ -938,6 +1065,10 @@ def is_valid_completed_output(
         and bool(payload.get("generation_model"))
         and payload.get("provider") == provider
         and payload.get("generation_model") == model
+        and (
+            payload.get("generation_mode") == generation_mode
+            or (generation_mode == "legacy" and payload.get("generation_mode") is None)
+        )
         and payload.get("author_id") == entry.get("author_id")
         and payload.get("input_id") == entry.get("input_id")
         and payload.get("brief_id") == entry.get("brief_id")
@@ -1363,11 +1494,21 @@ def _generate_one(
     output_dir: Path,
     generation_client: Any,
     eval_client: OpenAIJsonClient,
+    *,
+    generation_mode: str = "legacy",
+    newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
     progress_stage: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if progress_stage is not None:
         progress_stage["value"] = "LOADING"
-    paths = _model_output_paths(output_dir / safe_model_dir(model), entry["input_id"])
+    model_dir = _generation_model_dir(
+        output_dir,
+        provider,
+        model,
+        generation_mode,
+        newsroom_prompt_version=newsroom_prompt_version,
+    )
+    paths = _model_output_paths(model_dir, entry["input_id"])
     input_dir = Path(paths["response"]).parent
     input_dir.mkdir(parents=True, exist_ok=True)
     started_at = _now()
@@ -1382,16 +1523,12 @@ def _generate_one(
         if progress_stage is not None:
             progress_stage["value"] = "GENERATION"
         generation_started = perf_counter()
-        draft = generate_article_draft(
-            author_id=entry["author_id"],
-            brief_id=entry["brief_id"],
-            author_instruction=entry["author_instruction"],
-            target_language=TARGET_LANGUAGE,
-            article_type=entry["article_type"],
-            desired_word_count=entry["desired_word_count"],
-            tone_override=entry["tone"],
-            plan_id=entry["plan_id"],
+        draft = _generate_draft_for_mode(
+            generation_mode=generation_mode,
+            entry=entry,
             model_client=generation_client,
+            git_commit=_current_git_commit(),
+            newsroom_prompt_version=newsroom_prompt_version,
         )
         generation_runtime = round(perf_counter() - generation_started, 3)
         canonical_article = extract_canonical_article(draft)
@@ -1426,6 +1563,11 @@ def _generate_one(
     word_count = canonical_article.word_count if canonical_article else None
     runtime_metadata = _request_metadata(provider, model, generation_client)
     draft_payload = _dict_value(draft_dict.get("draft"))
+    prompt_metadata = _generation_prompt_metadata(
+        generation_mode,
+        newsroom_prompt_version=newsroom_prompt_version,
+    )
+    git_commit = _current_git_commit()
     token_usage = _dict_value(draft_payload.get("token_usage"))
     eval_payload = _dict_value(evaluation_dict.get("evaluation"))
     eval_usage = _dict_value(eval_payload.get("token_usage"))
@@ -1456,6 +1598,11 @@ def _generate_one(
         "plan_id": entry["plan_id"],
         "provider": provider,
         "generation_model": model,
+        "generation_mode": generation_mode,
+        "prompt_version": prompt_metadata["prompt_version"],
+        "newsroom_profile_version": prompt_metadata.get("newsroom_profile_version"),
+        "git_commit": git_commit,
+        "input_identifier": entry["input_id"],
         "generated_headline": canonical_article.headline if canonical_article else _dict_value(draft_dict.get("draft")).get("headline"),
         "generated_subheadline": canonical_article.subheadline if canonical_article else _dict_value(draft_dict.get("draft")).get("subheadline"),
         "generated_tamil_article": article,
@@ -1505,6 +1652,11 @@ def _generate_one(
         "input_id": entry["input_id"],
         "provider": provider,
         "model": model,
+        "generation_mode": generation_mode,
+        "prompt_version": prompt_metadata["prompt_version"],
+        "newsroom_profile_version": prompt_metadata.get("newsroom_profile_version"),
+        "git_commit": git_commit,
+        "input_identifier": entry["input_id"],
         "experiment_type": EXPERIMENT_TYPE,
         "configured_timeout": runtime_metadata["timeout_seconds"],
         "temperature_mode": runtime_metadata["temperature_mode"],
@@ -1559,6 +1711,37 @@ def _request_metadata(provider: str, model: str, client: Any) -> dict[str, Any]:
         "temperature_requested": 0.1,
         "timeout_seconds": timeout,
     }
+
+
+def _generate_draft_for_mode(
+    *,
+    generation_mode: str,
+    entry: dict[str, Any],
+    model_client: Any,
+    git_commit: str | None,
+    newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
+) -> Any:
+    kwargs = {
+        "author_id": entry["author_id"],
+        "brief_id": entry["brief_id"],
+        "author_instruction": entry["author_instruction"],
+        "target_language": TARGET_LANGUAGE,
+        "article_type": entry["article_type"],
+        "desired_word_count": entry["desired_word_count"],
+        "tone_override": entry["tone"],
+        "plan_id": entry["plan_id"],
+        "model_client": model_client,
+    }
+    if generation_mode == "legacy":
+        return generate_article_draft(**kwargs)
+    if generation_mode == "newsroom_v1":
+        return generate_newsroom_article_draft(
+            **kwargs,
+            input_identifier=str(entry["input_id"]),
+            git_commit=git_commit,
+            newsroom_prompt_version=newsroom_prompt_version,
+        )
+    raise BenchmarkError(f"Unsupported generation mode: {generation_mode}")
 
 
 def extract_canonical_article(generation_response: Any) -> CanonicalArticle:
@@ -1636,6 +1819,10 @@ def _summary_row(response: dict[str, Any], telemetry: dict[str, Any], paths: dic
         "input_id": response.get("input_id"),
         "provider": response.get("provider"),
         "model": response.get("generation_model"),
+        "generation_mode": response.get("generation_mode"),
+        "prompt_version": response.get("prompt_version"),
+        "newsroom_profile_version": response.get("newsroom_profile_version"),
+        "git_commit": response.get("git_commit"),
         "status": response.get("completion_status"),
         "source_title": response.get("source_title"),
         "source_language": response.get("source_language"),
@@ -1731,23 +1918,87 @@ def build_comparison_command(args: argparse.Namespace) -> None:
     output_dir = Path(args.output_dir)
     manifest_path = output_dir / "shared" / "manifest.json"
     manifest = load_prepared_or_pending_manifest(manifest_path)
+    left_mode = _validate_generation_mode(
+        getattr(args, "left_generation_mode", "legacy")
+    )
+    right_mode = _validate_generation_mode(
+        getattr(args, "right_generation_mode", "legacy")
+    )
+    left_prompt_version = _validate_newsroom_prompt_version(
+        getattr(
+            args,
+            "left_newsroom_prompt_version",
+            DEFAULT_NEWSROOM_PROMPT_VERSION,
+        )
+    )
+    right_prompt_version = _validate_newsroom_prompt_version(
+        getattr(
+            args,
+            "right_newsroom_prompt_version",
+            DEFAULT_NEWSROOM_PROMPT_VERSION,
+        )
+    )
     models = [
-        ComparisonModel(args.left_provider, args.left_model, output_dir / safe_model_dir(args.left_model)),
-        ComparisonModel(args.right_provider, args.right_model, output_dir / safe_model_dir(args.right_model)),
+        ComparisonModel(
+            args.left_provider,
+            args.left_model,
+            _generation_model_dir(
+                output_dir,
+                args.left_provider,
+                args.left_model,
+                left_mode,
+                newsroom_prompt_version=left_prompt_version,
+            ),
+            left_mode,
+            left_prompt_version,
+        ),
+        ComparisonModel(
+            args.right_provider,
+            args.right_model,
+            _generation_model_dir(
+                output_dir,
+                args.right_provider,
+                args.right_model,
+                right_mode,
+                newsroom_prompt_version=right_prompt_version,
+            ),
+            right_mode,
+            right_prompt_version,
+        ),
     ]
     third_provider = getattr(args, "third_provider", None)
     third_model = getattr(args, "third_model", None)
     if bool(third_provider) != bool(third_model):
         raise BenchmarkError("--third-provider and --third-model must be provided together.")
     if third_provider and third_model:
+        third_mode = _validate_generation_mode(
+            getattr(args, "third_generation_mode", "legacy")
+        )
+        third_prompt_version = _validate_newsroom_prompt_version(
+            getattr(
+                args,
+                "third_newsroom_prompt_version",
+                DEFAULT_NEWSROOM_PROMPT_VERSION,
+            )
+        )
         models.append(
             ComparisonModel(
                 third_provider,
                 third_model,
-                output_dir / safe_model_dir(third_model),
+                _generation_model_dir(
+                    output_dir,
+                    third_provider,
+                    third_model,
+                    third_mode,
+                    newsroom_prompt_version=third_prompt_version,
+                ),
+                third_mode,
+                third_prompt_version,
             )
         )
-    comparisons_dir = output_dir / "comparisons"
+    comparisons_dir = output_dir / str(
+        getattr(args, "comparisons_dir_name", "comparisons")
+    )
     comparisons_dir.mkdir(parents=True, exist_ok=True)
 
     pages: list[dict[str, Any]] = []
@@ -1793,6 +2044,7 @@ def build_comparison_command(args: argparse.Namespace) -> None:
     print(f"Generated detail pages: {len(pages)}")
     print(f"Comparison integrity warnings: {warning_count}")
     print(f"Missing or failed model outputs: {missing_or_failed}")
+    _write_newsroom_prompt_comparison_artifacts(comparisons_dir, pages, models)
 
 
 @dataclass
@@ -1800,10 +2052,13 @@ class ComparisonModel:
     provider: str
     model: str
     model_dir: Path
+    generation_mode: str = "legacy"
+    newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION
 
     @property
     def label(self) -> str:
-        return f"{_provider_label(self.provider)}: {self.model}"
+        mode_label = "" if self.generation_mode == "legacy" else f" {self.generation_mode}"
+        return f"{_provider_label(self.provider)}{mode_label}: {self.model}"
 
 
 @dataclass
@@ -1908,6 +2163,204 @@ def _comparison_field(side: ComparisonOutput, field: str) -> object:
     if field in side.summary:
         return side.summary.get(field)
     return side.telemetry.get(field)
+
+
+def _write_newsroom_prompt_comparison_artifacts(
+    comparisons_dir: Path,
+    pages: list[dict[str, Any]],
+    models: list[ComparisonModel],
+) -> None:
+    manifest = {
+        "created_at": _now(),
+        "comparison_type": "prompt_only",
+        "models": [
+            {
+                "provider": model.provider,
+                "model": model.model,
+                "generation_mode": model.generation_mode,
+                "output_dir": str(model.model_dir),
+                **_generation_prompt_metadata(
+                    model.generation_mode,
+                    newsroom_prompt_version=model.newsroom_prompt_version,
+                ),
+            }
+            for model in models
+        ],
+        "input_ids": sorted(str(page["input_id"]) for page in pages),
+    }
+    per_input = [_comparison_data_row(page) for page in pages]
+    aggregate = _comparison_aggregate(models, per_input)
+    _write_json(comparisons_dir / "benchmark_manifest.json", manifest)
+    _write_json(comparisons_dir / "per_input_comparison.json", per_input)
+    _write_json(comparisons_dir / "aggregate_metrics.json", aggregate)
+    _write_text_atomic(
+        comparisons_dir / "sprint2_benchmark_report.md",
+        _sprint2_benchmark_report(manifest, aggregate),
+    )
+
+
+def _comparison_data_row(page: dict[str, Any]) -> dict[str, Any]:
+    outputs = page["outputs"]
+    return {
+        "input_id": page["input_id"],
+        "source_title": page.get("source_title"),
+        "integrity_warnings": page["integrity"],
+        "outputs": [
+            {
+                "provider": side.model.provider,
+                "model": side.model.model,
+                "generation_mode": side.model.generation_mode,
+                "status": side.status,
+                "headline": side.response.get("generated_headline"),
+                "word_count": side.response.get("word_count"),
+                "grounding_score": side.response.get("grounding_score"),
+                "unsupported_claim_count": len(
+                    _list_value(side.response.get("unsupported_claims"))
+                ),
+                "warning_count": len(_list_value(side.response.get("warnings"))),
+                "total_elapsed_runtime_seconds": side.telemetry.get(
+                    "total_elapsed_runtime_seconds"
+                ),
+                "prompt_tokens": _dict_value(
+                    _dict_value(side.telemetry.get("cost_breakdown")).get(
+                        "generation"
+                    )
+                ).get("prompt_tokens"),
+                "completion_tokens": _dict_value(
+                    _dict_value(side.telemetry.get("cost_breakdown")).get(
+                        "generation"
+                    )
+                ).get("completion_tokens"),
+                "estimated_cost_usd": _dict_value(
+                    _dict_value(side.telemetry.get("cost_breakdown")).get(
+                        "generation"
+                    )
+                ).get("total_cost_usd"),
+            }
+            for side in outputs
+        ],
+    }
+
+
+def _comparison_aggregate(
+    models: list[ComparisonModel],
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    aggregate_rows = []
+    for index, model in enumerate(models):
+        side_rows = [
+            row["outputs"][index]
+            for row in rows
+            if len(row.get("outputs", [])) > index
+        ]
+        completed = [
+            row for row in side_rows if row.get("status") == "completed"
+        ]
+        aggregate_rows.append(
+            {
+                "provider": model.provider,
+                "model": model.model,
+                "generation_mode": model.generation_mode,
+                "completed": len(completed),
+                "failed_or_missing": len(side_rows) - len(completed),
+                "average_grounding_score": _average_number(
+                    row.get("grounding_score") for row in completed
+                ),
+                "unsupported_additions": sum(
+                    _optional_int(row.get("unsupported_claim_count")) or 0
+                    for row in completed
+                ),
+                "average_word_count": _average_number(
+                    row.get("word_count") for row in completed
+                ),
+                "average_latency_seconds": _average_number(
+                    row.get("total_elapsed_runtime_seconds") for row in completed
+                ),
+                "prompt_tokens": sum(
+                    _optional_int(row.get("prompt_tokens")) or 0
+                    for row in completed
+                ),
+                "completion_tokens": sum(
+                    _optional_int(row.get("completion_tokens")) or 0
+                    for row in completed
+                ),
+                "estimated_cost_usd": _sum_decimal_strings(
+                    row.get("estimated_cost_usd") for row in completed
+                ),
+            }
+        )
+    return {
+        "created_at": _now(),
+        "input_count": len(rows),
+        "runs": aggregate_rows,
+    }
+
+
+def _sprint2_benchmark_report(
+    manifest: dict[str, Any],
+    aggregate: dict[str, Any],
+) -> str:
+    lines = [
+        "# Sprint 2 Newsroom V1 Prompt Comparison",
+        "",
+        "This is a prompt-only comparison. Automated metrics support review; "
+        "they are not editorial approval.",
+        "",
+        f"Inputs: {len(manifest['input_ids'])}",
+        "",
+        "## Runs",
+        "",
+    ]
+    for row in aggregate["runs"]:
+        lines.append(
+            "- "
+            f"{row['generation_mode']} {row['provider']} {row['model']}: "
+            f"completed={row['completed']}; failed_or_missing="
+            f"{row['failed_or_missing']}; avg_grounding="
+            f"{row['average_grounding_score']}; unsupported_additions="
+            f"{row['unsupported_additions']}; avg_latency_seconds="
+            f"{row['average_latency_seconds']}; prompt_tokens="
+            f"{row['prompt_tokens']}; completion_tokens="
+            f"{row['completion_tokens']}; estimated_cost_usd="
+            f"{row['estimated_cost_usd']}"
+        )
+    lines.extend(
+        [
+            "",
+            "## Review Note",
+            "",
+            "Tamil naturalness, translation-like phrasing, lede quality, "
+            "paragraph flow, attribution and repetition require human editorial "
+            "review of the side-by-side HTML.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def _average_number(values: object) -> float | None:
+    numeric = [
+        float(value)
+        for value in values
+        if isinstance(value, int | float) or str(value).replace(".", "", 1).isdigit()
+    ]
+    if not numeric:
+        return None
+    return round(sum(numeric) / len(numeric), 4)
+
+
+def _sum_decimal_strings(values: object) -> str | None:
+    total = Decimal("0")
+    seen = False
+    for value in values:
+        if value is None:
+            continue
+        try:
+            total += Decimal(str(value))
+            seen = True
+        except Exception:
+            continue
+    return _money(total) if seen else None
 
 
 def _comparison_detail_html(
@@ -2054,6 +2507,8 @@ def _article_column(side: ComparisonOutput) -> str:
       <article class="card article-card">
         <h2>{_html_text(_provider_label(side.model.provider))}</h2>
         <p class="model-name">{_html_text(side.model.model)}</p>
+        <p class="model-name">Mode: {_html_text(side.model.generation_mode)} | Prompt: {_html_text(_comparison_field(side, "prompt_version") or "Not available")}</p>
+        <p class="model-name">Profile: {_html_text(_comparison_field(side, "newsroom_profile_version") or "Not applicable")}</p>
         <h3>{_html_text(side.response.get("generated_headline"))}</h3>
         <p class="subheadline">{_html_text(side.response.get("generated_subheadline"))}</p>
         <p>{_badge(_grounding_score(side), "neutral")} {_readiness_badge(_readiness(side))}</p>
@@ -2903,6 +3358,10 @@ def _article_html(response: dict[str, Any], telemetry: dict[str, Any]) -> str:
     <div><strong>Source:</strong> {escape(str(response.get("source_title")))}</div>
     <div><strong>Provider:</strong> {escape(str(response.get("provider")))}</div>
     <div><strong>Model:</strong> {escape(str(response.get("generation_model")))}</div>
+    <div><strong>Generation mode:</strong> {escape(str(response.get("generation_mode") or "legacy"))}</div>
+    <div><strong>Prompt version:</strong> {escape(str(response.get("prompt_version") or "Not available"))}</div>
+    <div><strong>Newsroom profile:</strong> {escape(str(response.get("newsroom_profile_version") or "Not applicable"))}</div>
+    <div><strong>Git commit:</strong> {escape(str(response.get("git_commit") or "Not available"))}</div>
     <div><strong>Author:</strong> {escape(str(response.get("author_id")))}</div>
     <div><strong>Brief ID:</strong> <code>{escape(str(response.get("brief_id")))}</code></div>
     <div><strong>Plan ID:</strong> <code>{escape(str(response.get("plan_id")))}</code></div>

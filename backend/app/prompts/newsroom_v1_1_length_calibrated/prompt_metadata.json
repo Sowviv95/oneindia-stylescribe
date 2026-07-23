@@ -1,0 +1,7 @@
+{
+  "prompt_version": "oneindia_newsroom_v1.1_length_calibrated",
+  "newsroom_profile_version": "oneindia_tamil_generic_newsroom_sprint2",
+  "generation_mode": "newsroom_v1",
+  "base_prompt_version": "oneindia_newsroom_v1.0",
+  "calibration_focus": "target_length_without_padding"
+}
