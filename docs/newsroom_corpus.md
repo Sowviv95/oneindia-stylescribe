@@ -124,3 +124,26 @@ classification.
 First-pass topic classification uses deterministic Tamil/English keyword
 matching only. It is not semantic classification and should be treated as a
 triage aid for later corpus review.
+
+## Run Sprint 2 Newsroom Profile
+
+After Sprint 1 preparation exists, build the deterministic generic newsroom
+profile:
+
+```powershell
+python scripts/run_newsroom_corpus_extraction.py --mode newsroom-profile
+```
+
+Generated Sprint 2 outputs:
+
+- `data/newsroom_corpus/reports/oneindia_tamil_newsroom_style_guide.md`
+- `data/newsroom_corpus/reports/oneindia_tamil_newsroom_profile.json`
+- `data/newsroom_corpus/reports/preferred_phrase_bank.csv`
+- `data/newsroom_corpus/reports/phrase_review_list.csv`
+- `data/newsroom_corpus/reports/structural_pattern_report.csv`
+- `data/newsroom_corpus/reports/author_commonality_report.csv`
+- `data/newsroom_corpus/reports/newsroom_profile_evidence.jsonl`
+
+The profile uses accepted articles only. Headline candidates are treated as
+opening lede evidence, not as confirmed editorial headlines. Topic labels are
+weak metadata and are not used to force style conclusions.

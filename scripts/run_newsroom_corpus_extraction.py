@@ -26,6 +26,12 @@ from backend.app.services.newsroom_corpus_service import (  # noqa: E402
     CorpusPathConfig,
     run_newsroom_corpus_extraction,
 )
+from backend.app.services.newsroom_profile_service import (  # noqa: E402
+    DEFAULT_CLASSIFIED_ARTICLES_JSONL,
+    DEFAULT_CLEANED_ARTICLES_JSONL,
+    NewsroomProfilePathConfig,
+    run_newsroom_profile_analysis,
+)
 
 
 def main() -> None:
@@ -48,12 +54,14 @@ def main() -> None:
             "clean",
             "classify",
             "prepare",
+            "newsroom-profile",
             "full-run",
         ],
         default="extract",
         help=(
             "inventory/extract operate on DOCX files; profile/duplicates/clean/"
-            "classify/prepare use extracted articles.jsonl; full-run does both."
+            "classify/prepare use extracted articles.jsonl; newsroom-profile "
+            "uses cleaned/classified JSONL; full-run runs Sprint 1 only."
         ),
     )
     parser.add_argument("--inventory-only", action="store_true")
@@ -87,6 +95,7 @@ def main() -> None:
         "prepare",
         "full-run",
     }
+    newsroom_profile_mode = args.mode == "newsroom-profile"
 
     if args.inventory_only:
         extraction_mode = True
@@ -108,6 +117,21 @@ def main() -> None:
         )
         _print_summary("preparation", preparation_result.summary)
         _print_outputs(preparation_result.output_paths)
+
+    if newsroom_profile_mode:
+        profile_result = run_newsroom_profile_analysis(
+            NewsroomProfilePathConfig(
+                cleaned_articles_jsonl=(
+                    args.cleaned_dir / DEFAULT_CLEANED_ARTICLES_JSONL.name
+                ),
+                classified_articles_jsonl=(
+                    args.classified_dir / DEFAULT_CLASSIFIED_ARTICLES_JSONL.name
+                ),
+                reports_dir=args.reports_dir,
+            )
+        )
+        _print_summary("newsroom_profile", profile_result.summary)
+        _print_outputs(profile_result.output_paths)
 
 
 def _print_summary(label: str, summary: dict[str, int]) -> None:
