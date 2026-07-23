@@ -111,6 +111,20 @@ curl http://127.0.0.1:8000/authors/v_vasanthi/articles
 See [docs/ingestion.md](docs/ingestion.md) for details and metadata matching
 limitations.
 
+## Newsroom Corpus Extraction
+
+The Oneindia Tamil generic newsroom corpus foundation inventories and extracts
+local DOCX files without modifying raw sources:
+
+```powershell
+python scripts/run_newsroom_corpus_extraction.py --inventory-only
+python scripts/run_newsroom_corpus_extraction.py
+```
+
+Outputs are written under `data/newsroom_corpus/01_extracted`,
+`data/newsroom_corpus/03_rejected`, and `data/newsroom_corpus/reports`. See
+[docs/newsroom_corpus.md](docs/newsroom_corpus.md).
+
 ## Deterministic Style Snapshots
 
 After an author's articles are ingested, build an LLM-ready deterministic style
