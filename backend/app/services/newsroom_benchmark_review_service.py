@@ -13,11 +13,19 @@ from typing import Any
 
 
 @dataclass(frozen=True)
+class ReviewModeSpec:
+    mode_key: str
+    label: str
+    dir_name: str
+
+
+@dataclass(frozen=True)
 class ReviewPackConfig:
     comparison_root: Path
     legacy_dir_name: str = "gemini_3_5_flash"
     newsroom_dir_name: str = "newsroom_v1_gemini_gemini_3_5_flash"
     output_dir_name: str = "editorial_review_pack"
+    extra_modes: tuple[ReviewModeSpec, ...] = ()
 
 
 def generate_editorial_review_pack(config: ReviewPackConfig) -> dict[str, Path]:
@@ -53,17 +61,25 @@ def _review_case(config: ReviewPackConfig, entry: dict[str, Any]) -> dict[str, A
     input_id = str(entry["input_id"])
     brief = _read_json(Path(str(entry["brief_path"])))
     source = _brief_payload(brief)
-    legacy_path = config.comparison_root / config.legacy_dir_name / input_id
-    newsroom_path = config.comparison_root / config.newsroom_dir_name / input_id
-    legacy = _mode_review("legacy", legacy_path, entry, source)
-    newsroom = _mode_review("newsroom_v1", newsroom_path, entry, source)
+    mode_specs = _review_mode_specs(config)
+    modes = {
+        spec.mode_key: _mode_review(
+            spec.mode_key,
+            config.comparison_root / spec.dir_name / input_id,
+            entry,
+            source,
+        )
+        for spec in mode_specs
+    }
+    legacy = modes["legacy"]
+    newsroom = modes["newsroom_v1"]
     return {
         "input_id": input_id,
         "source_title": entry.get("source_title"),
         "source_path": entry.get("source_path"),
         "brief_path": entry.get("brief_path"),
-        "legacy_output_path": str(legacy_path / "response.json"),
-        "newsroom_v1_output_path": str(newsroom_path / "response.json"),
+        "legacy_output_path": legacy["response_path"],
+        "newsroom_v1_output_path": newsroom["response_path"],
         "requested_length": _target(entry),
         "source_brief": {
             "topic": source.get("topic"),
@@ -80,11 +96,22 @@ def _review_case(config: ReviewPackConfig, entry: dict[str, Any]) -> dict[str, A
             ),
         },
         "source_information_density": _information_density(source),
+        "mode_order": [spec.mode_key for spec in mode_specs],
+        "mode_labels": {spec.mode_key: spec.label for spec in mode_specs},
+        "modes": modes,
         "legacy": legacy,
         "newsroom_v1": newsroom,
         "comparison_notes": _comparison_notes(legacy, newsroom),
         "editorial_review_status": "pending",
     }
+
+
+def _review_mode_specs(config: ReviewPackConfig) -> tuple[ReviewModeSpec, ...]:
+    return (
+        ReviewModeSpec("legacy", "Legacy", config.legacy_dir_name),
+        ReviewModeSpec("newsroom_v1", "Newsroom v1", config.newsroom_dir_name),
+        *config.extra_modes,
+    )
 
 
 def _mode_review(
@@ -117,6 +144,17 @@ def _mode_review(
         "grounding_score": response.get("grounding_score"),
         "unsupported_claims": _list_value(response.get("unsupported_claims")),
         "warnings": _list_value(response.get("warnings")),
+        "claims_to_avoid_violations": _list_value(
+            response.get("claims_to_avoid_violations")
+        ),
+        "overclaim_phrases": _list_value(
+            evaluation.get("overclaim_phrases") or response.get("overclaims")
+        ),
+        "evaluation_diagnostics": response.get("evaluation_diagnostics"),
+        "retrieval_trace": response.get("retrieval_trace"),
+        "retrieval_leakage_diagnostic": response.get(
+            "retrieval_leakage_diagnostic"
+        ),
         "source_claims_covered": coverage["covered_claims"],
         "source_claims_omitted": coverage["omitted_claims"],
         "coverage_summary": {
@@ -277,7 +315,7 @@ def _review_html(cases: list[dict[str, Any]]) -> str:
   <style>
     body {{ font-family: Arial, sans-serif; margin: 24px; color: #1f2933; }}
     article {{ border: 1px solid #d8dee4; padding: 16px; margin: 0 0 24px; }}
-    .grid {{ display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 16px; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }}
     pre {{ white-space: pre-wrap; background: #f6f8fa; padding: 12px; }}
     textarea {{ width: 100%; min-height: 72px; }}
     table {{ border-collapse: collapse; width: 100%; }}
@@ -294,23 +332,37 @@ def _review_html(cases: list[dict[str, Any]]) -> str:
 
 def _case_html(case: dict[str, Any]) -> str:
     source = case["source_brief"]
-    legacy = case["legacy"]
-    newsroom = case["newsroom_v1"]
+    modes = _list_value(case.get("mode_order")) or ["legacy", "newsroom_v1"]
+    raw_labels = case.get("mode_labels")
+    labels = raw_labels if isinstance(raw_labels, dict) else {}
+    mode_html = "\n".join(
+        _mode_html(str(labels.get(mode_key) or mode_key), case["modes"][mode_key])
+        for mode_key in modes
+        if mode_key in case["modes"]
+    )
+    preferred_options = " / ".join(str(mode_key) for mode_key in modes) + " / neither"
     return f"""
 <article>
   <h2>{escape(str(case['input_id']))}: {escape(str(case.get('source_title') or ''))}</h2>
   <h3>Source Brief</h3>
   <pre>{escape(json.dumps(source, ensure_ascii=False, indent=2))}</pre>
   <div class="grid">
-    {_mode_html('Legacy', legacy)}
-    {_mode_html('Newsroom v1', newsroom)}
+    {mode_html}
   </div>
   <h3>Editorial Review Fields</h3>
   <table>
-    <tr><th>Preferred version</th><td>legacy / newsroom_v1 / neither</td></tr>
+    <tr><th>Preferred version</th><td>{escape(preferred_options)}</td></tr>
     <tr><th>Corrected publishable text</th><td><textarea></textarea></td></tr>
     <tr><th>Missing facts</th><td><textarea></textarea></td></tr>
     <tr><th>Unnecessary content</th><td><textarea></textarea></td></tr>
+    <tr><th>Supporting-detail quality</th><td><textarea></textarea></td></tr>
+    <tr><th>Attribution correction</th><td><textarea></textarea></td></tr>
+    <tr><th>Contextual sequencing</th><td><textarea></textarea></td></tr>
+    <tr><th>Background placement</th><td><textarea></textarea></td></tr>
+    <tr><th>Impact-framing concern</th><td><textarea></textarea></td></tr>
+    <tr><th>Factual correction</th><td><textarea></textarea></td></tr>
+    <tr><th>Copied wording</th><td><textarea></textarea></td></tr>
+    <tr><th>Factual leakage</th><td><textarea></textarea></td></tr>
     <tr><th>Unnatural Tamil</th><td><textarea></textarea></td></tr>
     <tr><th>Translation-like phrasing</th><td><textarea></textarea></td></tr>
     <tr><th>Headline correction</th><td><textarea></textarea></td></tr>
@@ -329,7 +381,7 @@ def _mode_html(label: str, mode: dict[str, Any]) -> str:
   <p><strong>Words:</strong> {mode.get('word_count')} | <strong>Variance:</strong> {mode.get('percent_variance_from_target')}%</p>
   <p><strong>Grounding:</strong> {mode.get('grounding_score')} | <strong>Assessment:</strong> {escape(str(mode.get('length_assessment')))}</p>
   <p><strong>Covered:</strong> {mode['coverage_summary']['covered_claim_count']} / {mode['coverage_summary']['source_claim_count']}</p>
-  <p><strong>Unsupported:</strong> {len(mode['unsupported_claims'])}</p>
+  <p><strong>Unsupported:</strong> {len(mode['unsupported_claims'])} | <strong>Overclaim:</strong> {len(mode['overclaim_phrases'])} | <strong>Leakage:</strong> {_dict_value(mode.get('retrieval_leakage_diagnostic')).get('finding_count')}</p>
   <p><a href="{escape(Path(mode['article_path']).as_posix())}">Article HTML</a> | <a href="{escape(Path(mode['response_path']).as_posix())}">Response JSON</a></p>
   <h4>Omitted Source Claims</h4>
   <pre>{escape(json.dumps(mode['source_claims_omitted'], ensure_ascii=False, indent=2))}</pre>
@@ -347,8 +399,9 @@ def _write_manifest_csv(path: Path, cases: list[dict[str, Any]]) -> None:
 def _write_length_csv(path: Path, cases: list[dict[str, Any]]) -> None:
     rows = []
     for case in cases:
-        for mode_key in ("legacy", "newsroom_v1"):
-            mode = case[mode_key]
+        mode_order = _list_value(case.get("mode_order")) or ["legacy", "newsroom_v1"]
+        for mode_key in mode_order:
+            mode = case["modes"][str(mode_key)]
             rows.append(
                 {
                     "input_id": case["input_id"],
@@ -382,9 +435,17 @@ def _write_review_sheet_csv(path: Path, cases: list[dict[str, Any]]) -> None:
                 "corrected_publishable_text": "",
                 "missing_facts": "",
                 "unnecessary_content": "",
+                "supporting_detail_quality": "",
+                "attribution_quality": "",
+                "contextual_sequencing": "",
+                "background_placement": "",
+                "impact_framing_concern": "",
+                "copied_wording": "",
+                "factual_leakage": "",
                 "unnatural_tamil": "",
                 "translation_like_phrasing": "",
                 "headline_correction": "",
+                "factual_correction": "",
                 "structural_correction": "",
                 "overall_editing_effort": "",
                 "reviewer_notes": "",
@@ -395,7 +456,7 @@ def _write_review_sheet_csv(path: Path, cases: list[dict[str, Any]]) -> None:
 
 
 def _flat_case_row(case: dict[str, Any]) -> dict[str, Any]:
-    return {
+    row = {
         "input_id": case["input_id"],
         "source_path": case.get("source_path"),
         "legacy_output_path": case["legacy_output_path"],
@@ -412,6 +473,20 @@ def _flat_case_row(case: dict[str, Any]) -> dict[str, Any]:
         "comparison_notes": "|".join(case["comparison_notes"]),
         "editorial_review_status": case["editorial_review_status"],
     }
+    for mode_key in _list_value(case.get("mode_order")):
+        mode_key = str(mode_key)
+        if mode_key in ("legacy", "newsroom_v1") or mode_key not in case["modes"]:
+            continue
+        mode = case["modes"][mode_key]
+        row[f"{mode_key}_output_path"] = mode["response_path"]
+        row[f"{mode_key}_words"] = mode["word_count"]
+        row[f"{mode_key}_grounding"] = mode["grounding_score"]
+        row[f"{mode_key}_unsupported"] = len(mode["unsupported_claims"])
+        row[f"{mode_key}_overclaim"] = len(mode["overclaim_phrases"])
+        row[f"{mode_key}_leakage"] = _dict_value(
+            mode.get("retrieval_leakage_diagnostic")
+        ).get("finding_count")
+    return row
 
 
 def _write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
@@ -461,6 +536,10 @@ def _int_or_none(value: object) -> int | None:
 
 def _list_value(value: object) -> list[Any]:
     return value if isinstance(value, list) else []
+
+
+def _dict_value(value: object) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
 
 
 def _list_of_dicts(value: object) -> list[dict[str, Any]]:

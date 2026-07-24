@@ -22,15 +22,18 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from backend.app.db.repository import StyleScribeRepository  # noqa: E402
+from backend.app.db.repository import GroundedBriefRecord, StyleScribeRepository  # noqa: E402
 from backend.app.services.docx_extractor import (  # noqa: E402
     DocxExtractionError,
     extract_docx_text,
 )
 from backend.app.services.article_generation_service import (  # noqa: E402
     NEWSROOM_PROMPT_VERSION_PATHS,
+    NEWSROOM_RETRIEVAL_PROMPT_VERSION_PATHS,
+    build_newsroom_retrieval_generation_input,
     generate_article_draft,
     generate_newsroom_article_draft,
+    generate_newsroom_retrieval_article_draft,
 )
 from backend.app.services.article_plan_service import generate_article_plan  # noqa: E402
 from backend.app.services.draft_grounding_evaluation_service import evaluate_draft_grounding  # noqa: E402
@@ -38,6 +41,21 @@ from backend.app.services.grounded_brief_service import generate_grounded_brief 
 from backend.app.services.model_clients.gemini_client import GeminiJsonClient  # noqa: E402
 from backend.app.services.model_clients.grok_client import GrokJsonClient  # noqa: E402
 from backend.app.services.model_clients.openai_client import OpenAIJsonClient, request_runtime_metadata  # noqa: E402
+from backend.app.services.newsroom_retrieval_service import (  # noqa: E402
+    DEFAULT_EMBEDDING_MODEL,
+    DEFAULT_EMBEDDING_PROVIDER,
+    DEFAULT_INDEX_PATH,
+    DEFAULT_RECORDS_PATH,
+    RetrievalRankingConfig,
+    build_or_load_index,
+    build_retrieval_query,
+    make_embedding_provider,
+    retrieve_examples,
+    topic_metadata_from_brief,
+)
+from backend.app.services.retrieval_leakage_diagnostic_service import (  # noqa: E402
+    run_retrieval_leakage_diagnostic,
+)
 from backend.app.services.tamil_quality_scanner import approximate_tamil_word_count  # noqa: E402
 from backend.app.services.workflow_telemetry import resolve_stage_model  # noqa: E402
 
@@ -58,9 +76,19 @@ COST_ASSUMPTIONS = [
     "No tool-call charges included",
     "Gemini thinking tokens priced as output where included in provider usage",
 ]
-GENERATION_MODES = {"legacy", "newsroom_v1"}
+GENERATION_MODES = {"legacy", "newsroom_v1", "newsroom_v1_retrieval"}
 LEGACY_PROMPT_VERSION = "legacy_article_generation_prompt"
 DEFAULT_NEWSROOM_PROMPT_VERSION = "oneindia_newsroom_v1.0"
+DEFAULT_RETRIEVAL_PROMPT_VERSION = "oneindia_newsroom_v1.0_retrieval_v1"
+IMPACT_GUARD_RETRIEVAL_PROMPT_VERSION = (
+    "oneindia_newsroom_v1.0_retrieval_v1_1_impact_guard"
+)
+RETRIEVAL_OPERATIONAL_FALLBACK_POLICY = {
+    "fallback_generation_mode": "newsroom_v1",
+    "fallback_newsroom_prompt_version": DEFAULT_NEWSROOM_PROMPT_VERSION,
+    "never_fallback_embedding_provider": "local_hashing",
+    "record_fallback_reason": True,
+}
 
 SUPPORTED_MODELS: dict[str, set[str]] = {
     "gemini": {"gemini-3.5-flash", "gemini-3.5-flash-lite"},
@@ -76,10 +104,18 @@ SUMMARY_FIELDS = [
     "generation_mode",
     "prompt_version",
     "newsroom_profile_version",
+    "retrieval_prompt_version",
+    "retrieval_index_version",
     "git_commit",
     "status",
     "source_title",
     "source_language",
+    "brief_topic",
+    "provisional_topic",
+    "provisional_topic_confidence",
+    "topic_low_confidence",
+    "topic_multi_category_conflict",
+    "topic_review_flag",
     "author_id",
     "brief_id",
     "plan_id",
@@ -94,6 +130,7 @@ SUMMARY_FIELDS = [
     "readiness",
     "unsupported_claim_count",
     "claims_to_avoid_violation_count",
+    "evaluation_anomaly_count",
     "blocker_count",
     "warning_count",
     "generation_runtime_seconds",
@@ -105,6 +142,13 @@ SUMMARY_FIELDS = [
     "total_tokens",
     "attempt_count",
     "retry_count",
+    "retrieval_index_load_seconds",
+    "retrieval_model_load_seconds",
+    "retrieval_latency_seconds",
+    "retrieved_article_ids",
+    "retrieved_authors",
+    "retrieval_leakage_finding_count",
+    "retrieval_leakage_status",
     "estimated_total_cost",
     "cost_status",
     "generation_prompt_tokens",
@@ -219,6 +263,29 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=sorted(NEWSROOM_PROMPT_VERSION_PATHS),
         default=DEFAULT_NEWSROOM_PROMPT_VERSION,
     )
+    generate.add_argument(
+        "--retrieval-prompt-version",
+        choices=sorted(NEWSROOM_RETRIEVAL_PROMPT_VERSION_PATHS),
+        default=DEFAULT_RETRIEVAL_PROMPT_VERSION,
+    )
+    generate.add_argument(
+        "--retrieval-index-path",
+        default=str(DEFAULT_INDEX_PATH),
+    )
+    generate.add_argument(
+        "--retrieval-records-path",
+        default=str(DEFAULT_RECORDS_PATH),
+    )
+    generate.add_argument("--embedding-provider", default=DEFAULT_EMBEDDING_PROVIDER)
+    generate.add_argument("--embedding-model", default=DEFAULT_EMBEDDING_MODEL)
+    generate.add_argument("--retrieval-top-k", type=int, default=3)
+    generate.add_argument("--candidate-pool-size", type=int, default=12)
+    generate.add_argument("--topic-boost", action="store_true")
+    generate.add_argument("--topic-boost-weight", type=float, default=0.05)
+    generate.add_argument("--max-examples-per-author", type=int, default=1)
+    generate.add_argument("--max-retrieval-context-chars", type=int, default=9000)
+    generate.add_argument("--rebuild-index", action="store_true")
+    generate.add_argument("--reuse-index", action="store_true")
     generate.add_argument("--manifest", required=True)
     generate.add_argument("--output-dir", required=True)
     generate.add_argument("--input-id")
@@ -242,6 +309,10 @@ def _build_parser() -> argparse.ArgumentParser:
         "--left-newsroom-prompt-version",
         default=DEFAULT_NEWSROOM_PROMPT_VERSION,
     )
+    comparison.add_argument(
+        "--left-retrieval-prompt-version",
+        default=DEFAULT_RETRIEVAL_PROMPT_VERSION,
+    )
     comparison.add_argument("--right-provider", required=True)
     comparison.add_argument("--right-model", required=True)
     comparison.add_argument("--right-generation-mode", default="legacy")
@@ -249,12 +320,20 @@ def _build_parser() -> argparse.ArgumentParser:
         "--right-newsroom-prompt-version",
         default=DEFAULT_NEWSROOM_PROMPT_VERSION,
     )
+    comparison.add_argument(
+        "--right-retrieval-prompt-version",
+        default=DEFAULT_RETRIEVAL_PROMPT_VERSION,
+    )
     comparison.add_argument("--third-provider")
     comparison.add_argument("--third-model")
     comparison.add_argument("--third-generation-mode", default="legacy")
     comparison.add_argument(
         "--third-newsroom-prompt-version",
         default=DEFAULT_NEWSROOM_PROMPT_VERSION,
+    )
+    comparison.add_argument(
+        "--third-retrieval-prompt-version",
+        default=DEFAULT_RETRIEVAL_PROMPT_VERSION,
     )
     return parser
 
@@ -343,6 +422,9 @@ def generate_command(args: argparse.Namespace) -> dict[str, Any]:
     newsroom_prompt_version = _validate_newsroom_prompt_version(
         getattr(args, "newsroom_prompt_version", DEFAULT_NEWSROOM_PROMPT_VERSION)
     )
+    retrieval_prompt_version = _validate_retrieval_prompt_version(
+        getattr(args, "retrieval_prompt_version", DEFAULT_RETRIEVAL_PROMPT_VERSION)
+    )
     validate_provider_model(provider, model)
     manifest = load_prepared_manifest(Path(args.manifest))
     output_dir = Path(args.output_dir)
@@ -358,19 +440,34 @@ def generate_command(args: argparse.Namespace) -> dict[str, Any]:
         model,
         generation_mode,
         newsroom_prompt_version=newsroom_prompt_version,
+        retrieval_prompt_version=retrieval_prompt_version,
     )
     prompt_metadata = _generation_prompt_metadata(
         generation_mode,
         newsroom_prompt_version=newsroom_prompt_version,
+        retrieval_prompt_version=getattr(
+            args,
+            "retrieval_prompt_version",
+            DEFAULT_RETRIEVAL_PROMPT_VERSION,
+        ),
     )
+    retrieval_options = _retrieval_options_from_args(args)
+    retrieval_dry_run = None
+    if generation_mode == "newsroom_v1_retrieval" and args.dry_run:
+        retrieval_dry_run = _retrieval_dry_run_payload(
+            entries=selection.entries,
+            options=retrieval_options,
+        )
     dry_run = {
         "mode": "generate",
         "provider": provider,
         "model": model,
         "generation_mode": generation_mode,
         "prompt_version": prompt_metadata["prompt_version"],
+        "retrieval_prompt_version": prompt_metadata.get("retrieval_prompt_version"),
         "newsroom_profile_version": prompt_metadata.get("newsroom_profile_version"),
         "selected_input_ids": selection.input_ids,
+        "retrieval": retrieval_dry_run,
         "output_paths": {
             entry["input_id"]: _model_output_paths(model_dir, entry["input_id"])
             for entry in selection.entries
@@ -387,6 +484,8 @@ def generate_command(args: argparse.Namespace) -> dict[str, Any]:
         model_name=resolve_stage_model("evaluation"),
         missing_key_message="OPENAI_API_KEY is required for draft evaluation.",
     )
+    if generation_mode == "newsroom_v1_retrieval":
+        _prepare_retrieval_runtime(retrieval_options)
     model_dir.mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, Any]] = _load_existing_summary_rows(model_dir)
     rows_by_input = {str(row.get("input_id")): row for row in rows}
@@ -446,6 +545,7 @@ def generate_command(args: argparse.Namespace) -> dict[str, Any]:
                         eval_client,
                         generation_mode=generation_mode,
                         newsroom_prompt_version=newsroom_prompt_version,
+                        retrieval_options=retrieval_options,
                         progress_stage=current_stage,
                     )
             ),
@@ -929,6 +1029,7 @@ def normalize_input_entry(raw: object, index: int) -> dict[str, Any]:
         "brief_path": raw.get("brief_path"),
         "plan_id": raw.get("plan_id"),
         "plan_path": raw.get("plan_path"),
+        "topic_metadata": raw.get("topic_metadata"),
         "shared_artifacts_status": raw.get("shared_artifacts_status") or "pending",
     }
 
@@ -987,6 +1088,13 @@ def _validate_newsroom_prompt_version(version: str) -> str:
     return normalized
 
 
+def _validate_retrieval_prompt_version(version: str) -> str:
+    normalized = str(version or DEFAULT_RETRIEVAL_PROMPT_VERSION).strip()
+    if normalized not in NEWSROOM_RETRIEVAL_PROMPT_VERSION_PATHS:
+        raise BenchmarkError(f"Unsupported retrieval prompt version: {version}")
+    return normalized
+
+
 def _generation_model_dir(
     output_dir: Path,
     provider: str,
@@ -994,9 +1102,17 @@ def _generation_model_dir(
     generation_mode: str,
     *,
     newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
+    retrieval_prompt_version: str = DEFAULT_RETRIEVAL_PROMPT_VERSION,
 ) -> Path:
     if generation_mode == "legacy":
         return output_dir / safe_model_dir(model)
+    if generation_mode == "newsroom_v1_retrieval":
+        if retrieval_prompt_version != DEFAULT_RETRIEVAL_PROMPT_VERSION:
+            version_slug = safe_model_dir(retrieval_prompt_version)
+            return output_dir / (
+                f"{generation_mode}_{version_slug}_{provider}_{safe_model_dir(model)}"
+            )
+        return output_dir / f"{generation_mode}_{provider}_{safe_model_dir(model)}"
     if newsroom_prompt_version != DEFAULT_NEWSROOM_PROMPT_VERSION:
         version_slug = safe_model_dir(newsroom_prompt_version)
         return output_dir / f"{version_slug}_{provider}_{safe_model_dir(model)}"
@@ -1007,6 +1123,7 @@ def _generation_prompt_metadata(
     generation_mode: str,
     *,
     newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
+    retrieval_prompt_version: str = DEFAULT_RETRIEVAL_PROMPT_VERSION,
 ) -> dict[str, Any]:
     if generation_mode == "legacy":
         return {
@@ -1022,6 +1139,18 @@ def _generation_prompt_metadata(
         return {
             "generation_mode": "newsroom_v1",
             "prompt_version": payload["prompt_version"],
+            "newsroom_profile_version": payload["newsroom_profile_version"],
+        }
+    if generation_mode == "newsroom_v1_retrieval":
+        _prompt_path, metadata_path = NEWSROOM_RETRIEVAL_PROMPT_VERSION_PATHS[
+            retrieval_prompt_version
+        ]
+        payload = _read_json(metadata_path)
+        return {
+            "generation_mode": "newsroom_v1_retrieval",
+            "prompt_version": payload["prompt_version"],
+            "base_prompt_version": payload["base_prompt_version"],
+            "retrieval_prompt_version": payload["retrieval_prompt_version"],
             "newsroom_profile_version": payload["newsroom_profile_version"],
         }
     raise BenchmarkError(f"Unsupported generation mode: {generation_mode}")
@@ -1439,6 +1568,10 @@ def _prepare_one(
         entry["brief_id"] = brief.brief_id
         entry["brief_path"] = str(shared_input_dir / "brief.json")
         _write_json(shared_input_dir / "brief.json", brief.model_dump(mode="json"))
+        entry["topic_metadata"] = topic_metadata_from_brief(
+            brief.brief,
+            input_id=str(entry["input_id"]),
+        )
 
         planning_started = perf_counter()
         plan = generate_article_plan(
@@ -1497,6 +1630,7 @@ def _generate_one(
     *,
     generation_mode: str = "legacy",
     newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
+    retrieval_options: dict[str, Any] | None = None,
     progress_stage: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if progress_stage is not None:
@@ -1507,6 +1641,12 @@ def _generate_one(
         model,
         generation_mode,
         newsroom_prompt_version=newsroom_prompt_version,
+        retrieval_prompt_version=str(
+            (retrieval_options or {}).get(
+                "retrieval_prompt_version",
+                DEFAULT_RETRIEVAL_PROMPT_VERSION,
+            )
+        ),
     )
     paths = _model_output_paths(model_dir, entry["input_id"])
     input_dir = Path(paths["response"]).parent
@@ -1515,6 +1655,8 @@ def _generate_one(
     total_started = perf_counter()
     generation_runtime = None
     evaluation_runtime = None
+    retrieval_trace: dict[str, Any] | None = None
+    retrieval_leakage: dict[str, Any] | None = None
     draft = None
     evaluation = None
     error: Exception | None = None
@@ -1529,6 +1671,7 @@ def _generate_one(
             model_client=generation_client,
             git_commit=_current_git_commit(),
             newsroom_prompt_version=newsroom_prompt_version,
+            retrieval_options=retrieval_options or {},
         )
         generation_runtime = round(perf_counter() - generation_started, 3)
         canonical_article = extract_canonical_article(draft)
@@ -1545,6 +1688,16 @@ def _generate_one(
             model_client=eval_client,
         )
         evaluation_runtime = round(perf_counter() - evaluation_started, 3)
+        draft_payload_for_trace = _dict_value(draft.model_dump(mode="json").get("draft"))
+        raw_trace = draft_payload_for_trace.get("retrieval_trace")
+        if isinstance(raw_trace, dict):
+            retrieval_trace = raw_trace
+            retrieval_leakage = _run_retrieval_leakage_for_entry(
+                entry,
+                article=canonical_article.article_body if canonical_article else "",
+                retrieval_trace=retrieval_trace,
+                retrieval_options=retrieval_options or {},
+            )
     except Exception as exc:
         error = exc
     total_runtime = round(perf_counter() - total_started, 3)
@@ -1566,7 +1719,14 @@ def _generate_one(
     prompt_metadata = _generation_prompt_metadata(
         generation_mode,
         newsroom_prompt_version=newsroom_prompt_version,
+        retrieval_prompt_version=str(
+            (retrieval_options or {}).get(
+                "retrieval_prompt_version",
+                DEFAULT_RETRIEVAL_PROMPT_VERSION,
+            )
+        ),
     )
+    topic_metadata = _topic_metadata_for_entry(entry)
     git_commit = _current_git_commit()
     token_usage = _dict_value(draft_payload.get("token_usage"))
     eval_payload = _dict_value(evaluation_dict.get("evaluation"))
@@ -1587,12 +1747,14 @@ def _generate_one(
         evaluation_usage=eval_usage,
     )
     generation_breakdown = cost_payload["cost_breakdown"]["generation"]
+    evaluation_diagnostics = _evaluation_anomaly_diagnostics(eval_payload)
     target_min = _optional_int(_read_plan(entry).get("target_min_word_count"))
     target_max = _optional_int(_read_plan(entry).get("target_max_word_count"))
     response = {
         "input_id": entry["input_id"],
         "source_title": entry["source_title"],
         "source_language": entry["source_language"],
+        "topic_metadata": topic_metadata,
         "author_id": entry["author_id"],
         "brief_id": entry["brief_id"],
         "plan_id": entry["plan_id"],
@@ -1600,6 +1762,7 @@ def _generate_one(
         "generation_model": model,
         "generation_mode": generation_mode,
         "prompt_version": prompt_metadata["prompt_version"],
+        "retrieval_prompt_version": prompt_metadata.get("retrieval_prompt_version"),
         "newsroom_profile_version": prompt_metadata.get("newsroom_profile_version"),
         "git_commit": git_commit,
         "input_identifier": entry["input_id"],
@@ -1620,6 +1783,9 @@ def _generate_one(
         "word_count_variance": _word_count_variance(word_count, entry["desired_word_count"]),
         "within_target_range": _within_range(word_count, target_min, target_max),
         "grounding_evaluation_result": eval_payload,
+        "retrieval_trace": retrieval_trace,
+        "retrieval_leakage_diagnostic": retrieval_leakage,
+        "evaluation_diagnostics": evaluation_diagnostics,
         "grounding_score": eval_payload.get("grounding_score"),
         "readiness": (
             eval_payload.get("readiness")
@@ -1654,9 +1820,11 @@ def _generate_one(
         "model": model,
         "generation_mode": generation_mode,
         "prompt_version": prompt_metadata["prompt_version"],
+        "retrieval_prompt_version": prompt_metadata.get("retrieval_prompt_version"),
         "newsroom_profile_version": prompt_metadata.get("newsroom_profile_version"),
         "git_commit": git_commit,
         "input_identifier": entry["input_id"],
+        "topic_metadata": topic_metadata,
         "experiment_type": EXPERIMENT_TYPE,
         "configured_timeout": runtime_metadata["timeout_seconds"],
         "temperature_mode": runtime_metadata["temperature_mode"],
@@ -1664,6 +1832,17 @@ def _generate_one(
         "start_timestamp": started_at,
         "completion_timestamp": completed_at,
         "generation_runtime_seconds": generation_runtime,
+        "retrieval_latency_seconds": (
+            retrieval_trace.get("retrieval_latency_seconds")
+            if retrieval_trace
+            else None
+        ),
+        "retrieval_index_load_seconds": (
+            retrieval_trace.get("index_load_seconds") if retrieval_trace else None
+        ),
+        "retrieval_model_load_seconds": (
+            retrieval_trace.get("model_load_seconds") if retrieval_trace else None
+        ),
         "grounding_evaluation_runtime_seconds": evaluation_runtime,
         "total_elapsed_runtime_seconds": total_runtime,
         "attempt_count": getattr(generation_client, "last_attempt_count", 1) or 1,
@@ -1681,6 +1860,9 @@ def _generate_one(
         "estimated_total_cost": generation_breakdown.get("total_cost_usd"),
         "cost_status": generation_breakdown.get("cost_status"),
         **cost_payload,
+        "retrieval_trace": retrieval_trace,
+        "retrieval_leakage_diagnostic": retrieval_leakage,
+        "evaluation_diagnostics": evaluation_diagnostics,
         "billable_failed_call_count": sum(
             1
             for row in generation_ledger
@@ -1702,6 +1884,49 @@ def _generate_one(
     return _summary_row(response, telemetry, paths)
 
 
+def _evaluation_anomaly_diagnostics(eval_payload: dict[str, Any]) -> dict[str, Any]:
+    anomalies: list[dict[str, Any]] = []
+    contradiction_markers = (
+        "directly supported",
+        "supported by the grounded brief",
+        "supported by the brief",
+        "not a violation",
+        "does not violate",
+        "no violation",
+    )
+    for index, finding in enumerate(
+        _list_value(eval_payload.get("claims_to_avoid_violations")),
+        start=1,
+    ):
+        if not isinstance(finding, dict):
+            continue
+        reason = str(finding.get("reason") or "")
+        explanation = " ".join(
+            str(finding.get(key) or "")
+            for key in ("reason", "explanation", "suggested_fix")
+        ).lower()
+        if any(marker in explanation for marker in contradiction_markers):
+            anomalies.append(
+                {
+                    "anomaly_type": "claims_to_avoid_self_contradiction",
+                    "finding_index": index,
+                    "raw_finding": finding,
+                    "severity": "review",
+                    "explanation": (
+                        "Evaluator marked a claims-to-avoid violation, but its "
+                        "own explanation appears to describe the claim as "
+                        "supported or not violating the rule."
+                    ),
+                    "reason_text": reason,
+                }
+            )
+    return {
+        "status": "review_required" if anomalies else "clear",
+        "anomaly_count": len(anomalies),
+        "anomalies": anomalies,
+    }
+
+
 def _request_metadata(provider: str, model: str, client: Any) -> dict[str, Any]:
     timeout = float(getattr(client, "timeout_seconds", 90.0))
     if provider == "openai":
@@ -1713,6 +1938,248 @@ def _request_metadata(provider: str, model: str, client: Any) -> dict[str, Any]:
     }
 
 
+def _retrieval_options_from_args(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        "retrieval_prompt_version": _validate_retrieval_prompt_version(
+            getattr(args, "retrieval_prompt_version", DEFAULT_RETRIEVAL_PROMPT_VERSION)
+        ),
+        "index_path": Path(str(getattr(args, "retrieval_index_path", DEFAULT_INDEX_PATH))),
+        "records_path": Path(
+            str(getattr(args, "retrieval_records_path", DEFAULT_RECORDS_PATH))
+        ),
+        "embedding_provider": str(
+            getattr(args, "embedding_provider", DEFAULT_EMBEDDING_PROVIDER)
+        ),
+        "embedding_model": str(
+            getattr(args, "embedding_model", DEFAULT_EMBEDDING_MODEL)
+        ),
+        "rebuild_index": bool(getattr(args, "rebuild_index", False)),
+        "reuse_index": bool(getattr(args, "reuse_index", False)),
+        "ranking_config": RetrievalRankingConfig(
+            top_k=int(getattr(args, "retrieval_top_k", 3)),
+            candidate_pool_size=int(getattr(args, "candidate_pool_size", 12)),
+            topic_boost_enabled=bool(getattr(args, "topic_boost", False)),
+            topic_boost_weight=float(getattr(args, "topic_boost_weight", 0.05)),
+            max_examples_per_author=int(
+                getattr(args, "max_examples_per_author", 1)
+            ),
+            max_context_chars=int(
+                getattr(args, "max_retrieval_context_chars", 9000)
+            ),
+        ),
+    }
+
+
+def _retrieval_dry_run_payload(
+    *,
+    entries: list[dict[str, Any]],
+    options: dict[str, Any],
+) -> dict[str, Any]:
+    _prepare_retrieval_runtime(options)
+    index = _retrieval_index(options)
+    previews = []
+    for entry in entries:
+        bundle = _retrieve_for_entry(entry, options, index=index)
+        prompt_preview = _retrieval_prompt_preview(entry, bundle, options)
+        trace = bundle["trace"]
+        previews.append(
+            {
+                "input_id": entry["input_id"],
+                "query_text": trace.get("query_text"),
+                "query_topic": trace.get("query_topic"),
+                "query_topic_confidence": trace.get("query_topic_confidence"),
+                "query_topic_low_confidence": trace.get("query_topic_low_confidence"),
+                "query_topic_conflict": trace.get("query_topic_conflict"),
+                "retrieved_article_ids": trace.get("retrieved_article_ids"),
+                "retrieved_authors": trace.get("retrieved_authors"),
+                "retrieved_topics": trace.get("retrieved_topics"),
+                "candidate_scores": trace.get("candidate_scores"),
+                "selected_scores": trace.get("selected_scores"),
+                "exclusions": trace.get("exclusions"),
+                "total_retrieval_context_size": trace.get(
+                    "total_retrieval_context_size"
+                ),
+                "prompt_preview": prompt_preview,
+            }
+        )
+    return {
+        "index_path": str(options["index_path"]),
+        "records_path": str(options["records_path"]),
+        "index_version": index.index_version,
+        "index_record_count": index.record_count,
+        "embedding_provider": index.embedding_provider,
+        "embedding_model": index.embedding_model,
+        "embedding_dimensions": index.embedding_dimensions,
+        "previews": previews,
+    }
+
+
+def _retrieval_index(options: dict[str, Any]) -> Any:
+    cached = options.get("_index")
+    if cached is not None:
+        return cached
+    rebuild = bool(options.get("rebuild_index")) and not bool(options.get("reuse_index"))
+    return build_or_load_index(
+        index_path=Path(options["index_path"]),
+        records_path=Path(options["records_path"]),
+        rebuild=rebuild,
+        embedding_provider=str(options["embedding_provider"]),
+        embedding_model=str(options["embedding_model"]),
+    )
+
+
+def _prepare_retrieval_runtime(options: dict[str, Any]) -> None:
+    if options.get("_index") is None:
+        started = perf_counter()
+        options["_index"] = _retrieval_index_without_cache(options)
+        options["_index_load_seconds"] = round(perf_counter() - started, 6)
+    if options.get("_embedding_provider") is None:
+        index = options["_index"]
+        started = perf_counter()
+        options["_embedding_provider"] = make_embedding_provider(
+            str(index.embedding_provider),
+            str(index.embedding_model),
+        )
+        options["_model_load_seconds"] = round(perf_counter() - started, 6)
+
+
+def _retrieval_index_without_cache(options: dict[str, Any]) -> Any:
+    rebuild = bool(options.get("rebuild_index")) and not bool(options.get("reuse_index"))
+    return build_or_load_index(
+        index_path=Path(options["index_path"]),
+        records_path=Path(options["records_path"]),
+        rebuild=rebuild,
+        embedding_provider=str(options["embedding_provider"]),
+        embedding_model=str(options["embedding_model"]),
+    )
+
+
+def _retrieve_for_entry(
+    entry: dict[str, Any],
+    options: dict[str, Any],
+    *,
+    index: Any | None = None,
+) -> dict[str, Any]:
+    resolved_index = index or _retrieval_index(options)
+    brief_record = _brief_record_from_entry(entry)
+    plan_payload = _read_plan(entry)
+    query = build_retrieval_query(
+        brief_record=brief_record,
+        article_type=str(entry["article_type"]),
+        plan_payload=plan_payload,
+    )
+    result = retrieve_examples(
+        index=resolved_index,
+        query=query,
+        config=options["ranking_config"],
+        embedding_provider=options.get("_embedding_provider"),
+        source_article_id=_optional_string(entry.get("source_article_id")),
+        source_text_hash=_optional_string(entry.get("source_text_hash")),
+        source_duplicate_cluster_id=_optional_string(
+            entry.get("source_duplicate_cluster_id")
+        ),
+        source_input_id=str(entry["input_id"]),
+    )
+    trace = {
+        **result.trace,
+        "retrieval_prompt_version": options["retrieval_prompt_version"],
+        "index_load_seconds": options.get("_index_load_seconds"),
+        "model_load_seconds": options.get("_model_load_seconds"),
+    }
+    return {
+        "records": result.selected_records,
+        "scores": result.selected_scores,
+        "trace": trace,
+        "query": result.query,
+    }
+
+
+def _retrieval_prompt_preview(
+    entry: dict[str, Any],
+    bundle: dict[str, Any],
+    options: dict[str, Any],
+) -> dict[str, Any]:
+    brief_record = _brief_record_from_entry(entry)
+    metadata = _generation_prompt_metadata(
+        "newsroom_v1_retrieval",
+        retrieval_prompt_version=str(options["retrieval_prompt_version"]),
+    )
+    payload = build_newsroom_retrieval_generation_input(
+        brief_record=brief_record,
+        author_instruction=str(entry["author_instruction"]),
+        target_language=TARGET_LANGUAGE,
+        article_type=str(entry["article_type"]),
+        desired_word_count=int(entry["desired_word_count"]),
+        tone_override=str(entry["tone"]),
+        plan_record=None,
+        prompt_metadata=metadata,
+        retrieved_records=bundle["records"],
+        retrieval_scores=bundle["scores"],
+        retrieval_trace=bundle["trace"],
+    )
+    prompt_path, _metadata_path = NEWSROOM_RETRIEVAL_PROMPT_VERSION_PATHS[
+        str(options["retrieval_prompt_version"])
+    ]
+    return {
+        "system_prompt_path": str(prompt_path),
+        "system_prompt": prompt_path.read_text(encoding="utf-8"),
+        "user_payload": json.loads(payload),
+    }
+
+
+def _brief_record_from_entry(entry: dict[str, Any]) -> GroundedBriefRecord:
+    brief_payload = _read_json(Path(str(entry["brief_path"])))
+    brief = _dict_value(brief_payload.get("brief"))
+    return GroundedBriefRecord(
+        brief_id=str(entry["brief_id"] or brief_payload.get("brief_id")),
+        source_type="benchmark",
+        source_input_hash="benchmark",
+        source_url=None,
+        source_text_excerpt="",
+        source_language=str(entry.get("source_language") or "unknown"),
+        target_language=TARGET_LANGUAGE,
+        model_provider=str(brief_payload.get("model_provider") or "unknown"),
+        model_name=str(brief_payload.get("model_name") or "unknown"),
+        status="completed",
+        brief_json=StyleScribeRepository.encode_json(brief),
+        warnings_json=StyleScribeRepository.encode_warnings([]),
+        created_at=str(brief_payload.get("created_at") or _now()),
+    )
+
+
+def _run_retrieval_leakage_for_entry(
+    entry: dict[str, Any],
+    *,
+    article: str,
+    retrieval_trace: dict[str, Any],
+    retrieval_options: dict[str, Any],
+) -> dict[str, Any]:
+    index = _retrieval_index(retrieval_options)
+    record_by_id = {record.article_id: record for record in index.records}
+    retrieved_records = [
+        record_by_id[article_id]
+        for article_id in _list_value(retrieval_trace.get("retrieved_article_ids"))
+        if article_id in record_by_id
+    ]
+    brief = _dict_value(_read_json(Path(str(entry["brief_path"]))).get("brief"))
+    return run_retrieval_leakage_diagnostic(
+        grounded_brief=brief,
+        generated_article=article,
+        retrieved_records=retrieved_records,
+    )
+
+
+def _topic_metadata_for_entry(entry: dict[str, Any]) -> dict[str, object]:
+    existing = entry.get("topic_metadata")
+    if isinstance(existing, dict):
+        return dict(existing)
+    try:
+        brief = _dict_value(_read_json(Path(str(entry["brief_path"]))).get("brief"))
+    except BenchmarkError:
+        return {}
+    return topic_metadata_from_brief(brief, input_id=str(entry["input_id"]))
+
+
 def _generate_draft_for_mode(
     *,
     generation_mode: str,
@@ -1720,6 +2187,7 @@ def _generate_draft_for_mode(
     model_client: Any,
     git_commit: str | None,
     newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION,
+    retrieval_options: dict[str, Any] | None = None,
 ) -> Any:
     kwargs = {
         "author_id": entry["author_id"],
@@ -1740,6 +2208,23 @@ def _generate_draft_for_mode(
             input_identifier=str(entry["input_id"]),
             git_commit=git_commit,
             newsroom_prompt_version=newsroom_prompt_version,
+        )
+    if generation_mode == "newsroom_v1_retrieval":
+        options = retrieval_options or {}
+        retrieval_bundle = _retrieve_for_entry(entry, options)
+        return generate_newsroom_retrieval_article_draft(
+            **kwargs,
+            retrieved_records=retrieval_bundle["records"],
+            retrieval_scores=retrieval_bundle["scores"],
+            retrieval_trace=retrieval_bundle["trace"],
+            input_identifier=str(entry["input_id"]),
+            git_commit=git_commit,
+            retrieval_prompt_version=str(
+                options.get(
+                    "retrieval_prompt_version",
+                    DEFAULT_RETRIEVAL_PROMPT_VERSION,
+                )
+            ),
         )
     raise BenchmarkError(f"Unsupported generation mode: {generation_mode}")
 
@@ -1822,10 +2307,32 @@ def _summary_row(response: dict[str, Any], telemetry: dict[str, Any], paths: dic
         "generation_mode": response.get("generation_mode"),
         "prompt_version": response.get("prompt_version"),
         "newsroom_profile_version": response.get("newsroom_profile_version"),
+        "retrieval_prompt_version": response.get("retrieval_prompt_version"),
+        "retrieval_index_version": _dict_value(response.get("retrieval_trace")).get(
+            "index_version"
+        ),
         "git_commit": response.get("git_commit"),
         "status": response.get("completion_status"),
         "source_title": response.get("source_title"),
         "source_language": response.get("source_language"),
+        "brief_topic": _dict_value(response.get("topic_metadata")).get(
+            "original_brief_topic"
+        ),
+        "provisional_topic": _dict_value(response.get("topic_metadata")).get(
+            "provisional_topic"
+        ),
+        "provisional_topic_confidence": _dict_value(
+            response.get("topic_metadata")
+        ).get("provisional_topic_confidence"),
+        "topic_low_confidence": _dict_value(response.get("topic_metadata")).get(
+            "topic_low_confidence"
+        ),
+        "topic_multi_category_conflict": _dict_value(
+            response.get("topic_metadata")
+        ).get("topic_multi_category_conflict"),
+        "topic_review_flag": _dict_value(response.get("topic_metadata")).get(
+            "topic_review_flag"
+        ),
         "author_id": response.get("author_id"),
         "brief_id": response.get("brief_id"),
         "plan_id": response.get("plan_id"),
@@ -1840,6 +2347,9 @@ def _summary_row(response: dict[str, Any], telemetry: dict[str, Any], paths: dic
         "readiness": response.get("readiness"),
         "unsupported_claim_count": len(_list_value(response.get("unsupported_claims"))),
         "claims_to_avoid_violation_count": len(_list_value(response.get("claims_to_avoid_violations"))),
+        "evaluation_anomaly_count": _dict_value(
+            response.get("evaluation_diagnostics")
+        ).get("anomaly_count"),
         "blocker_count": len(_list_value(response.get("blockers"))),
         "warning_count": len(_list_value(response.get("warnings"))),
         "generation_runtime_seconds": telemetry.get("generation_runtime_seconds"),
@@ -1851,6 +2361,33 @@ def _summary_row(response: dict[str, Any], telemetry: dict[str, Any], paths: dic
         "total_tokens": telemetry.get("total_tokens"),
         "attempt_count": telemetry.get("attempt_count"),
         "retry_count": telemetry.get("retry_count"),
+        "retrieval_latency_seconds": telemetry.get("retrieval_latency_seconds"),
+        "retrieval_index_load_seconds": telemetry.get(
+            "retrieval_index_load_seconds"
+        ),
+        "retrieval_model_load_seconds": telemetry.get(
+            "retrieval_model_load_seconds"
+        ),
+        "retrieved_article_ids": "|".join(
+            str(item)
+            for item in _list_value(
+                _dict_value(response.get("retrieval_trace")).get(
+                    "retrieved_article_ids"
+                )
+            )
+        ),
+        "retrieved_authors": "|".join(
+            str(item)
+            for item in _list_value(
+                _dict_value(response.get("retrieval_trace")).get("retrieved_authors")
+            )
+        ),
+        "retrieval_leakage_finding_count": _dict_value(
+            response.get("retrieval_leakage_diagnostic")
+        ).get("finding_count"),
+        "retrieval_leakage_status": _dict_value(
+            response.get("retrieval_leakage_diagnostic")
+        ).get("status"),
         "estimated_total_cost": telemetry.get("estimated_total_cost"),
         "cost_status": telemetry.get("cost_status"),
         "generation_prompt_tokens": generation_cost.get("prompt_tokens"),
@@ -1931,11 +2468,21 @@ def build_comparison_command(args: argparse.Namespace) -> None:
             DEFAULT_NEWSROOM_PROMPT_VERSION,
         )
     )
+    left_retrieval_prompt_version = _validate_retrieval_prompt_version(
+        getattr(args, "left_retrieval_prompt_version", DEFAULT_RETRIEVAL_PROMPT_VERSION)
+    )
     right_prompt_version = _validate_newsroom_prompt_version(
         getattr(
             args,
             "right_newsroom_prompt_version",
             DEFAULT_NEWSROOM_PROMPT_VERSION,
+        )
+    )
+    right_retrieval_prompt_version = _validate_retrieval_prompt_version(
+        getattr(
+            args,
+            "right_retrieval_prompt_version",
+            DEFAULT_RETRIEVAL_PROMPT_VERSION,
         )
     )
     models = [
@@ -1948,9 +2495,11 @@ def build_comparison_command(args: argparse.Namespace) -> None:
                 args.left_model,
                 left_mode,
                 newsroom_prompt_version=left_prompt_version,
+                retrieval_prompt_version=left_retrieval_prompt_version,
             ),
             left_mode,
             left_prompt_version,
+            left_retrieval_prompt_version,
         ),
         ComparisonModel(
             args.right_provider,
@@ -1961,9 +2510,11 @@ def build_comparison_command(args: argparse.Namespace) -> None:
                 args.right_model,
                 right_mode,
                 newsroom_prompt_version=right_prompt_version,
+                retrieval_prompt_version=right_retrieval_prompt_version,
             ),
             right_mode,
             right_prompt_version,
+            right_retrieval_prompt_version,
         ),
     ]
     third_provider = getattr(args, "third_provider", None)
@@ -1981,6 +2532,13 @@ def build_comparison_command(args: argparse.Namespace) -> None:
                 DEFAULT_NEWSROOM_PROMPT_VERSION,
             )
         )
+        third_retrieval_prompt_version = _validate_retrieval_prompt_version(
+            getattr(
+                args,
+                "third_retrieval_prompt_version",
+                DEFAULT_RETRIEVAL_PROMPT_VERSION,
+            )
+        )
         models.append(
             ComparisonModel(
                 third_provider,
@@ -1991,9 +2549,11 @@ def build_comparison_command(args: argparse.Namespace) -> None:
                     third_model,
                     third_mode,
                     newsroom_prompt_version=third_prompt_version,
+                    retrieval_prompt_version=third_retrieval_prompt_version,
                 ),
                 third_mode,
                 third_prompt_version,
+                third_retrieval_prompt_version,
             )
         )
     comparisons_dir = output_dir / str(
@@ -2054,6 +2614,7 @@ class ComparisonModel:
     model_dir: Path
     generation_mode: str = "legacy"
     newsroom_prompt_version: str = DEFAULT_NEWSROOM_PROMPT_VERSION
+    retrieval_prompt_version: str = DEFAULT_RETRIEVAL_PROMPT_VERSION
 
     @property
     def label(self) -> str:
@@ -3751,6 +4312,10 @@ def _list_value(value: object) -> list[Any]:
 
 def _optional_int(value: object) -> int | None:
     return value if isinstance(value, int) else None
+
+
+def _optional_string(value: object) -> str | None:
+    return str(value) if value is not None and str(value) else None
 
 
 def _display_value(value: object) -> str:

@@ -12,3 +12,4 @@ openai
 google-genai
 requests
 beautifulsoup4
+sentence-transformers==5.6.1

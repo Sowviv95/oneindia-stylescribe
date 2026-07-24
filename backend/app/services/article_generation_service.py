@@ -24,6 +24,11 @@ from backend.app.services.model_clients.openai_client import (
     OpenAIClientError,
     OpenAIJsonClient,
 )
+from backend.app.services.newsroom_retrieval_service import (
+    CandidateScore,
+    RetrievalRecord,
+    build_retrieved_examples_payload,
+)
 from backend.app.services.tamil_quality_scanner import approximate_tamil_word_count
 
 PROMPT_PATH = Path(__file__).parents[1] / "prompts" / "article_generation_prompt.txt"
@@ -33,6 +38,21 @@ SECTION_PROMPT_PATH = (
 NEWSROOM_V1_PROMPT_DIR = Path(__file__).parents[1] / "prompts" / "newsroom_v1"
 NEWSROOM_V1_PROMPT_PATH = NEWSROOM_V1_PROMPT_DIR / "runtime_prompt.txt"
 NEWSROOM_V1_METADATA_PATH = NEWSROOM_V1_PROMPT_DIR / "prompt_metadata.json"
+NEWSROOM_V1_RETRIEVAL_PROMPT_DIR = (
+    Path(__file__).parents[1] / "prompts" / "newsroom_v1_retrieval"
+)
+NEWSROOM_V1_RETRIEVAL_PROMPT_PATH = (
+    NEWSROOM_V1_RETRIEVAL_PROMPT_DIR / "runtime_prompt.txt"
+)
+NEWSROOM_V1_RETRIEVAL_METADATA_PATH = (
+    NEWSROOM_V1_RETRIEVAL_PROMPT_DIR / "prompt_metadata.json"
+)
+NEWSROOM_V1_RETRIEVAL_IMPACT_GUARD_PROMPT_PATH = (
+    NEWSROOM_V1_RETRIEVAL_PROMPT_DIR / "runtime_prompt_v1_1_impact_guard.txt"
+)
+NEWSROOM_V1_RETRIEVAL_IMPACT_GUARD_METADATA_PATH = (
+    NEWSROOM_V1_RETRIEVAL_PROMPT_DIR / "prompt_metadata_v1_1_impact_guard.json"
+)
 NEWSROOM_PROMPT_VERSION_PATHS = {
     "oneindia_newsroom_v1.0": (
         NEWSROOM_V1_PROMPT_PATH,
@@ -47,6 +67,16 @@ NEWSROOM_PROMPT_VERSION_PATHS = {
         / "prompts"
         / "newsroom_v1_1_length_calibrated"
         / "prompt_metadata.json",
+    ),
+}
+NEWSROOM_RETRIEVAL_PROMPT_VERSION_PATHS = {
+    "oneindia_newsroom_v1.0_retrieval_v1": (
+        NEWSROOM_V1_RETRIEVAL_PROMPT_PATH,
+        NEWSROOM_V1_RETRIEVAL_METADATA_PATH,
+    ),
+    "oneindia_newsroom_v1.0_retrieval_v1_1_impact_guard": (
+        NEWSROOM_V1_RETRIEVAL_IMPACT_GUARD_PROMPT_PATH,
+        NEWSROOM_V1_RETRIEVAL_IMPACT_GUARD_METADATA_PATH,
     ),
 }
 MIN_EXPECTED_SECTION_OUTPUT_WORDS = 45
@@ -267,6 +297,114 @@ def generate_newsroom_article_draft(
     except Exception as exc:
         raise ArticleGenerationError(
             "Newsroom article draft generation failed."
+        ) from exc
+
+    created_at = datetime.now(UTC).isoformat()
+    record = ArticleDraftRecord(
+        draft_id=str(uuid4()),
+        author_id=author_id,
+        profile_id=str(metadata["newsroom_profile_version"]),
+        brief_id=brief_id,
+        target_language=target_language,
+        model_provider=draft_client.provider,
+        model_name=draft_client.model_name,
+        status="completed",
+        author_instruction=author_instruction,
+        article_type=resolved_article_type,
+        desired_word_count=resolved_word_count,
+        tone_override=tone_override,
+        include_seo=include_seo,
+        draft_json=StyleScribeRepository.encode_json(draft),
+        warnings_json=StyleScribeRepository.encode_warnings(warnings),
+        created_at=created_at,
+    )
+    repo.save_article_draft(record)
+    return _draft_response(record, draft, warnings)
+
+
+def generate_newsroom_retrieval_article_draft(
+    author_id: str,
+    brief_id: str,
+    retrieved_records: list[RetrievalRecord],
+    retrieval_scores: list[CandidateScore],
+    retrieval_trace: dict[str, object],
+    author_instruction: str | None = None,
+    target_language: str = "ta",
+    article_type: str | None = None,
+    desired_word_count: int | None = None,
+    tone_override: str | None = None,
+    include_seo: bool = True,
+    plan_id: str | None = None,
+    repository: StyleScribeRepository | None = None,
+    model_client: StructuredJsonClient | None = None,
+    input_identifier: str | None = None,
+    git_commit: str | None = None,
+    retrieval_prompt_version: str = "oneindia_newsroom_v1.0_retrieval_v1",
+) -> ArticleDraftResponse:
+    """Generate a generic newsroom draft with retrieval examples."""
+
+    repo = repository or StyleScribeRepository()
+    repo.initialize_schema()
+    brief_record = repo.fetch_grounded_brief(brief_id)
+    if brief_record is None:
+        message = f"No grounded brief found for brief_id: {brief_id}"
+        raise ArticleGenerationError(message)
+    plan_record = repo.fetch_article_plan(plan_id) if plan_id else None
+    if plan_id and plan_record is None:
+        raise ArticleGenerationError(f"No article plan found for plan_id: {plan_id}")
+
+    resolved_article_type = article_type or "news"
+    resolved_word_count = desired_word_count or 600
+    warnings = _build_newsroom_warnings(
+        brief_record=brief_record,
+        target_language=target_language,
+        desired_word_count=resolved_word_count,
+    )
+    draft_client = model_client or OpenAIJsonClient(
+        missing_key_message="OPENAI_API_KEY is required for article draft generation."
+    )
+    prompt_path, _metadata_path = _newsroom_retrieval_prompt_paths(
+        retrieval_prompt_version
+    )
+    prompt = prompt_path.read_text(encoding="utf-8")
+    metadata = _newsroom_retrieval_prompt_metadata(retrieval_prompt_version)
+    user_payload = build_newsroom_retrieval_generation_input(
+        brief_record=brief_record,
+        author_instruction=author_instruction,
+        target_language=target_language,
+        article_type=resolved_article_type,
+        desired_word_count=resolved_word_count,
+        tone_override=tone_override,
+        include_seo=include_seo,
+        plan_record=plan_record,
+        prompt_metadata=metadata,
+        retrieved_records=retrieved_records,
+        retrieval_scores=retrieval_scores,
+        retrieval_trace=retrieval_trace,
+    )
+
+    try:
+        draft = _generate_structured_json(
+            draft_client,
+            prompt,
+            user_payload,
+            prompt_cache_key=_prompt_cache_key("newsroom-v1-retrieval", user_payload),
+        )
+        draft = _normalize_plan_based_draft(draft, plan_record)
+        draft = _annotate_newsroom_retrieval_generation_metadata(
+            draft,
+            prompt_metadata=metadata,
+            provider=draft_client.provider,
+            model=draft_client.model_name,
+            input_identifier=input_identifier,
+            git_commit=git_commit,
+            retrieval_trace=retrieval_trace,
+        )
+    except OpenAIClientError:
+        raise
+    except Exception as exc:
+        raise ArticleGenerationError(
+            "Newsroom retrieval article draft generation failed."
         ) from exc
 
     created_at = datetime.now(UTC).isoformat()
@@ -522,6 +660,109 @@ def build_newsroom_generation_input(
             ),
             "plan_summary": plan_record.plan_summary,
         }
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
+def build_newsroom_retrieval_generation_input(
+    brief_record: GroundedBriefRecord,
+    author_instruction: str | None,
+    target_language: str,
+    retrieved_records: list[RetrievalRecord],
+    retrieval_scores: list[CandidateScore],
+    retrieval_trace: dict[str, object],
+    article_type: str = "news",
+    desired_word_count: int = 600,
+    tone_override: str | None = None,
+    include_seo: bool = True,
+    plan_record: ArticlePlanRecord | None = None,
+    prompt_metadata: dict[str, object] | None = None,
+) -> str:
+    """Build isolated fact/editorial/retrieval input for newsroom generation."""
+
+    metadata = prompt_metadata or _newsroom_retrieval_prompt_metadata()
+    base_payload = StyleScribeRepository.decode_json_object(
+        build_newsroom_generation_input(
+            brief_record=brief_record,
+            author_instruction=author_instruction,
+            target_language=target_language,
+            article_type=article_type,
+            desired_word_count=desired_word_count,
+            tone_override=tone_override,
+            include_seo=include_seo,
+            plan_record=plan_record,
+            prompt_metadata={
+                "prompt_version": metadata["base_prompt_version"],
+                "newsroom_profile_version": metadata["newsroom_profile_version"],
+            },
+        )
+    )
+    ranking_config = _dict_value(retrieval_trace.get("ranking_configuration"))
+    max_context_chars_value = ranking_config.get("max_context_chars")
+    max_context_chars = (
+        max_context_chars_value
+        if isinstance(max_context_chars_value, int)
+        else 9000
+    )
+    payload = {
+        **base_payload,
+        "prompt_version": metadata["prompt_version"],
+        "base_prompt_version": metadata["base_prompt_version"],
+        "retrieval_prompt_version": metadata["retrieval_prompt_version"],
+        "retrieved_editorial_examples_for_structure_only": {
+            "purpose": (
+                "Editorial structure references only; not factual sources for "
+                "the current article."
+            ),
+            "examples": build_retrieved_examples_payload(
+                retrieved_records,
+                retrieval_scores,
+                max_context_chars=max_context_chars,
+            ),
+        },
+        "retrieval_factual_isolation_rules": [
+            "Do not copy facts from retrieved examples.",
+            (
+                "Do not copy names, dates, numbers, places, quotations or "
+                "events from retrieved examples."
+            ),
+            (
+                "Do not infer that facts in a retrieved example apply to the "
+                "current story."
+            ),
+            "Do not reuse distinctive wording mechanically.",
+            (
+                "Use examples only for structure, sequencing, attribution, "
+                "paragraph rhythm and background placement."
+            ),
+            (
+                "Every factual statement must be supported by "
+                "factual_source_brief."
+            ),
+            (
+                "When the brief lacks supporting detail, remain concise rather "
+                "than borrowing detail from examples."
+            ),
+        ],
+        "retrieval_trace_summary": {
+            "retrieval_mode": retrieval_trace.get("retrieval_mode"),
+            "index_version": retrieval_trace.get("index_version"),
+            "corpus_version": retrieval_trace.get("corpus_version"),
+            "retrieved_article_ids": retrieval_trace.get("retrieved_article_ids"),
+            "selected_scores": retrieval_trace.get("selected_scores"),
+        },
+    }
+    prohibited = list(_list_value(payload.get("prohibited_behaviours")))
+    prohibited.extend(
+        [
+            "Do not add facts from retrieved editorial examples.",
+            "Do not copy distinctive retrieved-example wording.",
+        ]
+    )
+    payload["prohibited_behaviours"] = prohibited
+    payload["separation_rule"] = (
+        "factual_source_brief is the only factual layer. Retrieved examples "
+        "control structure and newsroom flow only."
+    )
     return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
@@ -1712,11 +1953,33 @@ def _newsroom_prompt_metadata(
     )
 
 
+def _newsroom_retrieval_prompt_metadata(
+    retrieval_prompt_version: str = "oneindia_newsroom_v1.0_retrieval_v1",
+) -> dict[str, object]:
+    _prompt_path, metadata_path = _newsroom_retrieval_prompt_paths(
+        retrieval_prompt_version
+    )
+    return StyleScribeRepository.decode_json_object(
+        metadata_path.read_text(encoding="utf-8")
+    )
+
+
 def _newsroom_prompt_paths(newsroom_prompt_version: str) -> tuple[Path, Path]:
     paths = NEWSROOM_PROMPT_VERSION_PATHS.get(newsroom_prompt_version)
     if paths is None:
         raise ArticleGenerationError(
             f"Unsupported newsroom prompt version: {newsroom_prompt_version}"
+        )
+    return paths
+
+
+def _newsroom_retrieval_prompt_paths(
+    retrieval_prompt_version: str,
+) -> tuple[Path, Path]:
+    paths = NEWSROOM_RETRIEVAL_PROMPT_VERSION_PATHS.get(retrieval_prompt_version)
+    if paths is None:
+        raise ArticleGenerationError(
+            f"Unsupported newsroom retrieval prompt version: {retrieval_prompt_version}"
         )
     return paths
 
@@ -1755,6 +2018,50 @@ def _annotate_newsroom_generation_metadata(
         annotated["style_usage_notes"] = [
             "Used generic Oneindia Tamil newsroom v1 guidance; no author profile."
         ]
+    return annotated
+
+
+def _annotate_newsroom_retrieval_generation_metadata(
+    draft: dict[str, object],
+    *,
+    prompt_metadata: dict[str, object],
+    provider: str,
+    model: str,
+    input_identifier: str | None,
+    git_commit: str | None,
+    retrieval_trace: dict[str, object],
+) -> dict[str, object]:
+    annotated = dict(draft)
+    annotated["generation_mode"] = "newsroom_v1_retrieval"
+    annotated["generation_prompt_version"] = prompt_metadata["prompt_version"]
+    annotated["base_prompt_version"] = prompt_metadata["base_prompt_version"]
+    annotated["retrieval_prompt_version"] = prompt_metadata[
+        "retrieval_prompt_version"
+    ]
+    annotated["newsroom_profile_version"] = prompt_metadata[
+        "newsroom_profile_version"
+    ]
+    annotated["retrieval_trace"] = retrieval_trace
+    annotated["generation_metadata"] = {
+        "generation_mode": "newsroom_v1_retrieval",
+        "prompt_version": prompt_metadata["prompt_version"],
+        "base_prompt_version": prompt_metadata["base_prompt_version"],
+        "retrieval_prompt_version": prompt_metadata["retrieval_prompt_version"],
+        "provider": provider,
+        "model": model,
+        "git_commit": git_commit,
+        "newsroom_profile_version": prompt_metadata["newsroom_profile_version"],
+        "input_identifier": input_identifier,
+    }
+    notes = annotated.get("style_usage_notes")
+    retrieval_note = (
+        "Used generic Oneindia Tamil newsroom v1 retrieval guidance; retrieved "
+        "examples were structural references only."
+    )
+    if isinstance(notes, list):
+        annotated["style_usage_notes"] = [*notes, retrieval_note]
+    else:
+        annotated["style_usage_notes"] = [retrieval_note]
     return annotated
 
 

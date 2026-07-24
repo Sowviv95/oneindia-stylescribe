@@ -2,6 +2,7 @@
 from pathlib import Path
 
 from backend.app.services.newsroom_benchmark_review_service import (
+    ReviewModeSpec,
     ReviewPackConfig,
     generate_editorial_review_pack,
 )
@@ -32,6 +33,38 @@ def test_factual_coverage_marks_covered_and_omitted_claims(tmp_path: Path) -> No
     assert "source_claims_covered" in coverage
     assert "source_claims_omitted" in coverage
     assert "short_with_possible_factual_omissions" in coverage
+
+
+def test_review_pack_can_include_retrieval_comparison_arms(tmp_path: Path) -> None:
+    root = _comparison_root(tmp_path)
+    _write_response(
+        root / "newsroom_v1_retrieval_gemini_gemini_3_5_flash" / "input_01",
+        "newsroom_v1_retrieval",
+        360,
+        [
+            "A group of Indian technology companies is testing AI-powered customer support systems.",
+            "The pilot is being conducted in Tamil and Hindi.",
+        ],
+    )
+
+    paths = generate_editorial_review_pack(
+        ReviewPackConfig(
+            root,
+            extra_modes=(
+                ReviewModeSpec(
+                    "retrieval_v1",
+                    "E5 retrieval v1",
+                    "newsroom_v1_retrieval_gemini_gemini_3_5_flash",
+                ),
+            ),
+        )
+    )
+
+    sheet = paths["editorial_review_sheet_csv"].read_text(encoding="utf-8")
+    html = paths["editorial_review_html"].read_text(encoding="utf-8")
+    assert "retrieval_v1_words" in sheet
+    assert "impact_framing_concern" in sheet
+    assert "E5 retrieval v1" in html
 
 
 def _comparison_root(tmp_path: Path) -> Path:

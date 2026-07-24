@@ -1,0 +1,7 @@
+{
+  "prompt_version": "oneindia_newsroom_v1.0_retrieval_v1_1_impact_guard",
+  "base_prompt_version": "oneindia_newsroom_v1.0",
+  "newsroom_profile_version": "oneindia_tamil_generic_newsroom_sprint2",
+  "retrieval_prompt_version": "oneindia_newsroom_v1.0_retrieval_v1_1_impact_guard",
+  "supersedes_retrieval_prompt_version": "oneindia_newsroom_v1.0_retrieval_v1"
+}
